@@ -90,13 +90,18 @@ jobs:
             git add README.md README.en.md
             if [ "$(git log -1 --pretty=%s)" = "chore: refresh live stats" ]; then
               git commit -q --amend --no-edit
-              git push -q --force-with-lease origin main
-              echo "README stats: amended existing stats commit"
+              PUSH_OPTS="--force-with-lease"
             else
               git commit -qm "chore: refresh live stats"
-              git push -q origin main
-              echo "README stats: new stats commit"
+              PUSH_OPTS=""
             fi
+            # A concurrent run may win the push race — retry once via rebase,
+            # otherwise leave it to the next hourly run (never fail the job).
+            git push -q $PUSH_OPTS origin main \
+              || { git pull -q --rebase origin main \
+                   && git push -q $PUSH_OPTS origin main; } \
+              || echo "::warning::stats push lost the race — next hourly run will retry"
+            echo "README stats: refreshed"
           else
             echo "README stats: no change"
           fi
