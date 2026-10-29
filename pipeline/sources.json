@@ -1,7 +1,7 @@
 {
-  "version": 5,
+  "version": 6,
   "updated": "2026-10-30",
-  "notes": "Only live, verified, machine-readable sources — every URL was probed live before being added (HTTP: 200 + URI extraction + base64-blob decode check; Telegram: t.me/s preview must contain config URIs and have posted within the last ~40 days). Order matters: earlier sources win dedupe. A failing source never kills a run — it is reported in stats.json (sources_failed). History: v3->v4 (2026-10-30) removed repos disabled by GitHub Staff (Epodonios, soroushmirzaei, yebekhe x2, Leon406 all3/all4, iPsycho1, MrMohebi) plus dead entries flik6, tg-cfy/ConfigForYou, tg-outline/v2ray_outlinevpn; added 19 verified sources (34->50). v4->v5 (2026-10-30) expanded 50->100: +2 HTTP (miladtahanian mixed_iran 506 URIs, pornnewbee vless.txt 57) and +48 Telegram channels harvested from config-feed credit handles, Kolandone channels.json, V2RayRoot curated list and miladtahanian channels.csv, then ranked by preview URI yield (270..30 URIs each, all active within 40 days; rejected 0-URI or stale channels incl. leviconfigs, fastkanfig, configprxy, confiig_hub, CUSTOMVPNSERVER, Arshiavpn12, ConfigFori, V2RayRootFree). Total: 46 HTTP + 54 Telegram.",
+  "notes": "Only live, verified, machine-readable sources — every URL was probed live before being added (HTTP: 200 + URI extraction + base64-blob decode check; Telegram: t.me/s preview must contain config URIs and have posted within the last ~40 days). Order matters: earlier sources win dedupe. A failing source never kills a run — it is reported in stats.json (sources_failed). History: v3->v4 (2026-10-30) removed repos disabled by GitHub Staff (Epodonios, soroushmirzaei, yebekhe x2, Leon406 all3/all4, iPsycho1, MrMohebi) plus dead entries flik6, tg-cfy/ConfigForYou, tg-outline/v2ray_outlinevpn; added 19 verified sources (34->50). v4->v5 (2026-10-30) expanded 50->100: +2 HTTP (miladtahanian mixed_iran 506 URIs, pornnewbee vless.txt 57) and +48 Telegram channels harvested from config-feed credit handles, Kolandone channels.json, V2RayRoot curated list and miladtahanian channels.csv, then ranked by preview URI yield (270..30 URIs each, all active within 40 days; rejected 0-URI or stale channels incl. leviconfigs, fastkanfig, configprxy, confiig_hub, CUSTOMVPNSERVER, Arshiavpn12, ConfigFori, V2RayRootFree). Total: 46 HTTP + 54 Telegram. v5->v6 (2026-10-30) expanded 100->181: +40 Telegram channels (network-effect harvest from 44 alive previews + miladtahanian channels.csv + TGParse roster; top new: MTMVPN 98, poroxyip 81, v2raybaaz 77, nofiltering2 61, V2RAYNG_1378 45, EXPRESSVPN_420 42, Vpn_Mafia 38, prisonvpnc 33; promoted round-3 below-floor actives Net2ray/ConfigsHub/bigAVPN/Vpnbaz; rejected stale >40d: CxrolVPN, iTV2RAY, hollowcon, WebShecan, FREECONFIGSPLUS, ai_duet; rejected 0-URI/decay: ATOVPN_, MARAMB, PLANB, beepassvpn_b, nogiltering2, ripaojiedian, United, QiangLieTuiJian) and +41 HTTP feeds (new: LalatinaHub Mineral result/nodes 19k URIs, radikal heavy 6.8k + light 5.2k, MatinGhanbari filtered vmess 2.6k, tgparse-adjacent, mirza protocol splits + best, barabama, mahdibland Eternity, zy404, v2rayn-day, jeidian, v2raycheshi, yasserdivar + 19 more from Kolandone Sources.json diff; rejected 404/empty: mfuu-merge, snakem-v2ray.txt, vauth x2, mahanfix, greenfish, leon406 all3/all4, ripao tc/fly + http, pornbee cfraw, v2root-proxies, kola-proxy, sb-realm, jsnzkpg, du5, a2470-getnode). Total: 87 HTTP + 94 Telegram = 181.",
   "sources": [
     {
       "id": "bf-all",
@@ -601,6 +601,492 @@
       "id": "tg-irdusti",
       "type": "telegram",
       "channel": "irdusti",
+      "enabled": true
+    },
+    {
+      "id": "tg-mtmvpn",
+      "type": "telegram",
+      "channel": "MTMVPN",
+      "enabled": true
+    },
+    {
+      "id": "tg-v2raybaaz",
+      "type": "telegram",
+      "channel": "v2raybaaz",
+      "enabled": true
+    },
+    {
+      "id": "tg-nofiltering2",
+      "type": "telegram",
+      "channel": "nofiltering2",
+      "enabled": true
+    },
+    {
+      "id": "tg-expressvpn_420",
+      "type": "telegram",
+      "channel": "EXPRESSVPN_420",
+      "enabled": true
+    },
+    {
+      "id": "tg-vpn_mafia",
+      "type": "telegram",
+      "channel": "Vpn_Mafia",
+      "enabled": true
+    },
+    {
+      "id": "tg-prisonvpnc",
+      "type": "telegram",
+      "channel": "prisonvpnc",
+      "enabled": true
+    },
+    {
+      "id": "tg-selinc",
+      "type": "telegram",
+      "channel": "Selinc",
+      "enabled": true
+    },
+    {
+      "id": "tg-cnetvpn",
+      "type": "telegram",
+      "channel": "cnetvpn",
+      "enabled": true
+    },
+    {
+      "id": "tg-ghand_sheken",
+      "type": "telegram",
+      "channel": "ghand_sheken",
+      "enabled": true
+    },
+    {
+      "id": "tg-net2ray",
+      "type": "telegram",
+      "channel": "Net2ray",
+      "enabled": true
+    },
+    {
+      "id": "tg-proxymtpvpn",
+      "type": "telegram",
+      "channel": "ProxyMtpVPN",
+      "enabled": true
+    },
+    {
+      "id": "tg-alfred_config",
+      "type": "telegram",
+      "channel": "Alfred_Config",
+      "enabled": true
+    },
+    {
+      "id": "tg-napsternetvirani",
+      "type": "telegram",
+      "channel": "Napsternetvirani",
+      "enabled": true
+    },
+    {
+      "id": "tg-outline_ir",
+      "type": "telegram",
+      "channel": "outline_ir",
+      "enabled": true
+    },
+    {
+      "id": "tg-configshub",
+      "type": "telegram",
+      "channel": "ConfigsHub",
+      "enabled": true
+    },
+    {
+      "id": "tg-daredevill_404",
+      "type": "telegram",
+      "channel": "daredevill_404",
+      "enabled": true
+    },
+    {
+      "id": "tg-vmesc",
+      "type": "telegram",
+      "channel": "vmesc",
+      "enabled": true
+    },
+    {
+      "id": "tg-vmess_ir",
+      "type": "telegram",
+      "channel": "vmess_ir",
+      "enabled": true
+    },
+    {
+      "id": "tg-vpnbaz",
+      "type": "telegram",
+      "channel": "Vpnbaz",
+      "enabled": true
+    },
+    {
+      "id": "tg-bigavpn",
+      "type": "telegram",
+      "channel": "bigAVPN",
+      "enabled": true
+    },
+    {
+      "id": "tg-tanhanet",
+      "type": "telegram",
+      "channel": "tanhanet",
+      "enabled": true
+    },
+    {
+      "id": "tg-gozargahazad",
+      "type": "telegram",
+      "channel": "GozargahAzad",
+      "enabled": true
+    },
+    {
+      "id": "tg-netmellianti",
+      "type": "telegram",
+      "channel": "NETMelliAnti",
+      "enabled": true
+    },
+    {
+      "id": "tg-v2rayls",
+      "type": "telegram",
+      "channel": "V2rayLs",
+      "enabled": true
+    },
+    {
+      "id": "tg-sylphnet",
+      "type": "telegram",
+      "channel": "SylphNet",
+      "enabled": true
+    },
+    {
+      "id": "tg-bisto4_service",
+      "type": "telegram",
+      "channel": "bisto4_service",
+      "enabled": true
+    },
+    {
+      "id": "tg-vpnjey",
+      "type": "telegram",
+      "channel": "vpnjey",
+      "enabled": true
+    },
+    {
+      "id": "tg-maconnectt",
+      "type": "telegram",
+      "channel": "MAconnectt",
+      "enabled": true
+    },
+    {
+      "id": "tg-tehranargo",
+      "type": "telegram",
+      "channel": "TEHRANARGO",
+      "enabled": true
+    },
+    {
+      "id": "tg-ansooyefilter",
+      "type": "telegram",
+      "channel": "ansooyefilter",
+      "enabled": true
+    },
+    {
+      "id": "tg-vpncostumer",
+      "type": "telegram",
+      "channel": "VpnCostumer",
+      "enabled": true
+    },
+    {
+      "id": "tg-ehsawn8",
+      "type": "telegram",
+      "channel": "ehsawn8",
+      "enabled": true
+    },
+    {
+      "id": "tg-maznet",
+      "type": "telegram",
+      "channel": "Maznet",
+      "enabled": true
+    },
+    {
+      "id": "tg-turboconfigs",
+      "type": "telegram",
+      "channel": "TurboConfigs",
+      "enabled": true
+    },
+    {
+      "id": "tg-awlix_ir",
+      "type": "telegram",
+      "channel": "awlix_ir",
+      "enabled": true
+    },
+    {
+      "id": "tg-soonteam",
+      "type": "telegram",
+      "channel": "SoonTeam",
+      "enabled": true
+    },
+    {
+      "id": "tg-begoo_vpn",
+      "type": "telegram",
+      "channel": "Begoo_VPN",
+      "enabled": true
+    },
+    {
+      "id": "tg-poroxyip",
+      "type": "telegram",
+      "channel": "poroxyip",
+      "enabled": true
+    },
+    {
+      "id": "tg-v2rayng_1378",
+      "type": "telegram",
+      "channel": "V2RAYNG_1378",
+      "enabled": true
+    },
+    {
+      "id": "tg-anty_filter",
+      "type": "telegram",
+      "channel": "anty_filter",
+      "enabled": true
+    },
+    {
+      "id": "lalatina",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/LalatinaHub/Mineral/master/result/nodes",
+      "enabled": true
+    },
+    {
+      "id": "radikal-heavy",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/heavy/configs.txt",
+      "enabled": true
+    },
+    {
+      "id": "radikal-light",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/light/configs.txt",
+      "enabled": true
+    },
+    {
+      "id": "matin-fvmess",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/vmess.txt",
+      "enabled": true
+    },
+    {
+      "id": "matin-fvless",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/vless.txt",
+      "enabled": true
+    },
+    {
+      "id": "matin-fss",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/ss.txt",
+      "enabled": true
+    },
+    {
+      "id": "barabama",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Barabama/FreeNodes/master/nodes/merged.txt",
+      "enabled": true
+    },
+    {
+      "id": "mahdi-eternity",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity.txt",
+      "enabled": true
+    },
+    {
+      "id": "mirza-vmess",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/resasanian/Mirza/main/vmess",
+      "enabled": true
+    },
+    {
+      "id": "mirza-ssr",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/resasanian/Mirza/main/mirza-ssr.txt",
+      "enabled": true
+    },
+    {
+      "id": "mirza-vless",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/resasanian/Mirza/main/mirza-vless.txt",
+      "enabled": true
+    },
+    {
+      "id": "mirza-trojan",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/resasanian/Mirza/main/trojan",
+      "enabled": true
+    },
+    {
+      "id": "mirza-best",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/resasanian/Mirza/main/best",
+      "enabled": true
+    },
+    {
+      "id": "adiwzx",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/adiwzx/freenode/main/adispeed.txt",
+      "enabled": true
+    },
+    {
+      "id": "kwin-mix",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/mix.txt",
+      "enabled": true
+    },
+    {
+      "id": "codingbox",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/codingbox/Free-Node-Merge/main/node.txt",
+      "enabled": true
+    },
+    {
+      "id": "awesome-vpn",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/all",
+      "enabled": true
+    },
+    {
+      "id": "hsb4657",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/hsb4657/v2ray/main/lastest.txt",
+      "enabled": true
+    },
+    {
+      "id": "mkhalili",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/imohammadkhalili/V2RAY/main/Mkhalili",
+      "enabled": true
+    },
+    {
+      "id": "kola-vless",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Kolandone/v2raycollector/main/vless.txt",
+      "enabled": true
+    },
+    {
+      "id": "monday9907",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/MOnday9907/v2ray/main/v2ray.txt",
+      "enabled": true
+    },
+    {
+      "id": "v2root-hamrah",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/V2RayRoot/V2rayConfig/main/Config/HamrahAval.txt",
+      "enabled": true
+    },
+    {
+      "id": "zy404",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/ZY-404/v2ray/main/v2ray.txt",
+      "enabled": true
+    },
+    {
+      "id": "v2rayn-day",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/245237866/v2rayn/main/everydaynode",
+      "enabled": true
+    },
+    {
+      "id": "jeidian",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/chfchf0306/jeidian4.18/main/4.18",
+      "enabled": true
+    },
+    {
+      "id": "v2raycheshi",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/kaoxindalao/v2raycheshi/main/v2raycheshi",
+      "enabled": true
+    },
+    {
+      "id": "yasserdivar",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/YasserDivaR/pr0xy/main/ShadowSocks2021.txt",
+      "enabled": true
+    },
+    {
+      "id": "creativveb",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Creativveb/v2configs/main/updated",
+      "enabled": true
+    },
+    {
+      "id": "gtang8-all",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/gtang8/SubCrawler/main/sub/share/all",
+      "enabled": true
+    },
+    {
+      "id": "jiquanxiang",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/jiquanxiang/abc/main/v7",
+      "enabled": true
+    },
+    {
+      "id": "lewis-1",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx1",
+      "enabled": true
+    },
+    {
+      "id": "freerocket",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Jason05211211/Freerocket/main/freessr",
+      "enabled": true
+    },
+    {
+      "id": "baipiao02",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/baipiao0/baipiao02/main/v2ray",
+      "enabled": true
+    },
+    {
+      "id": "permalink",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/gitbigg/permalink/main/subscribe",
+      "enabled": true
+    },
+    {
+      "id": "adminaliang",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/adminaliang/v2ray/main/v2ray",
+      "enabled": true
+    },
+    {
+      "id": "ssrsub",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/RaymondHarris971/ssrsub/master/9a075bdee5.txt",
+      "enabled": true
+    },
+    {
+      "id": "freefq",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/freefq/free/master/v2",
+      "enabled": true
+    },
+    {
+      "id": "hotsymbol",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/hotsymbol/vpnsetting/master/v2rayopen",
+      "enabled": true
+    },
+    {
+      "id": "meskell",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/jikelonglie/meskell/main/meskell",
+      "enabled": true
+    },
+    {
+      "id": "learnhard",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/learnhard-cn/free_proxy_ss/main/free",
+      "enabled": true
+    },
+    {
+      "id": "lewis-2",
+      "type": "http",
+      "url": "https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx2",
       "enabled": true
     }
   ]
