@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "updated": "2026-10-30",
+  "notes": "Only live, public, machine-readable sources. Order matters: earlier sources win dedupe. Test before adding: python3 scripts/check (see CONTRIBUTING).",
+  "sources": [
+    { "id": "bf-all",      "type": "http", "url": "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/All_Configs_Sub.txt", "enabled": true },
+    { "id": "mahdi-merge", "type": "http", "url": "https://raw.githubusercontent.com/mahdibland/V2rayAggregator/master/sub/sub_merge.txt", "enabled": true },
+    { "id": "matin-all",   "type": "http", "url": "https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt", "enabled": true },
+    { "id": "ermaozi",     "type": "http", "url": "https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/v2ray.txt", "enabled": true },
+    { "id": "mahdi-eter",  "type": "http", "url": "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.txt", "enabled": true },
+    { "id": "tg-vp",       "type": "telegram", "channel": "VmessProtocol", "enabled": true },
+    { "id": "tg-pvpn",     "type": "telegram", "channel": "PrivateVPNs",   "enabled": true },
+    { "id": "tg-dvpn",     "type": "telegram", "channel": "DirectVPN",     "enabled": true },
+    { "id": "tg-cfy",      "type": "telegram", "channel": "ConfigForYou",  "enabled": true }
+  ]
+}

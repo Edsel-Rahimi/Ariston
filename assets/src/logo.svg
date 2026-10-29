@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#121B30"/>
+      <stop offset="1" stop-color="#0A0E1A"/>
+    </linearGradient>
+    <linearGradient id="dome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#00C98B"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00E5A0"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <ellipse cx="256" cy="330" rx="180" ry="130" fill="#00E5A0" opacity="0.05"/>
+
+  <!-- finial -->
+  <line x1="256" y1="198" x2="256" y2="170" stroke="#00E5A0" stroke-width="15" stroke-linecap="round"/>
+  <circle cx="256" cy="152" r="11" fill="#00E5A0"/>
+
+  <!-- dome (ab anbar vault) -->
+  <path d="M146 318 A110 110 0 0 1 366 318" fill="none" stroke="url(#dome)" stroke-width="24" stroke-linecap="round"/>
+
+  <!-- stored water: three waves inside the vault -->
+  <path d="M192 252 q16 -12 32 0 t 32 0 t 32 0 t 32 0" fill="none" stroke="url(#wave1)" stroke-width="13" stroke-linecap="round" opacity="0.95"/>
+  <path d="M176 284 q16 -12 32 0 t 32 0 t 32 0 t 32 0 t 32 0" fill="none" stroke="url(#wave1)" stroke-width="12" stroke-linecap="round" opacity="0.72"/>
+  <path d="M162 310 q16 -12 32 0 t 32 0 t 32 0 t 32 0 t 32 0 t 32 0" fill="none" stroke="url(#wave1)" stroke-width="11" stroke-linecap="round" opacity="0.48"/>
+
+  <!-- water line -->
+  <line x1="120" y1="344" x2="392" y2="344" stroke="#E9FBF4" stroke-width="19" stroke-linecap="round" opacity="0.92"/>
+  <line x1="170" y1="384" x2="342" y2="384" stroke="#E9FBF4" stroke-width="13" stroke-linecap="round" opacity="0.38"/>
+</svg>
