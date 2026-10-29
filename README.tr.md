@@ -27,13 +27,12 @@
 <!-- stats:start -->
 | | |
 |---|---|
-| 🕒 Son çalıştırma | **2026-10-29 20:50 UTC** |
-| 🧹 Temizlik | **17,219 ham → 8,771 tekil** |
-| 🧪 Canlı test | **8,713 düğüm (çift motor)** |
-| ✅ Sağlıklı | **345 (4.0%)** |
-| 🇮🇷 İran şebekelerinde | **52** |
-| 🏅 Altın / Gümüş / Bronz | **70 / 226 / 49** |
-| ⚡ Medyan gecikme | **556.1 ms** |
+| 🕒 Son çalıştırma | **2026-10-29 22:13 UTC** |
+| 🧹 Temizlik | **53,312 ham → 14,044 tekil** |
+| 🧪 Canlı test | **5,220 düğüm (çift motor)** |
+| ✅ Sağlıklı | **794 (15.2%)** |
+| 🏅 Altın / Gümüş / Bronz | **76 / 601 / 117** |
+| ⚡ Medyan gecikme | **573.0 ms** |
 <!-- stats:end -->
 
 ## ⚡ Hemen başla — bir satırı kopyala

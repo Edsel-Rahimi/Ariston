@@ -27,12 +27,12 @@
 <!-- stats:start -->
 | | |
 |---|---|
-| 🕒 Last run | **2026-10-29 21:39 UTC** |
-| 🧹 Cleanup | **17,219 raw → 8,755 unique** |
-| 🧪 Live-tested | **8,697 nodes (dual-engine)** |
-| ✅ Healthy | **386 (4.4%)** |
-| 🏅 Gold / Silver / Bronze | **67 / 260 / 59** |
-| ⚡ Median latency | **557.7 ms** |
+| 🕒 Last run | **2026-10-29 22:13 UTC** |
+| 🧹 Cleanup | **53,312 raw → 14,044 unique** |
+| 🧪 Live-tested | **5,220 nodes (dual-engine)** |
+| ✅ Healthy | **794 (15.2%)** |
+| 🏅 Gold / Silver / Bronze | **76 / 601 / 117** |
+| ⚡ Median latency | **573.0 ms** |
 <!-- stats:end -->
 
 ## ⚡ Start here — copy one line
