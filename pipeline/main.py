@@ -177,11 +177,7 @@ def cmd_run(skip_validation: bool = False) -> int:
     table = G.load_table()
     geo = G.classify(uniq, table)
     stats["operators"] = geo["stats"]
-    alive_set = {r["uri"] for r in rows if r["alive"]} or set(uniq)   # fallback: all
-    files_geo = {slug: {"label": d["label"],
-                        "uris": [u for u in d["uris"] if u in alive_set]}
-                 for slug, d in geo["by_slug"].items()}
-    P.publish_operators(DIST, files_geo)
+    P.publish_operators(DIST, geo["by_slug"])          # all classified (like by-protocol)
 
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)

@@ -96,7 +96,8 @@ def _fmt_num(n: int) -> str:
 
 def publish_operators(dist: Path, by_slug: dict) -> None:
     """Iranian-operator split (Phase 3).  Stable set of files, possibly empty:
-    by-operator/<slug>.txt with only ALIVE endpoints, best score first."""
+    by-operator/<slug>.txt with every classified endpoint (all uniques,
+    mirroring by-protocol) — consumers cross-check aliveness themselves."""
     op_dir = dist / "by-operator"
     op_dir.mkdir(exist_ok=True)
     for slug in ["tci", "mci", "irancell", "rightel", "shatel", "mobinnet",
