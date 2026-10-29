@@ -27,12 +27,12 @@
 <!-- stats:start -->
 | | |
 |---|---|
-| 🕒 Son çalıştırma | **2026-10-29 22:39 UTC** |
-| 🧹 Temizlik | **58,693 ham → 14,308 tekil** |
-| 🧪 Canlı test | **5,379 düğüm (çift motor)** |
-| ✅ Sağlıklı | **824 (15.3%)** |
-| 🏅 Altın / Gümüş / Bronz | **84 / 657 / 83** |
-| ⚡ Medyan gecikme | **574.9 ms** |
+| 🕒 Son çalıştırma | **2026-10-30 07:58 UTC** |
+| 🧹 Temizlik | **98,498 ham → 30,702 tekil** |
+| 🧪 Canlı test | **13,675 düğüm (çift motor)** |
+| ✅ Sağlıklı | **821 (6.0%)** |
+| 🏅 Altın / Gümüş / Bronz | **147 / 584 / 90** |
+| ⚡ Medyan gecikme | **589.0 ms** |
 <!-- stats:end -->
 
 ## ⚡ Hemen başla — bir satırı kopyala
