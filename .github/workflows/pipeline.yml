@@ -1,0 +1,50 @@
+name: pipeline
+
+on:
+  schedule:
+    - cron: "7 * * * *"        # hourly, at :07 past the hour
+  workflow_dispatch: {}        # manual trigger button
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run collector
+        run: python -m pipeline.main collect
+
+      - name: Upload debug artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dist
+          path: dist
+          retention-days: 5
+
+      # Publish to the `data` branch with a force-push: the branch always
+      # holds exactly one snapshot commit, so history never bloats.
+      - name: Publish to data branch
+        run: |
+          cd dist
+          git init -q -b data
+          git config user.name  "ariston-bot"
+          git config user.email "ariston-bot@users.noreply.github.com"
+          git add .
+          git commit -qm "snapshot $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push -q --force origin data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
