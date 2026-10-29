@@ -8,6 +8,10 @@ venv/
 # Generated output (published to the `data` branch by CI)
 dist/
 
+# Engine binaries (fetched per-run by CI, cached)
+bin/
+engines/
+
 # OS / editor
 .DS_Store
 Thumbs.db

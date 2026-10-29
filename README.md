@@ -20,14 +20,14 @@
 > **مخزنِ گره‌های سالم — هر ساعت پالایش می‌شود**
 > *A continuously-validated pool of healthy network endpoints*
 
-**آریستون** یک پروژه‌ی داده‌ای و متن‌باز است: گره‌های عمومیِ منتشرشده در منابع مختلف را جمع‌آوری، استانداردسازی، حذف تکراری و — به‌زودی — هر ساعت به‌صورت خودکار **تست و امتیازدهی** می‌کند. خروجی، فایل‌هایی تمیز و همیشه‌تازه در چند فرمت است که مستقیم داخل اپ‌های محبوب شما import می‌شود.
+**آریستون** یک پروژه‌ی داده‌ای و متن‌باز است: گره‌های عمومیِ منتشرشده در منابع مختلف را جمع‌آوری، استانداردسازی، حذف تکراری و هر ساعت به‌صورت خودکار **تستِ زنده و امتیازدهی** می‌کند. خروجی، فایل‌هایی تمیز و همیشه‌تازه در چند فرمت است که مستقیم داخل اپ‌های محبوب شما import می‌شود.
 
 | | |
 |---|---|
 | ⏱️ **هر ساعت** | جمع‌آوری خودکار از منابع عمومی |
 | 🧹 **پالایش** | حذف تکراری‌ها در دو سطح (آدرس کامل + هویت سرور) |
-| 🧪 **تست دو-موتوره** | xray-core + sing-box — هیچ گره‌ای بدون تست نمی‌ماند *(در حال ساخت)* |
-| 📊 **امتیاز و رده** | Gold / Silver / Bronze بر اساس تأخیر، موفقیت و تازگی *(به‌زودی)* |
+| 🧪 **تست دو-موتوره** | xray-core + sing-box — هر گره واقعاً بالا می‌آید و `generate_204` جواب می‌گیرد |
+| 📊 **امتیاز و رده** | Gold / Silver / Bronze بر اساس تأخیر، موفقیت و تازگی |
 | 🛡️ **ضد تاریخی‌شدن** | شاخه‌ی `data` هر بار force-push می‌شود؛ تاریخچه‌ی ریپو هرگز باد نمی‌کند |
 | 💸 **صفر تومن** | تمام زیرساخت روی GitHub Actions — بدون سرور، بدون هزینه |
 
@@ -45,6 +45,9 @@
 |---|---|---|
 | [`nodes.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | همه‌ی گره‌های یکتا — هر خط یک آدرس | Hiddify · NekoBox · Streisand · اکثر اپ‌ها |
 | [`nodes.b64`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) | نسخه‌ی base64 یکجا | v2rayNG · V2rayN |
+| [`validated.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | فقط گره‌هایی که همین حالا تست زنده را پاس کردند — مرتب بر اساس امتیاز | بهترین نسبت کیفیت به حجم |
+| [`gold.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | فقط رده‌ی Gold (امتیاز ≥ ۸۰) — سریع‌ترین‌ها | وقتی فقط بهترین‌ها را می‌خواهید |
+| [`silver.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | رده‌ی Silver (امتیاز ≥ ۵۵) | تنوع بیشتر با کیفیت خوب |
 | [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | جدا شده بر اساس پروتکل | وقتی فقط یک نوع می‌خواهید |
 | [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | آمار کامل آخرین اجرا | توسعه‌دهنده‌ها |
 

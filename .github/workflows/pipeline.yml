@@ -12,10 +12,14 @@ concurrency:
   group: pipeline
   cancel-in-progress: false
 
+env:
+  XRAY_VERSION: "26.10.29"
+  SINGBOX_VERSION: "1.14.4"
+
 jobs:
-  collect:
+  pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -23,8 +27,42 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run collector
-        run: python -m pipeline.main collect
+      - name: Fetch previous health history
+        run: |
+          mkdir -p dist
+          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/results.json" \
+            -o dist/results.json || echo "no history yet — first run"
+
+      - name: Restore engines
+        id: engines
+        uses: actions/cache@v4
+        with:
+          path: bin
+          key: engines-xray-${{ env.XRAY_VERSION }}-sb-${{ env.SINGBOX_VERSION }}
+
+      - name: Fetch engines (pinned)
+        if: steps.engines.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p bin
+          curl -fsSL -o /tmp/xray.zip \
+            "https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/Xray-linux-64.zip"
+          unzip -oq /tmp/xray.zip xray -d bin
+          curl -fsSL -o /tmp/sb.tgz \
+            "https://github.com/SagerNet/sing-box/releases/download/v${SINGBOX_VERSION}/sing-box-${SINGBOX_VERSION}-linux-amd64.tar.gz"
+          tar -xzf /tmp/sb.tgz -C /tmp
+          mv "/tmp/sing-box-${SINGBOX_VERSION}-linux-amd64/sing-box" bin/
+          chmod +x bin/xray bin/sing-box
+
+      - name: Verify engines
+        run: bin/xray version | head -1 && bin/sing-box version | head -1
+
+      - name: Run pipeline (collect + validate + score)
+        env:
+          ARISTON_XRAY: ${{ github.workspace }}/bin/xray
+          ARISTON_SINGBOX: ${{ github.workspace }}/bin/sing-box
+          ARISTON_CONCURRENCY: "72"
+          ARISTON_TIMEOUT: "4.5"
+        run: python -m pipeline.main run
 
       - name: Upload debug artifact
         uses: actions/upload-artifact@v4

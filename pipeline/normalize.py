@@ -107,8 +107,9 @@ def _canonical_ss(uri: str) -> tuple[str, str] | None:
     if not host or not port:
         return None
     enc_user = base64.b64encode(userinfo.encode()).decode().rstrip("=")
+    hostpart = f"[{host}]" if ":" in host else host    # bracket IPv6 hosts
     qs = urlencode(sorted(parse_qsl(query, keep_blank_values=True)), safe=":/@")
-    canon = f"ss://{enc_user}@{host}:{port}" + (f"?{qs}" if qs else "")
+    canon = f"ss://{enc_user}@{hostpart}:{port}" + (f"?{qs}" if qs else "")
     return canon, f"ss|{host}|{port}"
 
 

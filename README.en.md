@@ -25,8 +25,8 @@
 |---|---|
 | ⏱️ **Hourly** | automated collection from public sources |
 | 🧹 **Cleaned** | two-level dedupe (exact address + server identity) |
-| 🧪 **Dual-engine testing** | xray-core + sing-box — nothing goes untested *(in progress)* |
-| 📊 **Scored & tiered** | Gold / Silver / Bronze by latency, success and freshness *(soon)* |
+| 🧪 **Dual-engine testing** | xray-core + sing-box — every node is booted and answers `generate_204` |
+| 📊 **Scored & tiered** | Gold / Silver / Bronze by latency, success and freshness |
 | 🛡️ **Anti-bloat** | the `data` branch is force-pushed; repo history never grows |
 | 💸 **$0 infra** | everything runs on GitHub Actions — no servers, no cost |
 
@@ -42,6 +42,9 @@ In ancient Greek, **Ariston** means *"the best"*. That is the whole mission in o
 |---|---|---|
 | [`nodes.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | all unique nodes, one URI per line | Hiddify · NekoBox · Streisand · most clients |
 | [`nodes.b64`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) | base64 single-file bundle | v2rayNG · V2rayN |
+| [`validated.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | only nodes that passed a live test right now, best score first | best quality-per-byte |
+| [`gold.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | Gold tier only (score ≥ 80) — the fastest | when you want just the best |
+| [`silver.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | Silver tier (score ≥ 55) | more variety, still solid |
 | [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | split per protocol | when you only need one type |
 | [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | full stats of the last run | developers |
 
