@@ -31,6 +31,14 @@
 | 🛡️ **ضد تاریخی‌شدن** | شاخه‌ی `data` هر بار force-push می‌شود؛ تاریخچه‌ی ریپو هرگز باد نمی‌کند |
 | 💸 **صفر تومن** | تمام زیرساخت روی GitHub Actions — بدون سرور، بدون هزینه |
 
+<!-- stats:start -->
+| | |
+|---|---|
+| 🕒 آخرین اجرا | اولین اجرا در راه است… |
+| 🧪 تست زنده | دو موتور xray + sing-box، هر ساعت |
+| 🏅 رده‌بندی | طلا / نقره / برنز |
+<!-- stats:end -->
+
 ## 🧭 چرا آریستون؟
 
 در یونان باستان، **Ariston** یعنی «بهترین». هدف همین یک کلمه است: ساختن **بهترین** مخزن داده‌ای در نوع خودش — تمیزتر، تازه‌تر و شفاف‌تر از هر چیز موجود.
@@ -48,6 +56,8 @@
 | [`validated.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | فقط گره‌هایی که همین حالا تست زنده را پاس کردند — مرتب بر اساس امتیاز | بهترین نسبت کیفیت به حجم |
 | [`gold.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | فقط رده‌ی Gold (امتیاز ≥ ۸۰) — سریع‌ترین‌ها | وقتی فقط بهترین‌ها را می‌خواهید |
 | [`silver.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | رده‌ی Silver (امتیاز ≥ ۵۵) | تنوع بیشتر با کیفیت خوب |
+| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | پیکربندی کامل آماده‌ی Mihomo (Clash.Meta) — گروه خودکارِ بهترین‌ها | Mihomo · Clash.Meta · Clash Verge |
+| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | پیکربندی کامل آماده‌ی sing-box — سلکتور + انتخابگر خودکار | SFA · SFI · sing-box دسکتاپ |
 | [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | جدا شده بر اساس پروتکل | وقتی فقط یک نوع می‌خواهید |
 | [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | آمار کامل آخرین اجرا | توسعه‌دهنده‌ها |
 

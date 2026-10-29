@@ -9,8 +9,11 @@ snapshot commit):
   validated.txt / .b64           only endpoints proven alive, best score first
   gold.txt / .b64                tier gold   (score >= 80)
   silver.txt / .b64              tier silver (score >= 55)
+  mihomo.yaml                    full Mihomo (Clash.Meta) client config
+  singbox.json                   full sing-box client config
   results.json                   rolling health history (feeds the next run)
   stats.json                     machine-readable run stats
+  readme-stats(-en).md           fragment injected into the READMEs on main
 """
 
 from __future__ import annotations
@@ -18,6 +21,8 @@ from __future__ import annotations
 import base64
 import json
 from pathlib import Path
+
+from . import exports as E
 
 
 def write_b64(path: Path, text: str) -> None:
@@ -67,3 +72,53 @@ def publish_tiers(dist: Path, rows: list[dict]) -> None:
         text = "\n".join(r["uri"] for r in selected) + "\n"
         (dist / f"{name}.txt").write_text(text, encoding="utf-8")
         write_b64(dist / f"{name}.b64", text)
+
+
+def publish_clients(dist: Path, rows: list[dict]) -> dict:
+    """Ready-to-import client configs (Mihomo / Clash.Meta + sing-box).
+    Built from live-tested endpoints best-first; falls back to the full
+    ranked list when validation was skipped."""
+    dist.mkdir(exist_ok=True)
+    selected = [r for r in rows if r["alive"]] or rows
+    ranked = sorted(selected, key=lambda r: -r["score"])
+    report = {}
+    yaml_text, report["mihomo"] = E.to_mihomo(ranked)
+    (dist / "mihomo.yaml").write_text(yaml_text, encoding="utf-8")
+    sb_text, report["singbox"] = E.to_singbox(ranked)
+    (dist / "singbox.json").write_text(sb_text, encoding="utf-8")
+    return report
+
+
+def _fmt_num(n: int) -> str:
+    return f"{n:,}"
+
+
+def render_stats_markdown(stats: dict, lang: str = "fa") -> str:
+    """Small markdown fragment injected into the READMEs between markers."""
+    v = stats.get("validation") or {}
+    sc = stats.get("scoring") or {}
+    lat = (v.get("latency_ms") or {}) if not v.get("skipped") else {}
+    alive = v.get("alive", 0)
+    probed = v.get("probed", 0)
+    rate = f"{100.0 * alive / probed:.1f}%" if probed else "—"
+    ts = (stats.get("generated_at") or "").replace("T", " ")[:16]
+    if lang == "fa":
+        rows = [
+            ("🕒 آخرین اجرا", ts + " UTC"),
+            ("🧹 پالایش", f"{stats.get('raw', 0):,} خام ← {stats.get('unique', 0):,} یکتا"),
+            ("🧪 تست زنده", f"{probed:,} گره دو-موتوره"),
+            ("✅ سالم", f"{alive:,} ({rate})"),
+            ("🏅 طلا / نقره / برنز", f"{sc.get('gold', 0)} / {sc.get('silver', 0)} / {sc.get('bronze', 0)}"),
+            ("⚡ تأخیر میانه", (f"{lat.get('p50')} ms" if lat.get('p50') is not None else "—")),
+        ]
+    else:
+        rows = [
+            ("🕒 Last run", ts + " UTC"),
+            ("🧹 Cleanup", f"{stats.get('raw', 0):,} raw → {stats.get('unique', 0):,} unique"),
+            ("🧪 Live-tested", f"{probed:,} nodes (dual-engine)"),
+            ("✅ Healthy", f"{alive:,} ({rate})"),
+            ("🏅 Gold / Silver / Bronze", f"{sc.get('gold', 0)} / {sc.get('silver', 0)} / {sc.get('bronze', 0)}"),
+            ("⚡ Median latency", (f"{lat.get('p50')} ms" if lat.get('p50') is not None else "—")),
+        ]
+    lines = ["| | |", "|---|---|"] + [f"| {k} | **{v}** |" for k, v in rows]
+    return "\n".join(lines)

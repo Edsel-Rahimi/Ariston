@@ -30,6 +30,14 @@
 | 🛡️ **Anti-bloat** | the `data` branch is force-pushed; repo history never grows |
 | 💸 **$0 infra** | everything runs on GitHub Actions — no servers, no cost |
 
+<!-- stats:start -->
+| | |
+|---|---|
+| 🕒 Last run | first run incoming… |
+| 🧪 Live-tested | dual-engine (xray + sing-box), hourly |
+| 🏅 Tiers | gold / silver / bronze |
+<!-- stats:end -->
+
 ## Why the name?
 
 In ancient Greek, **Ariston** means *"the best"*. That is the whole mission in one word: build the cleanest, freshest and most transparent data repository of its kind. The common pain with similar repositories: huge files full of dead and duplicated entries, history bloat of tens of thousands of commits, and zero insight into *what actually works*. Ariston is built to fix exactly these three — and its emblem, inspired by flowing water and purification, reflects the idea of clean data, always in motion.
@@ -45,6 +53,8 @@ In ancient Greek, **Ariston** means *"the best"*. That is the whole mission in o
 | [`validated.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | only nodes that passed a live test right now, best score first | best quality-per-byte |
 | [`gold.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | Gold tier only (score ≥ 80) — the fastest | when you want just the best |
 | [`silver.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | Silver tier (score ≥ 55) | more variety, still solid |
+| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | ready-to-import full Mihomo (Clash.Meta) config with an auto-best group | Mihomo · Clash.Meta · Clash Verge |
+| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | ready-to-import full sing-box config with selector + urltest | SFA · SFI · desktop sing-box |
 | [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | split per protocol | when you only need one type |
 | [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | full stats of the last run | developers |
 

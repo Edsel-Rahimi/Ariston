@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # full main history — needed for the stats amend step
 
       - uses: actions/setup-python@v5
         with:
@@ -63,6 +65,41 @@ jobs:
           ARISTON_CONCURRENCY: "72"
           ARISTON_TIMEOUT: "4.5"
         run: python -m pipeline.main run
+
+      # Live stats between the markers in both READMEs. To keep main's
+      # history flat, the run amends the bot's own previous stats commit
+      # when it is HEAD (force-with-lease keeps this race-safe).
+      - name: Refresh README stats
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          def inject(md_path, frag_path):
+              md = Path(md_path)
+              frag = Path(frag_path).read_text(encoding="utf-8").rstrip()
+              text = md.read_text(encoding="utf-8")
+              s = text.index("<!-- stats:start -->")
+              e = text.index("<!-- stats:end -->") + len("<!-- stats:end -->")
+              md.write_text(text[:s] + "<!-- stats:start -->\n" + frag + "\n<!-- stats:end -->" + text[e:], encoding="utf-8")
+          inject("README.md", "dist/readme-stats.md")
+          inject("README.en.md", "dist/readme-stats-en.md")
+          print("README stats injected")
+          PY
+          if ! git diff --quiet README.md README.en.md; then
+            git config user.name  "ariston-bot"
+            git config user.email "ariston-bot@users.noreply.github.com"
+            git add README.md README.en.md
+            if [ "$(git log -1 --pretty=%s)" = "chore: refresh live stats" ]; then
+              git commit -q --amend --no-edit
+              git push -q --force-with-lease origin main
+              echo "README stats: amended existing stats commit"
+            else
+              git commit -qm "chore: refresh live stats"
+              git push -q origin main
+              echo "README stats: new stats commit"
+            fi
+          else
+            echo "README stats: no change"
+          fi
 
       - name: Upload debug artifact
         uses: actions/upload-artifact@v4

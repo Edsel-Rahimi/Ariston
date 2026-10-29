@@ -168,6 +168,9 @@ def cmd_run(skip_validation: bool = False) -> int:
     print("[4/4] writing outputs ...")
     P.publish_master(DIST, uniq)
     P.publish_tiers(DIST, rows)
+    stats["clients"] = P.publish_clients(DIST, rows)
+    (DIST / "readme-stats.md").write_text(P.render_stats_markdown(stats, "fa"), encoding="utf-8")
+    (DIST / "readme-stats-en.md").write_text(P.render_stats_markdown(stats, "en"), encoding="utf-8")
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)
     _print_summary(stats)
@@ -195,6 +198,12 @@ def _print_summary(stats: dict) -> None:
             print(f"  top fail reasons: {top}")
     elif v:
         print(f"  validation skipped ({v.get('reason')})")
+    cl = stats.get("clients") or {}
+    if cl:
+        print(f"  clients: mihomo {cl.get('mihomo', {}).get('built')} proxies "
+              f"(skipped {cl.get('mihomo', {}).get('skipped')}) · "
+              f"singbox {cl.get('singbox', {}).get('built')} outbounds "
+              f"(skipped {cl.get('singbox', {}).get('skipped')})")
     if stats.get("sources_failed"):
         print(f"  failed sources: {stats['sources_failed']}")
     print(f"  outputs → {DIST}")
