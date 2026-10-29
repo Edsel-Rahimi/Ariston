@@ -35,9 +35,12 @@
 <!-- stats:start -->
 | | |
 |---|---|
-| 🕒 Last run | first run incoming… |
-| 🧪 Live-tested | dual-engine (xray + sing-box), hourly |
-| 🏅 Tiers | gold / silver / bronze |
+| 🕒 Last run | **2026-10-29 20:45 UTC** |
+| 🧹 Cleanup | **17,219 raw → 8,771 unique** |
+| 🧪 Live-tested | **8,713 nodes (dual-engine)** |
+| ✅ Healthy | **347 (4.0%)** |
+| 🏅 Gold / Silver / Bronze | **54 / 234 / 59** |
+| ⚡ Median latency | **662.7 ms** |
 <!-- stats:end -->
 
 ## Why the name?
