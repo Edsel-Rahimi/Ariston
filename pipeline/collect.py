@@ -6,6 +6,7 @@ web previews) and extracts endpoint URIs.  Standard library only.
 
 from __future__ import annotations
 
+import os
 import re
 import ssl
 import urllib.request
@@ -15,7 +16,10 @@ UA = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 )
-TIMEOUT = 25
+TIMEOUT = float(os.environ.get("ARISTON_FETCH_TIMEOUT", "35"))
+# Large aggregators publish 5-20 MB text files — the old 2 MB cap silently
+# truncated them (we only parsed a fraction of what they ship).
+MAX_BYTES = int(os.environ.get("ARISTON_FETCH_MAX_BYTES", str(32 * 1024 * 1024)))
 SCHEME_RE = r"(?:vmess|vless|trojan|ss|ssr|hysteria2?|hy2|tuic)"
 URI_RE = re.compile(SCHEME_RE + r"://[^\s<>\"'\\]+", re.IGNORECASE)
 TIMEOUT_RE = re.compile(r"https?://t\.me/\S+", re.IGNORECASE)
@@ -25,7 +29,7 @@ def _fetch(url: str) -> str:
     """GET a URL and return decoded text. Raises on any failure."""
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=TIMEOUT, context=ssl.create_default_context()) as resp:
-        return resp.read(2_000_000).decode("utf-8", "replace")
+        return resp.read(MAX_BYTES).decode("utf-8", "replace")
 
 
 def _clean(uri: str) -> str:

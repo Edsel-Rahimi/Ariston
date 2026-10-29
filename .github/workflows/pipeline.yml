@@ -64,15 +64,32 @@ jobs:
           ARISTON_SINGBOX: ${{ github.workspace }}/bin/sing-box
           ARISTON_CONCURRENCY: "72"
           ARISTON_TIMEOUT: "4.5"
+          ARISTON_TCP_CONCURRENCY: "256"
+          ARISTON_TCP_TIMEOUT: "2.0"
         run: python -m pipeline.main run
 
-      # Live stats between the markers in both READMEs. To keep main's
-      # history flat, the run amends the bot's own previous stats commit
-      # when it is HEAD (force-with-lease keeps this race-safe).
+      # Regenerate the live SVG assets: premium stat cards + QR subscribe
+      # cards.  Committed to main together with the README stats below, so
+      # the images inside the README always match the latest run.
+      - name: Generate live assets
+        run: |
+          pip install -q qrcode
+          python -m pipeline.assets_gen
+
+      # Live stats between the markers in all five READMEs (fa/en/tr/ru/zh).
+      # To keep main's history flat, the run amends the bot's own previous
+      # stats commit when it is HEAD (force-with-lease keeps this race-safe).
       - name: Refresh README stats
         run: |
           python - <<'PY'
           from pathlib import Path
+          FILES = [
+              ("README.md",      "dist/readme-stats.md"),
+              ("README.en.md",   "dist/readme-stats-en.md"),
+              ("README.tr.md",   "dist/readme-stats-tr.md"),
+              ("README.ru.md",   "dist/readme-stats-ru.md"),
+              ("README.zh.md",   "dist/readme-stats-zh.md"),
+          ]
           def inject(md_path, frag_path):
               md = Path(md_path)
               frag = Path(frag_path).read_text(encoding="utf-8").rstrip()
@@ -80,14 +97,16 @@ jobs:
               s = text.index("<!-- stats:start -->")
               e = text.index("<!-- stats:end -->") + len("<!-- stats:end -->")
               md.write_text(text[:s] + "<!-- stats:start -->\n" + frag + "\n<!-- stats:end -->" + text[e:], encoding="utf-8")
-          inject("README.md", "dist/readme-stats.md")
-          inject("README.en.md", "dist/readme-stats-en.md")
-          print("README stats injected")
+          for md, frag in FILES:
+              inject(md, frag)
+          print("README stats injected (5 languages)")
           PY
-          if ! git diff --quiet README.md README.en.md; then
+          TRACKED="README.md README.en.md README.tr.md README.ru.md README.zh.md \
+                   assets/stats.svg assets/qr-gold.svg assets/qr-validated.svg assets/qr-nodes.svg"
+          if ! git diff --quiet -- $TRACKED; then
             git config user.name  "ariston-bot"
             git config user.email "ariston-bot@users.noreply.github.com"
-            git add README.md README.en.md
+            git add $TRACKED
             if [ "$(git log -1 --pretty=%s)" = "chore: refresh live stats" ]; then
               git commit -q --amend --no-edit
               PUSH_OPTS="--force-with-lease"

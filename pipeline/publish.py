@@ -107,8 +107,44 @@ def publish_operators(dist: Path, by_slug: dict) -> None:
         (op_dir / f"{slug}.txt").write_text(text, encoding="utf-8")
 
 
+# Localised stat-table labels — one entry per README language.
+STATS_LABELS: dict[str, dict[str, str]] = {
+    "fa": {
+        "last": "🕒 آخرین اجرا", "clean": "🧹 پالایش", "tested": "🧪 تست زنده",
+        "healthy": "✅ سالم", "ir": "🇮🇷 روی شبکه‌های ایران",
+        "tiers": "🏅 طلا / نقره / برنز", "median": "⚡ تأخیر میانه",
+        "clean_v": "{raw} خام ← {uniq} یکتا", "tested_v": "{n} گره دو-موتوره",
+    },
+    "en": {
+        "last": "🕒 Last run", "clean": "🧹 Cleanup", "tested": "🧪 Live-tested",
+        "healthy": "✅ Healthy", "ir": "🇮🇷 On Iranian networks",
+        "tiers": "🏅 Gold / Silver / Bronze", "median": "⚡ Median latency",
+        "clean_v": "{raw} raw → {uniq} unique", "tested_v": "{n} nodes (dual-engine)",
+    },
+    "tr": {
+        "last": "🕒 Son çalıştırma", "clean": "🧹 Temizlik", "tested": "🧪 Canlı test",
+        "healthy": "✅ Sağlıklı", "ir": "🇮🇷 İran şebekelerinde",
+        "tiers": "🏅 Altın / Gümüş / Bronz", "median": "⚡ Medyan gecikme",
+        "clean_v": "{raw} ham → {uniq} tekil", "tested_v": "{n} düğüm (çift motor)",
+    },
+    "ru": {
+        "last": "🕒 Последний запуск", "clean": "🧹 Очистка", "tested": "🧪 Живая проверка",
+        "healthy": "✅ Работают", "ir": "🇮🇷 В иранских сетях",
+        "tiers": "🏅 Золото / Серебро / Бронза", "median": "⚡ Медианная задержка",
+        "clean_v": "{raw} сырых → {uniq} уникальных", "tested_v": "{n} узлов (два движка)",
+    },
+    "zh": {
+        "last": "🕒 最近运行", "clean": "🧹 清洗", "tested": "🧪 实测",
+        "healthy": "✅ 可用", "ir": "🇮🇷 位于伊朗网络",
+        "tiers": "🏅 金 / 银 / 铜", "median": "⚡ 中位延迟",
+        "clean_v": "{raw} 原始 → {uniq} 唯一", "tested_v": "{n} 个节点（双引擎）",
+    },
+}
+
+
 def render_stats_markdown(stats: dict, lang: str = "fa") -> str:
     """Small markdown fragment injected into the READMEs between markers."""
+    L = STATS_LABELS.get(lang, STATS_LABELS["en"])
     v = stats.get("validation") or {}
     sc = stats.get("scoring") or {}
     lat = (v.get("latency_ms") or {}) if not v.get("skipped") else {}
@@ -116,23 +152,18 @@ def render_stats_markdown(stats: dict, lang: str = "fa") -> str:
     probed = v.get("probed", 0)
     rate = f"{100.0 * alive / probed:.1f}%" if probed else "—"
     ts = (stats.get("generated_at") or "").replace("T", " ")[:16]
-    if lang == "fa":
-        rows = [
-            ("🕒 آخرین اجرا", ts + " UTC"),
-            ("🧹 پالایش", f"{stats.get('raw', 0):,} خام ← {stats.get('unique', 0):,} یکتا"),
-            ("🧪 تست زنده", f"{probed:,} گره دو-موتوره"),
-            ("✅ سالم", f"{alive:,} ({rate})"),
-            ("🏅 طلا / نقره / برنز", f"{sc.get('gold', 0)} / {sc.get('silver', 0)} / {sc.get('bronze', 0)}"),
-            ("⚡ تأخیر میانه", (f"{lat.get('p50')} ms" if lat.get('p50') is not None else "—")),
-        ]
-    else:
-        rows = [
-            ("🕒 Last run", ts + " UTC"),
-            ("🧹 Cleanup", f"{stats.get('raw', 0):,} raw → {stats.get('unique', 0):,} unique"),
-            ("🧪 Live-tested", f"{probed:,} nodes (dual-engine)"),
-            ("✅ Healthy", f"{alive:,} ({rate})"),
-            ("🏅 Gold / Silver / Bronze", f"{sc.get('gold', 0)} / {sc.get('silver', 0)} / {sc.get('bronze', 0)}"),
-            ("⚡ Median latency", (f"{lat.get('p50')} ms" if lat.get('p50') is not None else "—")),
-        ]
-    lines = ["| | |", "|---|---|"] + [f"| {k} | **{v}** |" for k, v in rows]
+    ir = (stats.get("operators") or {}).get("classified_iran")
+    clean_v = L["clean_v"].format(raw=f"{stats.get('raw', 0):,}", uniq=f"{stats.get('unique', 0):,}")
+    tested_v = L["tested_v"].format(n=f"{probed:,}")
+    rows = [
+        (L["last"], ts + " UTC"),
+        (L["clean"], clean_v),
+        (L["tested"], tested_v),
+        (L["healthy"], f"{alive:,} ({rate})"),
+        (L["tiers"], f"{sc.get('gold', 0)} / {sc.get('silver', 0)} / {sc.get('bronze', 0)}"),
+        (L["median"], (f"{lat.get('p50')} ms" if lat.get('p50') is not None else "—")),
+    ]
+    if ir is not None:
+        rows.insert(4, (L["ir"], f"{ir:,}"))
+    lines = ["| | |", "|---|---|"] + [f"| {k} | **{val}** |" for k, val in rows]
     return "\n".join(lines)

@@ -157,7 +157,17 @@ def cmd_run(skip_validation: bool = False) -> int:
     sources = load_sources()
     uniq, stats = collect_phase(sources)
 
-    history, vsummary, per_node = validate_phase(uniq, skip=skip_validation)
+    # Cheap TCP sweep first: closed ports can never pass an engine test.
+    # UDP-family (Hysteria2/TUIC) and SSR pass through untouched.
+    probe_list = uniq
+    if not skip_validation and V.engines_available():
+        print(f"[2b/4] TCP prefilter on {len(uniq)} endpoints ...")
+        probe_list, pre = V.tcp_prefilter(uniq)
+        stats["prefilter"] = pre
+        print(f"       tcp_open {pre['tcp_open']:,} · pass-through {pre['pass_through']:,}"
+              f" · tcp_closed {pre['tcp_closed']:,} → {pre['output']:,} to engines")
+
+    history, vsummary, per_node = validate_phase(probe_list, skip=skip_validation)
     stats["validation"] = vsummary
 
     rows = score_phase(uniq, history, per_node)
@@ -171,7 +181,9 @@ def cmd_run(skip_validation: bool = False) -> int:
     P.publish_tiers(DIST, rows)
     stats["clients"] = P.publish_clients(DIST, rows)
     (DIST / "readme-stats.md").write_text(P.render_stats_markdown(stats, "fa"), encoding="utf-8")
-    (DIST / "readme-stats-en.md").write_text(P.render_stats_markdown(stats, "en"), encoding="utf-8")
+    for code, fname in [("en", "readme-stats-en.md"), ("tr", "readme-stats-tr.md"),
+                        ("ru", "readme-stats-ru.md"), ("zh", "readme-stats-zh.md")]:
+        (DIST / fname).write_text(P.render_stats_markdown(stats, code), encoding="utf-8")
 
     print("[4b/4] classifying Iranian operator networks ...")
     table = G.load_table()
@@ -191,6 +203,10 @@ def _print_summary(stats: dict) -> None:
     print(f"  raw {stats['raw']} → unique {stats['unique']}  "
           f"(dupes: exact {stats['dupes']['exact_dupes']}, "
           f"same-node {stats['dupes']['same_node_dupes']})")
+    pre = stats.get("prefilter")
+    if pre:
+        print(f"  tcp prefilter: open {pre['tcp_open']} · pass-through {pre['pass_through']}"
+              f" · closed {pre['tcp_closed']} → {pre['output']} probed by engines")
     print(f"  protocols: {stats['by_protocol']}")
     if v and not v.get("skipped"):
         lat = v.get("latency_ms") or {}

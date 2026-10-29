@@ -42,6 +42,9 @@ ENV_CONCURRENCY = int(os.environ.get("ARISTON_CONCURRENCY", "24"))
 ENV_TIMEOUT = float(os.environ.get("ARISTON_TIMEOUT", "4.5"))   # seconds / node
 ENV_PORT_BASE = int(os.environ.get("ARISTON_PORT_BASE", "21000"))
 ENV_MAX_NODES = int(os.environ.get("ARISTON_MAX_NODES", "0"))   # 0 = no cap
+# TCP prefilter (cheap connect sweep BEFORE the expensive engine spins)
+ENV_TCP_CONCURRENCY = int(os.environ.get("ARISTON_TCP_CONCURRENCY", "256"))
+ENV_TCP_TIMEOUT = float(os.environ.get("ARISTON_TCP_TIMEOUT", "2.0"))
 
 BOOT_DEADLINE = 2.0        # seconds to wait for the engine's SOCKS port
 PRUNE_DAYS = 14            # drop history entries unseen this long
@@ -90,6 +93,53 @@ def _hostport(uri: str) -> tuple[str, int]:
 
 def _bool(v: str | None) -> bool:
     return str(v or "").strip().lower() in ("1", "true", "yes")
+
+
+# ---------------------------------------------------------- TCP prefilter --
+# A full engine boot costs ~2-5 s of CPU/process churn per node.  Most dead
+# endpoints can be dismissed for the price of one TCP connect: if the port
+# refuses connections, no engine will ever bring it up.  UDP-family protocols
+# (Hysteria2 / TUIC / ...) are passed through untouched — TCP says nothing
+# about them.
+_TCP_JUDGED_SCHEMES = ("vless", "vmess", "trojan", "ss")
+
+
+def tcp_reachable(uri: str) -> bool | None:
+    """True / False for TCP-family endpoints; None = don't judge (UDP, SSR)."""
+    if _scheme(uri) not in _TCP_JUDGED_SCHEMES:
+        return None
+    host, port = _hostport(uri)
+    if not host or not (0 < port < 65536):
+        return False                      # nothing to even connect to
+    try:
+        with socket.create_connection((host, port), timeout=ENV_TCP_TIMEOUT):
+            return True
+    except OSError:
+        return False
+
+
+def tcp_prefilter(uris: list[str]) -> tuple[list[str], dict]:
+    """Drop endpoints whose TCP port is closed; everything else passes.
+
+    Returns (kept_uris, stats).  UDP-family and unroutable-engine URIs are
+    never dropped here — downstream stages own their verdicts.
+    """
+    keep = [False] * len(uris)
+    stats = {"input": len(uris), "tcp_open": 0, "tcp_closed": 0,
+             "pass_through": 0}
+    with ThreadPoolExecutor(max_workers=max(1, ENV_TCP_CONCURRENCY)) as pool:
+        for i, verdict in enumerate(pool.map(tcp_reachable, uris)):
+            if verdict is True:
+                keep[i] = True
+                stats["tcp_open"] += 1
+            elif verdict is None:
+                keep[i] = True            # not judgeable over TCP
+                stats["pass_through"] += 1
+            else:
+                stats["tcp_closed"] += 1
+    kept = [u for u, k in zip(uris, keep) if k]
+    stats["output"] = len(kept)
+    return kept, stats
 
 
 # ------------------------------------------------- engine routing table ----

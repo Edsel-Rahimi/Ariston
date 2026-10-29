@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="ARISTON — the finest pool of healthy network endpoints">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00E5A0"/>
+      <stop offset="0.55" stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#818CF8"/>
+    </linearGradient>
+    <linearGradient id="mg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00E5A0" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0.55"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.12" cy="0" r="0.9">
+      <stop offset="0" stop-color="#00E5A0" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#00E5A0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.95" cy="0.1" r="0.9">
+      <stop offset="0" stop-color="#38BDF8" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="meander" x="0" y="0" width="34" height="16" patternUnits="userSpaceOnUse">
+      <path d="M2 14 H30 V2 H10 V8 H20" fill="none" stroke="url(#mg)" stroke-width="2"/>
+    </pattern>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- canvas -->
+  <rect width="1200" height="320" fill="#0A0E1A"/>
+  <rect width="1200" height="320" fill="url(#glowA)"/>
+  <rect width="1200" height="320" fill="url(#glowB)"/>
+  <rect x="1" y="1" width="1198" height="318" rx="10" fill="none" stroke="#94A3B8" stroke-opacity="0.10"/>
+
+  <!-- constellation motif (right) -->
+  <g stroke="#38BDF8" stroke-opacity="0.18" stroke-width="1.4">
+    <line x1="950" y1="86"  x2="1035" y2="58"/>
+    <line x1="1035" y1="58" x2="1112" y2="106"/>
+    <line x1="1112" y1="106" x2="1042" y2="152"/>
+    <line x1="1042" y1="152" x2="950" y2="86"/>
+    <line x1="1042" y1="152" x2="1130" y2="208"/>
+    <line x1="1130" y1="208" x2="1050" y2="248"/>
+    <line x1="1050" y1="248" x2="968" y2="212"/>
+    <line x1="968" y1="212" x2="1042" y2="152"/>
+    <line x1="1130" y1="208" x2="1168" y2="120"/>
+    <line x1="1168" y1="120" x2="1112" y2="106"/>
+    <line x1="950" y1="86" x2="912" y2="140"/>
+    <line x1="912" y1="140" x2="968" y2="212"/>
+  </g>
+  <g fill="#00E5A0">
+    <circle cx="950"  cy="86"  r="3.2" fill-opacity="0.85"/>
+    <circle cx="1035" cy="58"  r="2.4" fill-opacity="0.6"/>
+    <circle cx="1112" cy="106" r="3"   fill-opacity="0.75"/>
+    <circle cx="1042" cy="152" r="4.6" fill-opacity="1"/>
+    <circle cx="1130" cy="208" r="2.6" fill-opacity="0.65"/>
+    <circle cx="1050" cy="248" r="3.4" fill-opacity="0.8"/>
+    <circle cx="968"  cy="212" r="2.2" fill-opacity="0.55"/>
+    <circle cx="1168" cy="120" r="2.2" fill-opacity="0.55"/>
+    <circle cx="912"  cy="140" r="2.6" fill-opacity="0.6"/>
+  </g>
+  <!-- hero node glow -->
+  <circle cx="1042" cy="152" r="10" fill="#00E5A0" fill-opacity="0.18" filter="url(#soft)"/>
+  <circle cx="1042" cy="152" r="12.5" fill="none" stroke="#00E5A0" stroke-opacity="0.45" stroke-width="1.3"/>
+
+  <!-- wordmark block -->
+  <text x="84" y="88" font-family="Georgia, 'Times New Roman', serif" font-size="21"
+        font-style="italic" fill="#00E5A0" fill-opacity="0.92">τὸ ἄριστον</text>
+  <text x="80" y="172" font-family="'Segoe UI', Arial, Helvetica, sans-serif"
+        font-size="92" font-weight="900" letter-spacing="16" fill="url(#brand)">ARISTON</text>
+  <text x="84" y="218" font-family="'Segoe UI', Arial, Helvetica, sans-serif"
+        font-size="19.5" fill="#94A3B8">A continuously-validated pool of healthy network endpoints</text>
+  <text x="84" y="248" font-family="'Segoe UI', Arial, Helvetica, sans-serif"
+        font-size="14" letter-spacing="0.4" fill="#64748B">collected · normalized · dual-engine tested · scored — every hour, fully automated</text>
+
+  <!-- pillars -->
+  <g font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-size="12.5" font-weight="700" letter-spacing="2.4">
+    <text x="84"  y="284" fill="#38BDF8">HOURLY</text>
+    <text x="196" y="284" fill="#00E5A0">DUAL-ENGINE</text>
+    <text x="356" y="284" fill="#FBBF24">TIERED</text>
+    <text x="480" y="284" fill="#A78BFA">MULTI-FORMAT</text>
+  </g>
+  <g fill="#334155">
+    <circle cx="176" cy="280" r="1.6"/>
+    <circle cx="338" cy="280" r="1.6"/>
+    <circle cx="462" cy="280" r="1.6"/>
+  </g>
+
+  <!-- meander base -->
+  <rect x="0" y="300" width="1200" height="16" fill="url(#meander)" opacity="0.5"/>
+</svg>

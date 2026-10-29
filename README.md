@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Ariston" width="100%">
+  <img src="assets/banner.svg" alt="Ariston" width="100%">
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="README.en.md">🇬🇧 English</a> · <a href="#چرا-آریستون">🇮🇷 درباره‌ی پروژه</a>
+  <b>🇮🇷 فارسی</b> · <a href="README.en.md">🇬🇧 English</a> · <a href="README.tr.md">🇹🇷 Türkçe</a> · <a href="README.zh.md">🇨🇳 中文</a> · <a href="README.ru.md">🇷🇺 Русский</a>
 </p>
 
 ---
@@ -18,20 +18,11 @@
 # 🏛️ آریستون
 
 > **مخزنِ گره‌های سالم — هر ساعت پالایش می‌شود**
-> *A continuously-validated pool of healthy network endpoints*
+> *در یونان باستان **Ariston** یعنی «بهترین»؛ هدف ما هم همین یک کلمه است.*
 
-**آریستون** یک پروژه‌ی داده‌ای و متن‌باز است: گره‌های عمومیِ منتشرشده در منابع مختلف را جمع‌آوری، استانداردسازی، حذف تکراری و هر ساعت به‌صورت خودکار **تستِ زنده و امتیازدهی** می‌کند. خروجی، فایل‌هایی تمیز و همیشه‌تازه در چند فرمت است که مستقیم داخل اپ‌های محبوب شما import می‌شود.
-
-| | |
-|---|---|
-| ⏱️ **هر ساعت** | جمع‌آوری خودکار از منابع عمومی |
-| 🧹 **پالایش** | حذف تکراری‌ها در دو سطح (آدرس کامل + هویت سرور) |
-| 🧪 **تست دو-موتوره** | xray-core + sing-box — هر گره واقعاً بالا می‌آید و `generate_204` جواب می‌گیرد |
-| 📊 **امتیاز و رده** | Gold / Silver / Bronze بر اساس تأخیر، موفقیت و تازگی |
-| 🛡️ **ضد تاریخی‌شدن** | شاخه‌ی `data` هر بار force-push می‌شود؛ تاریخچه‌ی ریپو هرگز باد نمی‌کند |
-| 🇮🇷 **تفکیک اپراتور** | گره‌های روی شبکه‌های ایرانی به تفکیک همراه اول، ایرانسل، مخابرات و… |
-| 📣 **اعلان و آینه** | خلاصه‌ی تلگرامی و آینه‌سازی — با یک Secret فعال می‌شود |
-| 💸 **صفر تومن** | تمام زیرساخت روی GitHub Actions — بدون سرور، بدون هزینه |
+<p align="center">
+  <img src="assets/stats.svg" alt="Live statistics" width="760">
+</p>
 
 <!-- stats:start -->
 | | |
@@ -44,38 +35,85 @@
 | ⚡ تأخیر میانه | **557.7 ms** |
 <!-- stats:end -->
 
-## 🧭 چرا آریستون؟
+## ⚡ شروع سریع — یک خط را کپی کن
 
-در یونان باستان، **Ariston** یعنی «بهترین». هدف همین یک کلمه است: ساختن **بهترین** مخزن داده‌ای در نوع خودش — تمیزتر، تازه‌تر و شفاف‌تر از هر چیز موجود.
+اگر فقط یک خط جا دارید، همین را import کنید — **گره‌های تاییدشده** که همین اجرای زنده پاس شده‌اند:
 
-مشکل بزرگ مخازن مشابه: فایل‌های حجیمِ پر از تکراری و مرده، تاریخچه‌ی ده‌ها هزار کامیت، و هیچ اطلاعی از «کدام گره واقعاً کار می‌کند». آریستون برای حل همین سه درد ساخته شد — و آرم آن نیز از نماد آب و پالایش الهام گرفته است: داده‌ی تمیز، همیشه در جریان.
+```text
+# 🥇 بهترین کیفیت — رده‌ی طلا
+https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt
+# ✅ متعادل (پیشنهادی) — همه‌ی سالم‌های همین اجرا
+https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt
+# 🗂 همه‌چیز — تمام گره‌های یکتا
+https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
+```
 
-## 📥 دریافت فایل‌ها
+**📱 با گوشی؟** یکی از این کدها را اسکن کنید — خودِ نشانی اشتراک رمزگذاری شده، پس کلاینت شما هر بار فهرست تازه می‌گیرد:
 
-> فایل‌ها پس از اولین اجرای خودکار (حداکثر ۱ ساعت پس از اولین push) روی شاخه‌ی `data` ساخته می‌شوند.
+<p align="center">
+  <img src="assets/qr-gold.svg" width="168" alt="QR gold">&nbsp;&nbsp;&nbsp;
+  <img src="assets/qr-validated.svg" width="168" alt="QR validated">&nbsp;&nbsp;&nbsp;
+  <img src="assets/qr-nodes.svg" width="168" alt="QR all">
+</p>
 
-| فایل | توضیح | مناسب برای |
-|---|---|---|
-| [`nodes.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | همه‌ی گره‌های یکتا — هر خط یک آدرس | Hiddify · NekoBox · Streisand · اکثر اپ‌ها |
-| [`nodes.b64`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) | نسخه‌ی base64 یکجا | v2rayNG · V2rayN |
-| [`validated.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | فقط گره‌هایی که همین حالا تست زنده را پاس کردند — مرتب بر اساس امتیاز | بهترین نسبت کیفیت به حجم |
-| [`gold.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | فقط رده‌ی Gold (امتیاز ≥ ۸۰) — سریع‌ترین‌ها | وقتی فقط بهترین‌ها را می‌خواهید |
-| [`silver.txt`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | رده‌ی Silver (امتیاز ≥ ۵۵) | تنوع بیشتر با کیفیت خوب |
-| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | پیکربندی کامل آماده‌ی Mihomo (Clash.Meta) — گروه خودکارِ بهترین‌ها | Mihomo · Clash.Meta · Clash Verge |
-| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | پیکربندی کامل آماده‌ی sing-box — سلکتور + انتخابگر خودکار | SFA · SFI · sing-box دسکتاپ |
-| [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | جدا شده بر اساس پروتکل | وقتی فقط یک نوع می‌خواهید |
-| [`by-operator/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-operator) | گره‌های روی شبکه‌های ایرانی به تفکیک اپراتور | ترافیک داخلی — اغلب رایگان و سریع‌تر |
-| [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | آمار کامل آخرین اجرا | توسعه‌دهنده‌ها |
+## 🎛️ رده‌ها — همان استخر، با میزان متفاوتی از شواهد
+
+این فایل‌ها منابع متفاوتی نیستند؛ **همان استخرِ یکتا** هستند که با «چقدر شواهد سلامت» فیلتر شده‌اند:
+
+| رده | چه چیزی داخلش است | متنی | Base64 |
+|---|---|:---:|:---:|
+| 🥇 **gold** | امتیاز ≥ ۸۰ — سریع‌ترین و پایدارترین‌ها | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64) |
+| 🥈 **silver** | امتیاز ≥ ۵۵ — کیفیت خوب با تنوع بیشتر | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64) |
+| ✅ **validated** | همین اجرا تست زنده را پاس کردند | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64) |
+| 🗂 **all** | همه‌ی گره‌های یکتا — بدون تست | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) |
+
+**پیکربندی آماده‌ی کلاینت** (ساخته‌شده از گره‌های زنده، بهترین اول):
+
+| فایل | مناسب برای |
+|---|---|
+| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | Mihomo · Clash.Meta · Clash Verge — با گروه انتخاب خودکارِ بهترین‌ها |
+| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | sing-box · SFA · SFI — سلکتور + تست خودکار |
 
 <details>
 <summary>📎 راهنمای سریع import در اپ‌ها</summary>
 
-- **v2rayNG** → بخش Subscriptions → URL فایل `.b64` را اضافه کنید
-- **Hiddify** → New Profile → URL فایل `nodes.txt`
-- **NekoBox** → Groups → Add group → URL فایل `nodes.txt`
-- **Streisand** → Configs → `+` → URL فایل `nodes.txt`
+- **v2rayNG** → Subscriptions → URL فایل `.b64` را اضافه کنید
+- **Hiddify** → New Profile → URL فایل `validated.txt`
+- **NekoBox** → Groups → Add group → URL فایل `validated.txt`
+- **Streisand** → Configs → `+` → URL فایل `validated.txt`
+- **Clash Verge / Mihomo** → Import → URL فایل `mihomo.yaml`
+- **sing-box / SFI / SFA** → Profiles → New → URL فایل `singbox.json`
 
 </details>
+
+## 🧪 «واقعاً کار می‌کند؟» — جوابِ اندازه‌گرفته‌شده
+
+اکثر مخازن یک عدد بزرگ نشان می‌دهند و شما را حدس زدن رها می‌کنند. آریستون برعکس عمل می‌کند: **عدد واقعی را می‌سنجد و نشان می‌دهد.** واقعیتِ تلخِ کانفیگ رایگان این است که در هر لحظه، بیشترِ استخر مرده است — ما این را پنهان نمی‌کنیم، هر ساعت اندازه می‌گیریم و بر اساس آن رتبه می‌دهیم.
+
+| مرحله | چه سؤالی می‌پرسد | هزینه |
+|---|---|---|
+| **L1 استانداردسازی** | قابل تحلیل است؟ یکتاست؟ مسیر شبکه‌ای دارد؟ | بدون شبکه |
+| **L2 راه‌اندازی** | هندشیکِ پروتکل واقعاً جواب می‌دهد؟ | هسته‌ی xray + sing-box |
+| **L3 پروب واقعی** | درخواست HTTP از **میانِ** گره، جواب `204` می‌گیرد؟ | SOCKS5 + `/generate_204` |
+
+> 🧭 **چرا دو موتور؟** چون هیچ‌کدام نقشه‌ی کامل ندارد: xray-core پروتکل‌های QUIC (Hysteria2 / TUIC) را نمی‌بیند و sing-box برخی گونه‌های xray را. کور‌نقطه‌ی هر موتور با دیگری پر می‌شود — چیزی که اکثر مخازن مشابه نادیده می‌گیرند.
+
+عدد زنده‌ی همین لحظه در جدول آمار بالا است؛ تاریخچه‌ی کامل در [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json).
+
+## 🇮🇷 تفکیک اپراتورهای ایران
+
+گره‌هایی که روی شبکه‌های ایرانی قرار دارند جدا منتشر می‌شوند — برای ترافیک داخلی که اغلب رایگان‌تر و سریع‌تر است. این تفکیک با جدول ASN (متعلق به شبکه) انجام می‌شود، نه حدس جغرافیایی:
+
+| شبکه | فایل | | شبکه | فایل |
+|---|---|---|---|---|
+| 📡 همراه اول | [mci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt) | | 🌐 شاتل | [shatel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt) |
+| 📡 ایرانسل | [irancell](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt) | | 🌐 مبین‌نت | [mobinnet](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt) |
+| 📡 مخابرات | [tci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt) | | 🌐 آسیاتک | [asiatech](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt) |
+| 📡 رایتل | [rightel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt) | | 🌐 پارس‌آنلاین | [parsonline](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt) |
+| 📡 پیشگامان | [pishgaman](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt) | | 🌐 رسپینا | [respina](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt) |
+| | | | 🌍 سایر شبکه‌های ایران | [ir-other](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt) |
+
+> فایل خالی یعنی در آخرین اجرا گره‌ای روی آن شبکه نبود — نه اینکه فایل خراب است.
 
 ## ⚙️ پروتکل‌های پشتیبانی‌شده
 
@@ -89,13 +127,11 @@
 | TUIC v5 | ✅ | ✅ |
 | SSR | ✅ | — |
 
-تست با **دو موتور** انجام می‌شود، چون xray-core پروتکل‌های QUIC (Hysteria2 / TUIC) را پشتیبانی نمی‌کند — نقطه‌ی کوری که اکثر مخازن مشابه نادیده می‌گیرند.
-
 ## 🏗 معماری
 
 ```mermaid
 flowchart LR
-    A["84+ public sources<br/>GitHub · Telegram"] --> B["Collector<br/>جمع‌آوری"]
+    A["public sources<br/>GitHub · Telegram"] --> B["Collector<br/>جمع‌آوری"]
     B --> C["Normalizer<br/>استانداردسازی + حذف تکراری"]
     C --> D["Validator<br/>xray-core + sing-box"]
     D --> E["Scorer<br/>امتیازدهی ۴ مؤلفه‌ای"]
@@ -105,23 +141,54 @@ flowchart LR
 
 جزئیات کامل: [`docs/architecture.md`](docs/architecture.md)
 
-## 📊 آخرین وضعیت
-
-آمار زنده به‌زودی به‌صورت خودکار همین‌جا به‌روز می‌شود — فعلاً [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) را ببینید.
-
 ## ➕ افزودن منبع
 
 منبع جدید (کانال تلگرام یا فایل عمومی) دارید؟ [`CONTRIBUTING.md`](CONTRIBUTING.md) را ببینید — یک PR با ویرایش `pipeline/sources.json` کافی است.
 
-> ⚠️ **سیاست نام‌گذاری:** این پروژه عمداً از واژه‌های خنثی در نام فایل‌ها، متون و کد استفاده می‌کند. لطفاً PR ها هم همین‌طور بنویسند.
+> ⚠️ **سیاست نام‌گذاری:** این پروژه عمداً از واژه‌های خنثی («گره»، «نقطه‌ی شبکه») در نام فایل‌ها، متون و کد استفاده می‌کند؛ تجربه نشان داده مخازنی که با نام‌های مستقیم فعالیت می‌کنند عمر کوتاه‌تری دارند. لطفاً PR ها هم همین‌طور بنویسند.
 
 ## 🗺 نقشه‌ی راه
 
-- [x] **فاز ۱ — MVP:** جمع‌آوری + استانداردسازی + حذف تکراری (همین نسخه)
-- [ ] **فاز ۱ب:** موتور تست دو-موتوره (xray-core + sing-box) در GitHub Actions
-- [ ] **فاز ۲:** امتیازدهی، رده‌بندی Gold/Silver/Bronze، خروجی Clash.Meta و sing-box، README زنده
-- [ ] **فاز ۳:** Bot تلگرام، میرور GitLab/Codeberg، تفکیک بر اساس اپراتور
-- [ ] **فاز ۴:** API داینامیک، تست از نقاط متعدد
+- [x] **فاز ۱ — MVP:** جمع‌آوری + استانداردسازی + حذف تکراری
+- [x] **فاز ۱ب — تست دو-موتوره:** xray-core + sing-box در GitHub Actions
+- [x] **فاز ۲ — امتیاز و کلاینت‌ها:** رده‌بندی طلا/نقره/برنز، mihomo.yaml و singbox.json، آمار زنده
+- [x] **فاز ۳ — اپراتورها و اعلان:** تفکیک ASN ایران، اعلان تلگرام، آینه‌سازی
+- [ ] **فاز ۴ — وب‌داشبورد:** صفحه‌ی زنده روی GitHub Pages
+- [ ] **فاز ۵ — بات تلگرام:** دریافت فایل‌ها داخل تلگرام
+- [ ] **فاز ۶ — مقیاس:** گسترش منابع، تست چند-منطقه‌ای
+
+## ❓ پرسش‌های پرتکرار
+
+<details>
+<summary><b>چرا از این همه گره، فقط این تعداد زنده است؟</b></summary>
+
+طبیعتِ کانفیگ رایگان همین است — گره‌ها به‌سرعت می‌میرند یا شلوغ می‌شوند. تفاوت ما این است که این واقعیت را **می‌سنجیم و نشان می‌دهیم** به‌جای اینکه با نمایش عدد خامِ «ده‌ها هزار کانفیگ» شما را گمراه کنیم. عدد واقعی هر ساعت در جدول آمار همین صفحه به‌روز می‌شود.
+
+</details>
+
+<details>
+<summary><b>کدام فایل برای من مناسب است؟</b></summary>
+
+- تازه‌کار یا حوصله ندارید → `validated.txt` (متعادل و کم‌حجم‌تر)
+- فقط بهترین‌ها → `gold.txt`
+- اپ خاصی دارید → `mihomo.yaml` یا `singbox.json`
+- می‌خواهید خودتان بگردید → `nodes.txt`
+
+</details>
+
+<details>
+<summary><b>هر چند وقت به‌روز می‌شود؟</b></summary>
+
+هر ساعت رأس :07 به‌وقت UTC به‌صورت خودکار. شاخه‌ی `data` همیشه دقیقاً یک snapshot دارد (force-push)؛ تاریخچه‌ی مخزن هرگز باد نمی‌کند و لینک‌هایی که امروز کپی می‌کنید همیشه معتبر می‌مانند.
+
+</details>
+
+<details>
+<summary><b>چرا نام فایل‌ها و متون این‌قدر خنثی است؟</b></summary>
+
+تجربه‌ی مخازن مشابه نشان داده که استفاده از نام‌های مستقیم در عنوان و متن، ریسک حذف مخزن را بالا می‌برد. آریستون صرفاً داده‌ی عمومی را ایندکس و پالایش می‌کند و عمداً همین‌طور معرفی می‌شود — برای ماندگاری بلندمدت پروژه.
+
+</details>
 
 ## ⚖️ سلب مسئولیت
 
