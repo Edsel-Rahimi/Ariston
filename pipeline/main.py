@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 from . import collect as C
+from . import geo as G
 from . import normalize as N
 from . import publish as P
 from . import score as S
@@ -171,6 +172,17 @@ def cmd_run(skip_validation: bool = False) -> int:
     stats["clients"] = P.publish_clients(DIST, rows)
     (DIST / "readme-stats.md").write_text(P.render_stats_markdown(stats, "fa"), encoding="utf-8")
     (DIST / "readme-stats-en.md").write_text(P.render_stats_markdown(stats, "en"), encoding="utf-8")
+
+    print("[4b/4] classifying Iranian operator networks ...")
+    table = G.load_table()
+    geo = G.classify(uniq, table)
+    stats["operators"] = geo["stats"]
+    alive_set = {r["uri"] for r in rows if r["alive"]} or set(uniq)   # fallback: all
+    files_geo = {slug: {"label": d["label"],
+                        "uris": [u for u in d["uris"] if u in alive_set]}
+                 for slug, d in geo["by_slug"].items()}
+    P.publish_operators(DIST, files_geo)
+
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)
     _print_summary(stats)
@@ -204,6 +216,14 @@ def _print_summary(stats: dict) -> None:
               f"(skipped {cl.get('mihomo', {}).get('skipped')}) · "
               f"singbox {cl.get('singbox', {}).get('built')} outbounds "
               f"(skipped {cl.get('singbox', {}).get('skipped')})")
+    op = stats.get("operators") or {}
+    if op:
+        if op.get("available"):
+            ir = op.get("classified_iran", 0)
+            top = dict(sorted((op.get("by_slug") or {}).items(), key=lambda kv: -kv[1])[:4])
+            print(f"  operators: {ir} nodes on Iranian networks | top: {top}")
+        else:
+            print("  operators: ip2asn table unavailable — skipped")
     if stats.get("sources_failed"):
         print(f"  failed sources: {stats['sources_failed']}")
     print(f"  outputs → {DIST}")

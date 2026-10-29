@@ -28,6 +28,8 @@
 | 🧪 **Dual-engine testing** | xray-core + sing-box — every node is booted and answers `generate_204` |
 | 📊 **Scored & tiered** | Gold / Silver / Bronze by latency, success and freshness |
 | 🛡️ **Anti-bloat** | the `data` branch is force-pushed; repo history never grows |
+| 🇮🇷 **Operator split** | endpoints on Iranian networks, split per operator (MCI, Irancell, TCI…) |
+| 📣 **Notify & mirror** | Telegram digest + mirror push — activates with one secret |
 | 💸 **$0 infra** | everything runs on GitHub Actions — no servers, no cost |
 
 <!-- stats:start -->
@@ -59,6 +61,7 @@ In ancient Greek, **Ariston** means *"the best"*. That is the whole mission in o
 | [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | ready-to-import full Mihomo (Clash.Meta) config with an auto-best group | Mihomo · Clash.Meta · Clash Verge |
 | [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | ready-to-import full sing-box config with selector + urltest | SFA · SFI · desktop sing-box |
 | [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | split per protocol | when you only need one type |
+| [`by-operator/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-operator) | endpoints on Iranian networks, per operator | domestic traffic — often free & faster |
 | [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | full stats of the last run | developers |
 
 ## ⚙️ Supported protocols

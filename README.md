@@ -29,6 +29,8 @@
 | 🧪 **تست دو-موتوره** | xray-core + sing-box — هر گره واقعاً بالا می‌آید و `generate_204` جواب می‌گیرد |
 | 📊 **امتیاز و رده** | Gold / Silver / Bronze بر اساس تأخیر، موفقیت و تازگی |
 | 🛡️ **ضد تاریخی‌شدن** | شاخه‌ی `data` هر بار force-push می‌شود؛ تاریخچه‌ی ریپو هرگز باد نمی‌کند |
+| 🇮🇷 **تفکیک اپراتور** | گره‌های روی شبکه‌های ایرانی به تفکیک همراه اول، ایرانسل، مخابرات و… |
+| 📣 **اعلان و آینه** | خلاصه‌ی تلگرامی و آینه‌سازی — با یک Secret فعال می‌شود |
 | 💸 **صفر تومن** | تمام زیرساخت روی GitHub Actions — بدون سرور، بدون هزینه |
 
 <!-- stats:start -->
@@ -62,6 +64,7 @@
 | [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | پیکربندی کامل آماده‌ی Mihomo (Clash.Meta) — گروه خودکارِ بهترین‌ها | Mihomo · Clash.Meta · Clash Verge |
 | [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | پیکربندی کامل آماده‌ی sing-box — سلکتور + انتخابگر خودکار | SFA · SFI · sing-box دسکتاپ |
 | [`by-protocol/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-protocol) | جدا شده بر اساس پروتکل | وقتی فقط یک نوع می‌خواهید |
+| [`by-operator/…`](https://github.com/Edsel-Rahimi/Ariston/tree/data/by-operator) | گره‌های روی شبکه‌های ایرانی به تفکیک اپراتور | ترافیک داخلی — اغلب رایگان و سریع‌تر |
 | [`stats.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json) | آمار کامل آخرین اجرا | توسعه‌دهنده‌ها |
 
 <details>

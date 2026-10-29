@@ -101,6 +101,32 @@ jobs:
             echo "README stats: no change"
           fi
 
+      # OPTIONAL: Telegram notification — activates only when the repo has
+      # the two secrets below (see docs/notify-mirrors.md for the setup).
+      - name: Notify Telegram (optional)
+        if: env.TG_BOT_TOKEN != ''
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          tok, chat = os.environ["TG_BOT_TOKEN"], os.environ["TG_CHAT_ID"]
+          s = json.load(open("dist/stats.json"))
+          v, sc = s.get("validation", {}), s.get("scoring", {})
+          lat = (v.get("latency_ms") or {}).get("p50")
+          op = s.get("operators") or {}
+          msg = ("🏛 Ariston run #" + os.environ.get("GITHUB_RUN_NUMBER", "?") + "\n"
+                 "unique: " + str(s.get("unique", 0)) + " | probed: " + str(v.get("probed", 0)) + "\n"
+                 "alive: " + str(v.get("alive", 0)) + " | gold: " + str(sc.get("gold", 0))
+                 + " / silver: " + str(sc.get("silver", 0)) + "\n"
+                 "median: " + (str(lat) + " ms" if lat is not None else "n/a") + "\n"
+                 "IR-network endpoints: " + str(op.get("classified_iran", 0)))
+          data = urllib.parse.urlencode({"chat_id": chat, "text": msg}).encode()
+          urllib.request.urlopen("https://api.telegram.org/bot" + tok + "/sendMessage", data, timeout=20)
+          print("notification sent")
+          PY
+
       - name: Upload debug artifact
         uses: actions/upload-artifact@v4
         if: always()
@@ -123,3 +149,16 @@ jobs:
           git push -q --force origin data
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # OPTIONAL: mirror the data branch to any extra git remote (GitLab /
+      # Codeberg / ...) — activates only when MIRROR_URL secret exists.
+      # Runs AFTER the data-branch publish so dist/ already holds the repo.
+      - name: Mirror data branch (optional)
+        if: env.MIRROR_URL != ''
+        env:
+          MIRROR_URL: ${{ secrets.MIRROR_URL }}
+        run: |
+          cd dist
+          git remote add mirror "${MIRROR_URL}"
+          git push -q --force mirror data && echo "mirror push: ok" \
+            || echo "mirror push failed (non-fatal)"

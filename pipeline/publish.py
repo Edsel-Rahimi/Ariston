@@ -6,6 +6,7 @@ snapshot commit):
 
   nodes.txt / nodes.b64          master feed: every unique canonical URI
   by-protocol/<p>.txt + .b64     split per protocol
+  by-operator/<op>.txt           Iranian-operator split (Phase 3)
   validated.txt / .b64           only endpoints proven alive, best score first
   gold.txt / .b64                tier gold   (score >= 80)
   silver.txt / .b64              tier silver (score >= 55)
@@ -91,6 +92,18 @@ def publish_clients(dist: Path, rows: list[dict]) -> dict:
 
 def _fmt_num(n: int) -> str:
     return f"{n:,}"
+
+
+def publish_operators(dist: Path, by_slug: dict) -> None:
+    """Iranian-operator split (Phase 3).  Stable set of files, possibly empty:
+    by-operator/<slug>.txt with only ALIVE endpoints, best score first."""
+    op_dir = dist / "by-operator"
+    op_dir.mkdir(exist_ok=True)
+    for slug in ["tci", "mci", "irancell", "rightel", "shatel", "mobinnet",
+                 "asiatech", "parsonline", "pishgaman", "respina", "ir-other"]:
+        entries = by_slug.get(slug, {}).get("uris", [])
+        text = "\n".join(entries) + "\n" if entries else ""
+        (op_dir / f"{slug}.txt").write_text(text, encoding="utf-8")
 
 
 def render_stats_markdown(stats: dict, lang: str = "fa") -> str:
