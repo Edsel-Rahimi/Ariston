@@ -47,6 +47,9 @@ const API_RATE_LIMIT = 120; // public API: best-effort requests / IP / minute
 const INLINE_MAX = 20;      // inline query result count
 const SUB_ALLOCATION = 10;  // D4: personalized picks per user per rotation period
 const BRAND = 'Ariston';    // remark brand: <name>-Ariston-<ping>ms
+const CHANNEL_USER = 'Ariston_CH'; // official public channel (forced join)
+const REF_BASE = SUB_ALLOCATION; // starting personal quota
+const REF_CAP = 20;         // hard quota cap, reached via referrals (plan B: escalating)
 
 /* ─────────────────────────────── catalogs ─────────────────────────────────── */
 
@@ -141,7 +144,7 @@ const T = {
     sub_howto: '📥 راهنمای وارد کردن:',
     sub_fallback_note: 'ℹ️ برای این اپراتور هنوز کانفیگ داخلی کافی نداریم؛ لیست کامل کانفیگ‌های تست‌شده برات فعال شد.',
     sub_open: '📥 باز کردن لینک',
-    help_text: '❓ <b>راهنمای آریستون</b>\n\n/start — شروع و منوی اصلی\n/gold — ۳ کانفیگ طلایی برتر\n/best — بلیت طلایی: کم‌تأخیرترین سالم\n/stats — آمار زندهٔ آخرین اجرا\n/sub — لینک اشتراک شخصی\n/settings — تغییر اپراتور / کلاینت\n/lang — تغییر زبان\n\n👑 هر نیم‌ساعت: جمع‌آوری ← نرمال‌سازی ← تست ← امتیازدهی ← انتشار.',
+    help_text: '❓ <b>راهنمای آریستون</b>\n\n/start — شروع و منوی اصلی\n/gold — ۳ کانفیگ طلایی برتر\n/best — بلیت طلایی: کم‌تأخیرترین سالم\n/stats — آمار زندهٔ آخرین اجرا\n/sub — لینک اشتراک شخصی\n/ref — دعوت دوستان، سهمیه تا ۲۰ کانفیگ\n/settings — تغییر اپراتور / کلاینت\n/lang — تغییر زبان\n\n👑 هر نیم‌ساعت: جمع‌آوری ← نرمال‌سازی ← تست ← امتیازدهی ← انتشار.',
     set_pick: '⚙️ چی رو عوض کنم؟',
     saved: '✅ ذخیره شد',
     err_generic: 'ای وای، خطایی پیش اومد ⚠️ چند لحظه بعد دوباره امتحان کن.',
@@ -155,6 +158,16 @@ const T = {
     inline_foot: 'کانفیگ‌های تازه هر نیم‌ساعت → {bot}', inline_none: 'ربات را باز کن',
     help_inline: 'اینلاین در هر چتی: {bot} irancell vless',
     daily_title: '👑 <b>کارتِ امروز آریستون</b>', daily_best: '⚡ بهترینِ امروز:', daily_svg: '🛰 کارت امروز (SVG)',
+    join_wall: '🔔 برای استفاده از آریستون اول باید عضو چنل رسمی بشی.\n\nبعد از عضویت، دکمه «✅ عضو شدم» رو بزن.',
+    join_done: '✅ عضو شدم', join_ok: '✅ عضویتت تأیید شد — خوش اومدی!',
+    join_still: 'هنوز عضو چنل نشدی 🙈 اول عضو شو',
+    btn_ref: '👥 رفرال',
+    ref_title: '👥 <b>دعوت دوستان = کانفیگ بیشتر</b>',
+    ref_stat: '📈 رفرال‌های تأییدشده: {n}\n🎁 سهمیهٔ تو: {q} از {cap} کانفیگ',
+    ref_rule: 'هر دوستی که با لینک تو بیاد، عضو چنل بشه و تنظیماتش رو کامل کنه:\n• رفرال ۱ و ۲ → هرکدوم +۱\n• رفرال ۳ تا ۵ → هرکدوم +۲\n• از رفرال ششم → هرکدوم +۳\n🎯 سقف: ۲۰ کانفیگ',
+    ref_share: '📤 هم‌رسانی لینک دعوت',
+    ref_share_text: '⚡ کانفیگ‌های تست‌شده و سالم، رایگان، هر نیم‌ساعت به‌روز — ربات آریستون:',
+    ref_credited: '🎉 {name} با لینک تو عضو شد!\n🎁 سهمیهٔ تو: {q} از {cap} کانفیگ',
     pick_name: '✍️ اسمت رو بنویس — روی کانفیگ‌های اختصاصیت می‌آد:\n(مثلاً: Ali)',
     name_skip: '⏭ بدون اسم', name_saved: '✅ ممنون، {name}! اسمت روی کانفیگ‌هات می‌آد.',
     set_name: '✍️ نام', set_rot: '🔁 چرخش: {mode}', rot_day: 'روزانه', rot_run: 'هر اجرا',
@@ -191,7 +204,7 @@ const T = {
     sub_howto: '📥 How to import:',
     sub_fallback_note: 'ℹ️ Not enough on-shore configs for this ISP yet; the full tested list is enabled for you instead.',
     sub_open: '📥 Open link',
-    help_text: '❓ <b>Ariston guide</b>\n\n/start — start & main menu\n/gold — top 3 gold configs\n/best — gold ticket: lowest-latency alive\n/stats — live stats of the last run\n/sub — personal subscription link\n/settings — change ISP / client\n/lang — change language\n\n👑 Every 30 min: collect → normalize → validate → score → publish.',
+    help_text: '❓ <b>Ariston guide</b>\n\n/start — start & main menu\n/gold — top 3 gold configs\n/best — gold ticket: lowest-latency alive\n/stats — live stats of the last run\n/sub — personal subscription link\n/ref — invite friends, quota up to 20 configs\n/settings — change ISP / client\n/lang — change language\n\n👑 Every 30 min: collect → normalize → validate → score → publish.',
     set_pick: '⚙️ What should I change?',
     saved: '✅ Saved',
     err_generic: 'Oops, something went wrong ⚠️ Please try again in a moment.',
@@ -205,6 +218,16 @@ const T = {
     inline_foot: 'fresh configs every 30 min → {bot}', inline_none: 'Open the bot',
     help_inline: 'inline in any chat: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — card of the day</b>', daily_best: '⚡ Best of the day:', daily_svg: '🛰 Card of the day (SVG)',
+    join_wall: '🔔 To use Ariston you must join the official channel first.\n\nAfter joining, tap “✅ I joined”.',
+    join_done: '✅ I joined', join_ok: '✅ Membership confirmed — welcome!',
+    join_still: 'You haven\'t joined the channel yet 🙈',
+    btn_ref: '👥 Referrals',
+    ref_title: '👥 <b>Invite friends = more configs</b>',
+    ref_stat: '📈 Confirmed referrals: {n}\n🎁 Your quota: {q} of {cap} configs',
+    ref_rule: 'For every friend who joins via your link, joins the channel and finishes setup:\n• referrals 1–2 → +1 each\n• referrals 3–5 → +2 each\n• from the 6th → +3 each\n🎯 Cap: 20 configs',
+    ref_share: '📤 Share invite link',
+    ref_share_text: '⚡ Engine-tested configs, free, refreshed every 30 minutes — Ariston bot:',
+    ref_credited: '🎉 {name} joined via your link!\n🎁 Your quota: {q} of {cap} configs',
     pick_name: '✍️ Type your name — it will be stamped on your personal configs:\n(e.g. Ali)',
     name_skip: '⏭ Skip', name_saved: '✅ Thanks, {name}! Your configs will carry your name.',
     set_name: '✍️ Name', set_rot: '🔁 Rotation: {mode}', rot_day: 'daily', rot_run: 'per run',
@@ -241,7 +264,7 @@ const T = {
     sub_howto: '📥 Как импортировать:',
     sub_fallback_note: 'ℹ️ Для этого оператора пока мало внутренних конфигов; включён полный проверенный список.',
     sub_open: '📥 Открыть ссылку',
-    help_text: '❓ <b>Гид по Ariston</b>\n\n/start — старт и меню\n/gold — топ-3 золотых\n/best — золотой билет: самый быстрый\n/stats — живая статистика\n/sub — личная подписка\n/settings — сменить оператора / клиент\n/lang — сменить язык\n\n👑 Каждые 30 минут: сбор → нормализация → проверка → оценка → публикация.',
+    help_text: '❓ <b>Гид по Ariston</b>\n\n/start — старт и меню\n/gold — топ-3 золотых\n/best — золотой билет: самый быстрый\n/stats — живая статистика\n/sub — личная подписка\n/ref — пригласить друзей: квота до 20 конфигов\n/settings — сменить оператора / клиент\n/lang — сменить язык\n\n👑 Каждые 30 минут: сбор → нормализация → проверка → оценка → публикация.',
     set_pick: '⚙️ Что изменить?',
     saved: '✅ Сохранено',
     err_generic: 'Упс, что-то пошло не так ⚠️ Попробуйте ещё раз чуть позже.',
@@ -255,6 +278,16 @@ const T = {
     inline_foot: 'свежие конфиги каждые 30 мин → {bot}', inline_none: 'Открыть бота',
     help_inline: 'инлайн в любом чате: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — карточка дня</b>', daily_best: '⚡ Лучший за день:', daily_svg: '🛰 Карточка дня (SVG)',
+    join_wall: '🔔 Чтобы пользоваться Ariston, сначала вступите в официальный канал.\n\nПосле вступления нажмите «✅ Я вступил».',
+    join_done: '✅ Я вступил', join_ok: '✅ Вступление подтверждено — добро пожаловать!',
+    join_still: 'Вы ещё не вступили в канал 🙈',
+    btn_ref: '👥 Рефералы',
+    ref_title: '👥 <b>Приглашайте друзей = больше конфигов</b>',
+    ref_stat: '📈 Подтверждённые рефералы: {n}\n🎁 Ваша квота: {q} из {cap} конфигов',
+    ref_rule: 'За каждого друга, пришедшего по вашей ссылке, вступившего в канал и завершившего настройку:\n• рефералы 1–2 → +1 каждый\n• рефералы 3–5 → +2 каждый\n• с 6-го → +3 каждый\n🎯 Лимит: 20 конфигов',
+    ref_share: '📤 Поделиться ссылкой',
+    ref_share_text: '⚡ Проверенные конфиги бесплатно, обновление каждые 30 минут — бот Ariston:',
+    ref_credited: '🎉 {name} присоединился по вашей ссылке!\n🎁 Ваша квота: {q} из {cap} конфигов',
     pick_name: '✍️ Напишите имя — оно будет на ваших личных конфигах:\n(например: Ali)',
     name_skip: '⏭ Пропустить', name_saved: '✅ Спасибо, {name}! Имя будет на ваших конфигах.',
     set_name: '✍️ Имя', set_rot: '🔁 Ротация: {mode}', rot_day: 'ежедневно', rot_run: 'каждый прогон',
@@ -291,7 +324,7 @@ const T = {
     sub_howto: '📥 İçe aktarma:',
     sub_fallback_note: 'ℹ️ Bu sağlayıcı için henüz yeterli yerel yapılandırma yok; test edilmiş tam liste etkinleştirildi.',
     sub_open: '📥 Bağlantıyı aç',
-    help_text: '❓ <b>Ariston rehberi</b>\n\n/start — başlangıç ve ana menü\n/gold — ilk 3 altın\n/best — altın bilet: en hızlı\n/stats — canlı istatistik\n/sub — kişisel abonelik\n/settings — sağlayıcı / istemci değiştir\n/lang — dil değiştir\n\n👑 Her 30 dakika: topla → normalize et → doğrula → puanla → yayınla.',
+    help_text: '❓ <b>Ariston rehberi</b>\n\n/start — başlangıç ve ana menü\n/gold — ilk 3 altın\n/best — altın bilet: en hızlı\n/stats — canlı istatistik\n/sub — kişisel abonelik\n/ref — arkadaş davet et, tavan 20\n/settings — sağlayıcı / istemci değiştir\n/lang — dil değiştir\n\n👑 Her 30 dakika: topla → normalize et → doğrula → puanla → yayınla.',
     set_pick: '⚙️ Neyi değiştireyim?',
     saved: '✅ Kaydedildi',
     err_generic: 'Hops, bir şeyler ters gitti ⚠️ Lütfen birazdan tekrar dene.',
@@ -305,6 +338,16 @@ const T = {
     inline_foot: 'güncel yapılandırmalar her 30 dakika → {bot}', inline_none: 'Botu aç',
     help_inline: 'herhangi bir sohbette inline: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — günün kartı</b>', daily_best: "⚡ Günün en iyisi:", daily_svg: '🛰 Günün kartı (SVG)',
+    join_wall: '🔔 Ariston\'u kullanmak için önce resmî kanala katılman gerekiyor.\n\nKatıldıktan sonra «✅ Katıldım» düğmesine bas.',
+    join_done: '✅ Katıldım', join_ok: '✅ Üyeliğin onaylandı — hoş geldin!',
+    join_still: 'Henüz kanala katılmadın 🙈',
+    btn_ref: '👥 Davetler',
+    ref_title: '👥 <b>Arkadaş davet et = daha fazla yapılandırma</b>',
+    ref_stat: '📈 Onaylanan davetler: {n}\n🎁 Kotan: {cap} yapılandırmadan {q}',
+    ref_rule: 'Linkinle gelen, kanala katılan ve kurulumu bitiren her arkadaş için:\n• 1–2. davet → her biri +1\n• 3–5. davet → her biri +2\n• 6\'dan itibaren → her biri +3\n🎯 Tavan: 20 yapılandırma',
+    ref_share: '📤 Davet linkini paylaş',
+    ref_share_text: '⚡ Test edilmiş sağlıklı yapılandırmalar, ücretsiz, 30 dakikada bir güncel — Ariston botu:',
+    ref_credited: '🎉 {name} linkinle katıldı!\n🎁 Kotan: {cap} yapılandırmadan {q}',
     pick_name: '✍️ Adını yaz — kişisel yapılandırmalarında görünecek:\n(örn. Ali)',
     name_skip: '⏭ Atla', name_saved: '✅ Sağol, {name}! Yapılandırmalarında adın görünecek.',
     set_name: '✍️ İsim', set_rot: '🔁 Rotasyon: {mode}', rot_day: 'günlük', rot_run: 'her çalışma',
@@ -341,7 +384,7 @@ const T = {
     sub_howto: '📥 导入方法：',
     sub_fallback_note: 'ℹ️ 该运营商的本地配置还不够；已为你启用完整已测试列表。',
     sub_open: '📥 打开链接',
-    help_text: '❓ <b>Ariston 指南</b>\n\n/start — 启动与主菜单\n/gold — 前三名金牌\n/best — 金牌票：延迟最低\n/stats — 最新一轮实时统计\n/sub — 个人订阅链接\n/settings — 更换运营商 / 客户端\n/lang — 更换语言\n\n👑 每 30 分钟：收集 → 规范化 → 验证 → 评分 → 发布。',
+    help_text: '❓ <b>Ariston 指南</b>\n\n/start — 启动与主菜单\n/gold — 前三名金牌\n/best — 金牌票：延迟最低\n/stats — 最新一轮实时统计\n/sub — 个人订阅链接\n/ref — 邀请好友，配额最高 20\n/settings — 更换运营商 / 客户端\n/lang — 更换语言\n\n👑 每 30 分钟：收集 → 规范化 → 验证 → 评分 → 发布。',
     set_pick: '⚙️ 要更改什么？',
     saved: '✅ 已保存',
     err_generic: '哎呀，出错了 ⚠️ 请稍后再试。',
@@ -355,6 +398,16 @@ const T = {
     inline_foot: '每 30 分钟更新可用配置 → {bot}', inline_none: '打开机器人',
     help_inline: '任意聊天内联使用：{bot} irancell vless',
     daily_title: '👑 <b>Ariston 每日卡片</b>', daily_best: '⚡ 今日最佳：', daily_svg: '🛰 今日卡片 (SVG)',
+    join_wall: '🔔 使用 Ariston 前请先加入官方频道。\n\n加入后点击「✅ 已加入」。',
+    join_done: '✅ 已加入', join_ok: '✅ 已确认加入——欢迎！',
+    join_still: '你还没加入频道 🙈',
+    btn_ref: '👥 邀请',
+    ref_title: '👥 <b>邀请好友 = 更多配置</b>',
+    ref_stat: '📈 已确认邀请：{n}\n🎁 你的配额：{q} / {cap} 个配置',
+    ref_rule: '每位通过你的链接加入、进入频道并完成设置的好友：\n• 第 1–2 位 → 各 +1\n• 第 3–5 位 → 各 +2\n• 第 6 位起 → 各 +3\n🎯 上限：20 个配置',
+    ref_share: '📤 分享邀请链接',
+    ref_share_text: '⚡ 引擎实测的可用配置，免费，每 30 分钟更新——Ariston 机器人：',
+    ref_credited: '🎉 {name} 通过你的链接加入了！\n🎁 你的配额：{q} / {cap} 个配置',
     pick_name: '✍️ 输入你的名字——会显示在你的专属配置上：\n（例如：Ali）',
     name_skip: '⏭ 跳过', name_saved: '✅ 谢谢，{name}！你的配置将带上你的名字。',
     set_name: '✍️ 名字', set_rot: '🔁 轮换：{mode}', rot_day: '每天', rot_run: '每轮运行',
@@ -442,7 +495,17 @@ async function fetchTextCached(env, name, ttlSec) {
   return hit && typeof hit.text === 'string' ? hit.text : null; // stale cache as last resort
 }
 
-const getStats = (env) => fetchTextCached(env, 'stats.json', STATS_TTL_SEC).then((s) => { try { return s ? JSON.parse(s) : null; } catch (_) { return null; } });
+/* D4.2: ?fresh=1 bypasses the KV cache (CI calls /card.svg?fresh=1 right after
+   publishing a new data snapshot so the committed PNG matches the fresh run) */
+const getStats = async (env, fresh) => {
+  if (fresh) {
+    try {
+      const r = await fetch(RAW + 'stats.json', { headers: { 'user-agent': 'ariston-bot/1.0 (+https://github.com/' + REPO + ')' }, cf: { cacheTtl: 60 } });
+      if (r.ok) { const j = await r.json(); if (j && j.generated_at) return j; }
+    } catch (_) { /* fall through to the KV cache */ }
+  }
+  return fetchTextCached(env, 'stats.json', STATS_TTL_SEC).then((s) => { try { return s ? JSON.parse(s) : null; } catch (_) { return null; } });
+};
 
 /* ─────────────── mini app: initdata auth, enrichment, feedback ─────────────── */
 
@@ -513,7 +576,96 @@ async function feedbackSet(env, hash, chatId, vote) {
   return { up: cur.up, down: cur.down };
 }
 
-/* ───────────── D4 — brand remarks + personalized 10-pick allocation ───────── */
+/* ──────────── cfg:admin (runtime settings · editable from the panel) ─────── */
+
+const CFG_DEFAULT = {
+  force_join: true,          // gate the bot behind official-channel membership
+  channel_user: CHANNEL_USER,
+  card_enabled: true,        // daily photo card in the channel
+  watchtower_enabled: true,  // per-run alerts to opted-in users
+  ref_base: REF_BASE,
+  ref_cap: REF_CAP,
+  admin_ids: [],             // managed via /setup?admin=<id> and the panel
+};
+
+async function getCfg(env) {
+  const c = await kvGet(env, 'cfg:admin', 'json');
+  return { ...CFG_DEFAULT, ...(c && typeof c === 'object' ? c : {}) };
+}
+const putCfg = (env, c) => kvPut(env, 'cfg:admin', JSON.stringify(c));
+
+async function isAdmin(env, chatId, cfg) {
+  const c = cfg || (await getCfg(env));
+  if ((c.admin_ids || []).map(String).includes(String(chatId))) return true;
+  const owner = await kvGet(env, 'meta:owner'); // D4: first /start claims ownership
+  return owner !== null && owner === String(chatId);
+}
+
+/* plan B (escalating): ref 1–2 → +1 each · ref 3–5 → +2 each · ref 6+ → +3 each */
+function refQuota(refs, cfg) {
+  const base = (cfg && cfg.ref_base) || REF_BASE;
+  const cap = (cfg && cfg.ref_cap) || REF_CAP;
+  const bonus = Math.min(refs, 2) + Math.min(Math.max(refs - 2, 0), 3) * 2 + Math.max(refs - 5, 0) * 3;
+  return Math.min(cap, base + bonus);
+}
+
+/* ─────────────────── forced join (official channel gate) ────────────── */
+
+async function resolveChannel(env, cfg) {
+  const user = (cfg && cfg.channel_user) || CHANNEL_USER;
+  let id = await kvGet(env, 'meta:channel');
+  if (!id) {
+    const g = await api(env, 'getChat', { chat_id: '@' + user });
+    if (g && g.ok && g.result && g.result.id) {
+      id = String(g.result.id);
+      await kvPut(env, 'meta:channel', id);
+    }
+  }
+  return id ? { id, user } : null;
+}
+
+async function isMember(env, chatId, chan) {
+  const r = await api(env, 'getChatMember', { chat_id: chan.id, user_id: chatId });
+  if (!r || !r.ok) return true; // fail-open: an API hiccup must never lock users out
+  const st = r.result && r.result.status;
+  return st === 'member' || st === 'administrator' || st === 'creator';
+}
+
+/* returns true when the user may proceed; otherwise sends the join wall */
+async function gateJoin(env, chatId, cfg, lang) {
+  if (!cfg.force_join) return true;
+  if (await isAdmin(env, chatId, cfg)) return true;
+  const chan = await resolveChannel(env, cfg);
+  if (!chan) return true; // channel unresolvable → never lock users out
+  if (await isMember(env, chatId, chan)) return true;
+  await sendMessage(env, chatId, t(lang, 'join_wall'), {
+    reply_markup: { inline_keyboard: [
+      [{ text: '🔔 @' + chan.user, url: 'https://t.me/' + chan.user, style: 'primary' }],
+      [{ text: t(lang, 'join_done'), callback_data: 'join:check', style: 'success' }],
+    ] },
+  });
+  return false;
+}
+
+/* referral credit — runs once, when a referred user finishes onboarding */
+async function creditReferral(env, chatId) {
+  const user = await getUser(env, chatId);
+  if (!user || !user.ref_by || user.ref_credited) return;
+  const refId = String(user.ref_by);
+  user.ref_credited = true;
+  await saveUser(env, chatId, user);
+  if (refId === String(chatId)) return;
+  const cfg = await getCfg(env);
+  const ru = await getUser(env, refId);
+  if (!ru) return;
+  ru.ref_count = (ru.ref_count || 0) + 1;
+  await saveUser(env, refId, ru);
+  const q = refQuota(ru.ref_count, cfg);
+  const lang = ru.lang || 'fa';
+  await sendMessage(env, refId, t(lang, 'ref_credited', { name: user.tg || user.name || '👤', q, cap: cfg.ref_cap || REF_CAP }));
+}
+
+/* ───────────── D4 — brand remarks + personalized allocation ───────── */
 
 const cleanName = (s) => String(s || '').replace(/[#\r\n<>&|]/g, '').trim().slice(0, 24);
 
@@ -574,11 +726,13 @@ async function buildPool(env, user) {
  */
 async function allocateSub(env, user) {
   const rot = user.rotation === 'run' ? 'run' : 'day';
+  const cfg = await getCfg(env);
+  const quota = refQuota(user.ref_count || 0, cfg); // 10 base → up to 20 via referrals
   let period;
   if (rot === 'run') { const s = await getStats(env); period = (s && s.generated_at) || tehranDate(); }
   else period = tehranDate();
   const prev = await kvGet(env, 'alloc:' + user.token, 'json');
-  if (prev && prev.period === period && Array.isArray(prev.items) && prev.items.length) {
+  if (prev && prev.period === period && Array.isArray(prev.items) && prev.items.length === quota) {
     return { ...prev, rotation: rot };
   }
   const { lines, usedFallback } = await buildPool(env, user);
@@ -596,7 +750,7 @@ async function allocateSub(env, user) {
   const rnd = mulberry32(fnv(String(user.token) + '|' + period));
   const keyed = order.map((idx, rank) => ({ idx, key: rank + Math.floor(rnd() * spread) }));
   keyed.sort((a, b) => a.key - b.key);
-  const items = keyed.slice(0, SUB_ALLOCATION).map((k) => scored[k.idx]);
+  const items = keyed.slice(0, quota).map((k) => scored[k.idx]);
   const out = { period, rotation: rot, created: new Date().toISOString(), usedFallback, items };
   await kvPut(env, 'alloc:' + user.token, JSON.stringify(out), 172800);
   return out;
@@ -623,6 +777,8 @@ async function idxAdd(env, chatId) {
 }
 
 async function broadcastNewRun(env) {
+  const cfg = await getCfg(env);
+  if (cfg.watchtower_enabled === false) return;
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring || !s.generated_at) return;
   const last = await kvGet(env, 'watch:last_gen');
@@ -646,13 +802,17 @@ async function broadcastNewRun(env) {
 
 /* ─────────────────── daily channel card (official channel) ────────────────── */
 
-async function dailyChannelCard(env) {
+async function dailyChannelCard(env, force = false) {
+  const cfg = await getCfg(env);
+  if (cfg.card_enabled === false) return;
   const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
   if (!chan) return; // not configured → silent no-op
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
-  if ((await kvGet(env, 'card:last')) === today) return;      // already posted today
-  if (now.getUTCHours() < 9) return;                           // first cron after 09:00 UTC (≈12:30 Tehran)
+  if (!force) {
+    if ((await kvGet(env, 'card:last')) === today) return;    // already posted today
+    if (now.getUTCHours() < 9) return;                       // first cron after 09:00 UTC (≈12:30 Tehran)
+  }
 
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring) return;
@@ -686,28 +846,16 @@ async function dailyChannelCard(env) {
   ].join('\n');
 
   const rows = [];
-  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
-  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
-  const markup = rows.length ? { reply_markup: { inline_keyboard: rows } } : {};
+  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app', style: 'primary' }]);
+  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot, style: 'primary' }]);
 
-  /* D4: post the card itself as a real PNG photo (Telegram rejects SVG) + caption */
+  /* D4.2: the brand PNG committed by CI beats the in-worker raster; text is the last resort */
   let sent = null;
   try {
-    const png = await renderCardPNG(s);
-    sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), { ...markup, disable_notification: false });
-    if ((!sent || !sent.ok) && rows.length && rows[0][0].web_app) {
-      const fallbackRows = [[{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]];
-      if (bot) fallbackRows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
-      sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), { reply_markup: { inline_keyboard: fallbackRows } });
-    }
+    const png = (await fetchCardPng()) || (await renderCardPNG(s));
+    sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), { reply_markup: { inline_keyboard: rows }, disable_notification: false });
   } catch (e) { console.error('card png error', e && e.message); }
-  if (!sent || !sent.ok) sent = await sendMessage(env, chan, msg, { ...markup, disable_notification: false });
-  if ((!sent || !sent.ok) && rows.length && rows[0][0].web_app) {
-    // web_app buttons are not accepted everywhere → retry with plain url buttons
-    const fallbackRows = [[{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]];
-    if (bot) fallbackRows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
-    sent = await sendMessage(env, chan, msg, { reply_markup: { inline_keyboard: fallbackRows } });
-  }
+  if (!sent || !sent.ok) sent = await sendMessage(env, chan, msg, { reply_markup: { inline_keyboard: rows }, disable_notification: false });
   if (sent && sent.ok) await kvPut(env, 'card:last', today, 172800);
 }
 
@@ -735,9 +883,17 @@ async function channelDigest(env) {
   const origin = await kvGet(env, 'meta:origin');
   const bot = (await kvGet(env, 'meta:bot_username')) || null;
   const rows = [];
-  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]);
-  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
-  const sent = await sendMessage(env, chan, msg, rows.length ? { reply_markup: { inline_keyboard: rows } } : {});
+  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app', style: 'primary' }]);
+  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot, style: 'primary' }]);
+  const markup = { reply_markup: { inline_keyboard: rows } };
+
+  /* D4.2: digest goes out as a photo post too (the user-facing card image) */
+  let sent = null;
+  try {
+    const png = (await fetchCardPng()) || (await renderCardPNG(s));
+    sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), markup);
+  } catch (e) { console.error('digest png error', e && e.message); }
+  if (!sent || !sent.ok) sent = await sendMessage(env, chan, msg, markup);
   if (!sent || !sent.ok) return; // marker only on success → auto-retry next tick
   await kvPut(env, 'ch:last_post', new Date().toISOString(), 172800);
 }
@@ -857,19 +1013,38 @@ async function sendPhotoFile(env, chatId, pngBytes, filename, caption, extra = {
   } catch (_) { return null; }
 }
 
+/* D4.2 — brand PNG committed to main by CI (resvg, Cinzel fonts) — beats the
+   in-worker raster; cached on GitHub's CDN, bust-quantized to 5 minutes */
+const CARD_PNG_BASES = [
+  'https://raw.githubusercontent.com/' + REPO + '/main/assets/card/',
+  'https://cdn.jsdelivr.net/gh/' + REPO + '@main/assets/card/',
+];
+async function fetchCardPng() {
+  const bust = Math.floor(Date.now() / 300e3);
+  for (const base of CARD_PNG_BASES) {
+    try {
+      const r = await fetch(base + 'card.png?v=' + bust, { cf: { cacheTtl: 300, cacheEverything: true } });
+      if (!r.ok) continue;
+      const buf = await r.arrayBuffer();
+      if (buf && buf.byteLength > 2048) return buf; // sanity: a real image, not an error page
+    } catch (_) { /* next source */ }
+  }
+  return null;
+}
+
 /* ──────────────────────────────── keyboards ───────────────────────────────── */
 
 const langKb = () => {
-  const names = Object.entries(LANG_META).map(([code, label]) => [{ text: label, callback_data: 'lang:' + code }]);
+  const names = Object.entries(LANG_META).map(([code, label]) => [{ text: label, callback_data: 'lang:' + code, style: 'primary' }]);
   return { inline_keyboard: [names[0], names[1], names[2]] };
 };
 
 function ispKb(lang) {
   const rows = [];
   for (let i = 0; i < ISP_ORDER.length - 1; i += 2) {
-    rows.push(ISP_ORDER.slice(i, i + 2).map((s) => ({ text: ispName(s, lang), callback_data: 'op:' + s })));
+    rows.push(ISP_ORDER.slice(i, i + 2).map((s) => ({ text: ispName(s, lang), callback_data: 'op:' + s, style: 'primary' })));
   }
-  rows.push([{ text: ispName('other', lang), callback_data: 'op:other' }]);
+  rows.push([{ text: ispName('other', lang), callback_data: 'op:other', style: 'primary' }]);
   rows.push([{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }]);
   return { inline_keyboard: rows };
 }
@@ -877,18 +1052,19 @@ function ispKb(lang) {
 function clientKb(lang) {
   const rows = [];
   for (let i = 0; i < CLIENT_ORDER.length - 1; i += 2) {
-    rows.push(CLIENT_ORDER.slice(i, i + 2).map((s) => ({ text: clName(s, lang), callback_data: 'cl:' + s })));
+    rows.push(CLIENT_ORDER.slice(i, i + 2).map((s) => ({ text: clName(s, lang), callback_data: 'cl:' + s, style: 'primary' })));
   }
-  rows.push([{ text: clName('other', lang), callback_data: 'cl:other' }]);
+  rows.push([{ text: clName('other', lang), callback_data: 'cl:other', style: 'primary' }]);
   rows.push([{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }]);
   return { inline_keyboard: rows };
 }
 
 const menuKb = (lang, origin) => {
   const rows = [
-    [{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }, { text: t(lang, 'btn_best'), callback_data: 'menu:best' }],
-    [{ text: t(lang, 'btn_stats'), callback_data: 'menu:stats' }, { text: t(lang, 'btn_sub'), callback_data: 'menu:sub' }],
-    [{ text: t(lang, 'btn_settings'), callback_data: 'menu:settings' }, { text: t(lang, 'btn_help'), callback_data: 'menu:help' }],
+    [{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold', style: 'primary' }, { text: t(lang, 'btn_best'), callback_data: 'menu:best', style: 'primary' }],
+    [{ text: t(lang, 'btn_stats'), callback_data: 'menu:stats' }, { text: t(lang, 'btn_sub'), callback_data: 'menu:sub', style: 'success' }],
+    [{ text: t(lang, 'btn_ref'), callback_data: 'menu:ref', style: 'success' }, { text: t(lang, 'btn_settings'), callback_data: 'menu:settings' }],
+    [{ text: t(lang, 'btn_help'), callback_data: 'menu:help' }, { text: t(lang, 'btn_lang'), callback_data: 'menu:lang' }],
   ];
   if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
   return { inline_keyboard: rows };
@@ -899,7 +1075,7 @@ const settingsKb = (lang, user) => {
   const nameRow = [{ text: t(lang, 'name_now', { name: (user && user.name) || '—' }), callback_data: 'set:name' }];
   return {
     inline_keyboard: [
-      [{ text: t(lang, 'btn_isp'), callback_data: 'set:isp' }, { text: t(lang, 'btn_client'), callback_data: 'set:client' }],
+      [{ text: t(lang, 'btn_isp'), callback_data: 'set:isp', style: 'primary' }, { text: t(lang, 'btn_client'), callback_data: 'set:client', style: 'primary' }],
       nameRow,
       [{ text: t(lang, 'set_rot', { mode: rotMode }), callback_data: 'set:rot' }],
       [{ text: t(lang, 'btn_lang'), callback_data: 'menu:lang' }],
@@ -954,6 +1130,11 @@ async function cmdStart(env, chatId, msg, origin) {
   const lc = String((msg.from && msg.from.language_code) || '').toLowerCase();
   const guess = lc.startsWith('fa') ? 'fa' : lc.startsWith('ru') ? 'ru' : lc.startsWith('tr') ? 'tr' : lc.startsWith('zh') ? 'zh' : lc.startsWith('en') ? 'en' : null;
   if (!user) user = { created: new Date().toISOString().slice(0, 10) };
+  if (msg.from && msg.from.first_name && !user.tg) user.tg = String(msg.from.first_name).slice(0, 64); // display name (referrer toasts)
+  /* D4.2 referral capture — only for brand-new accounts (anti-abuse) */
+  const refPayload = String(msg.text || '').trim().split(/\s+/)[1] || '';
+  const refm = refPayload.match(/^ref(\d{3,20})$/i);
+  if (refm && refm[1] !== String(chatId) && !user.ref_by && !user.ref_credited) user.ref_by = refm[1];
   if (guess && !user.lang) user.lang = guess; // smart start: skip lang step when Telegram already knows
   await saveUser(env, chatId, user);
   if (!user.lang) return askLang(env, chatId);
@@ -973,7 +1154,7 @@ async function cmdGold(env, chatId, lang, offset) {
   page.forEach((cfg, i) => { msg += '<b>#' + (off + i + 1) + '</b>\n<code>' + esc(cfg) + '</code>\n\n'; });
   msg += t(lang, 'gold_hint');
   const rows = [];
-  if (off + 3 < total) rows.push([{ text: t(lang, 'more'), callback_data: 'gold:' + (off + 3) }]);
+  if (off + 3 < total) rows.push([{ text: t(lang, 'more'), callback_data: 'gold:' + (off + 3), style: 'primary' }]);
   rows.push([{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }]);
   return sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: rows } });
 }
@@ -1016,18 +1197,40 @@ async function cmdSub(env, chatId, lang, origin) {
   const how = HOWTO[user.client] ? (HOWTO[user.client][lang] || HOWTO[user.client].en) : HOWTO.other[lang] || HOWTO.other.en;
   const clientLine = user.client ? clName(user.client, lang) : '—';
   const rotMode = t(lang, user.rotation === 'run' ? 'rot_run' : 'rot_day');
+  const quota = refQuota(user.ref_count || 0, await getCfg(env)); // D4.2: referral-aware
   const msg = [
     t(lang, 'sub_title'), '',
     '<code>' + esc(url) + '</code>', '',
     t(lang, 'sub_note'), '',
-    t(lang, 'sub_rot_line', { mode: rotMode, n: SUB_ALLOCATION }),
+    t(lang, 'sub_rot_line', { mode: rotMode, n: quota }),
     '📡 ' + ispName(user.isp, lang) + ' · 📱 ' + clientLine + (user.name ? ' · ✍️ ' + esc(cleanName(user.name)) : ''), note, '',
+    t(lang, 'ref_stat', { n: user.ref_count || 0, q: quota, cap: (await getCfg(env)).ref_cap || REF_CAP }), '',
     t(lang, 'sub_howto'), how, '',
     '⚙️ ' + t(lang, 'set_rot', { mode: rotMode }) + ' · ' + t(lang, 'set_name'),
   ].join('\n');
   return sendMessage(env, chatId, msg, {
-    reply_markup: { inline_keyboard: [[{ text: t(lang, 'sub_open'), url }], [{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }]] },
+    reply_markup: { inline_keyboard: [[{ text: t(lang, 'sub_open'), url, style: 'success' }], [{ text: t(lang, 'btn_ref'), callback_data: 'menu:ref', style: 'success' }], [{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }]] },
   });
+}
+
+/* D4.2 — /ref: personal invite link · plan B escalating quota up to REF_CAP */
+async function cmdRef(env, chatId, lang, origin) {
+  const cfg = await getCfg(env);
+  const user = (await getUser(env, chatId)) || {};
+  const bot = (await kvGet(env, 'meta:bot_username')) || 'Ariston_vbot';
+  const link = 'https://t.me/' + bot + '?start=ref' + chatId;
+  const refs = user.ref_count || 0;
+  const msg = [
+    t(lang, 'ref_title'), '',
+    '<code>' + esc(link) + '</code>', '',
+    t(lang, 'ref_stat', { n: refs, q: refQuota(refs, cfg), cap: cfg.ref_cap || REF_CAP }), '',
+    t(lang, 'ref_rule'),
+  ].join('\n');
+  const share = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(t(lang, 'ref_share_text'));
+  return sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: [
+    [{ text: t(lang, 'ref_share'), url: share, style: 'primary' }],
+    [{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }],
+  ] } });
 }
 
 async function cmdHelp(env, chatId, lang, origin) {
@@ -1092,11 +1295,13 @@ async function handleUpdate(env, update, origin) {
     const user = await getUser(env, chatId);
     const lang = (user && user.lang) || 'fa';
     try {
+      /* D4.2 forced join: nothing is served before official-channel membership */
+      if (msg.chat.type === 'private' && !(await gateJoin(env, chatId, await getCfg(env), lang))) return;
       /* D4 — free-text name capture (awaited after onboarding or from settings) */
       if (user && user.await === 'name' && !msg.text.startsWith('/')) {
         const name = cleanName(msg.text.trim());
         delete user.await;
-        if (name) { user.name = name; await saveUser(env, chatId, user); return sendMenu(env, chatId, lang, t(lang, 'name_saved', { name: esc(name) }), origin || ''); }
+        if (name) { user.name = name; await saveUser(env, chatId, user); await creditReferral(env, chatId); return sendMenu(env, chatId, lang, t(lang, 'name_saved', { name: esc(name) }), origin || ''); }
         await saveUser(env, chatId, user);
         return askName(env, chatId, lang);
       }
@@ -1106,6 +1311,7 @@ async function handleUpdate(env, update, origin) {
         case '/best': return await cmdBest(env, chatId, lang, origin);
         case '/stats': return await cmdStats(env, chatId, lang, origin);
         case '/sub': return await cmdSub(env, chatId, lang, origin || '');
+        case '/ref': return await cmdRef(env, chatId, lang, origin);
         case '/help': return await cmdHelp(env, chatId, lang, origin);
         case '/lang': return await askLang(env, chatId);
         case '/settings': return await askSettings(env, chatId, lang);
@@ -1122,9 +1328,29 @@ async function handleUpdate(env, update, origin) {
   if (cb && cb.data) {
     const chatId = cb.message && cb.message.chat && cb.message.chat.id;
     if (!chatId) { await api(env, 'answerCallbackQuery', { callback_query_id: cb.id }); return; }
-    await api(env, 'answerCallbackQuery', { callback_query_id: cb.id }); // always answer → stops the spinner
     const [head, arg] = String(cb.data).split(':');
+    const cbUser = await getUser(env, chatId);
+    const lang = (cbUser && cbUser.lang) || 'fa';
     try {
+      if (head === 'join') { // D4.2 forced-join re-check → stop the spinner with a spoken answer
+        const cfg = await getCfg(env);
+        const chan = await resolveChannel(env, cfg);
+        const ok = Boolean(chan) && (await isMember(env, chatId, chan));
+        await api(env, 'answerCallbackQuery', { callback_query_id: cb.id, text: t(lang, ok ? 'join_ok' : 'join_still') });
+        if (ok) {
+          if (cbUser && cbUser.lang && cbUser.isp && cbUser.client) {
+            if (cbUser.name === undefined) { cbUser.await = 'name'; await saveUser(env, chatId, cbUser); return askName(env, chatId, lang); }
+            await sendMenu(env, chatId, lang, null, origin);
+          }
+          else if (!cbUser || !cbUser.lang) await askLang(env, chatId);
+          else if (!cbUser.isp) await askIsp(env, chatId, cbUser.lang);
+          else await askClient(env, chatId, cbUser.lang);
+        }
+        return;
+      }
+      await api(env, 'answerCallbackQuery', { callback_query_id: cb.id }); // always answer → stops the spinner
+      /* D4.2 forced join gate */
+      if (cb.message.chat.type === 'private' && !(await gateJoin(env, chatId, await getCfg(env), lang))) return;
       switch (head) {
         case 'lang': {
           let user = (await getUser(env, chatId)) || { created: new Date().toISOString().slice(0, 10) };
@@ -1147,6 +1373,7 @@ async function handleUpdate(env, update, origin) {
           user.client = arg; await saveUser(env, chatId, user);
           await idxAdd(env, chatId);
           if (!user.name) return askName(env, chatId, user.lang || 'fa'); // D4: stamp name → remarks
+          await creditReferral(env, chatId); // D4.2: onboarding complete → count the referral
           return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'setup_done'), origin);
         }
         case 'name': { // D4 — «skip» pressed on the name prompt
@@ -1155,6 +1382,7 @@ async function handleUpdate(env, update, origin) {
           delete user.await;
           user.name = user.name || '';
           await saveUser(env, chatId, user);
+          await creditReferral(env, chatId); // D4.2: onboarding complete → count the referral
           const lg = user.lang || 'fa';
           if (user.isp && user.client) return sendMenu(env, chatId, lg, t(lg, 'setup_done'), origin);
           if (!user.isp) return askIsp(env, chatId, lg);
@@ -1168,6 +1396,7 @@ async function handleUpdate(env, update, origin) {
             case 'best': return cmdBest(env, chatId, lang, origin);
             case 'stats': return cmdStats(env, chatId, lang, origin);
             case 'sub': return cmdSub(env, chatId, lang, origin || '');
+            case 'ref': return cmdRef(env, chatId, lang, origin);
             case 'settings': return askSettings(env, chatId, lang);
             case 'help': return cmdHelp(env, chatId, lang, origin);
             case 'lang': return askLang(env, chatId);
@@ -2119,6 +2348,7 @@ export default {
           { command: 'best', description: 'Gold ticket — fastest alive' },
           { command: 'stats', description: 'Live run stats' },
           { command: 'sub', description: 'Personal subscription link' },
+          { command: 'ref', description: 'Invite friends — quota up to 20' },
           { command: 'settings', description: 'ISP / client / name / rotation' },
           { command: 'lang', description: 'Change language' },
           { command: 'freq', description: 'Channel digest interval (owner)' },
@@ -2140,6 +2370,27 @@ export default {
       const cl = url.searchParams.get('lang');
       if (cl && ['fa', 'en', 'ru', 'tr', 'zh'].includes(cl)) await kvPut(env, 'meta:channel_lang', cl);
 
+      /* D4.2: register an admin id — /setup?key=…&admin=<chat_id> */
+      const adm = url.searchParams.get('admin');
+      if (adm && /^\d{3,20}$/.test(adm)) {
+        const cfg = await getCfg(env);
+        if (!(cfg.admin_ids || []).map(String).includes(adm)) {
+          cfg.admin_ids = [...(cfg.admin_ids || []), Number(adm)];
+          await putCfg(env, cfg);
+        }
+      }
+
+      /* D4.2: force-send one channel post right now — ?…&test_card=1 card · 2 digest */
+      let test_card = null;
+      if (url.searchParams.get('test_card') === '1') {
+        try { await dailyChannelCard(env, true); test_card = { card: 'sent' }; }
+        catch (e) { test_card = { card: 'failed', error: String(e && e.message) }; }
+      }
+      if (url.searchParams.get('test_card') === '2') {
+        try { await kvDel(env, 'ch:last_post'); await channelDigest(env); test_card = { digest: 'sent' }; }
+        catch (e) { test_card = { digest: 'failed', error: String(e && e.message) }; }
+      }
+
       const info = await api(env, 'getWebhookInfo');
       return new Response(JSON.stringify({
         webhook_registered: Boolean(set && set.ok),
@@ -2148,6 +2399,7 @@ export default {
         menu_button: Boolean(menuBtn && menuBtn.ok),
         commands: Boolean(cmds && cmds.ok),
         channel,
+        test_card,
         webhook_info: info && info.ok ? info.result : null,
       }, null, 2), { headers: { 'content-type': 'application/json; charset=utf-8' } });
     }
@@ -2205,7 +2457,7 @@ export default {
 
     /* ── brand “card of the day” (D3/D4) ── */
     if (url.pathname === '/card.svg') {
-      const s = await getStats(env);
+      const s = await getStats(env, url.searchParams.has('fresh'));
       return new Response(cardSVG(s), {
         headers: { 'content-type': 'image/svg+xml; charset=utf-8', 'cache-control': 'public, max-age=600', ...CORS_HEADERS },
       });
@@ -2234,9 +2486,10 @@ export default {
     return new Response('not found\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },
 
-  /* cron — Watchtower (new-run alerts) + daily channel card + periodic digest (D4) */
+  /* cron — Watchtower + daily card + periodic digest (D4) — D4.2 adds cfg toggles */
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
+    const cfg = await getCfg(env);
+    if (cfg.watchtower_enabled !== false) ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
     ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
     ctx.waitUntil(channelDigest(env).catch((e) => console.error('digest error', e && e.message)));
   },
