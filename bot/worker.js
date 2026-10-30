@@ -127,7 +127,7 @@ const T = {
     sub_howto: '📥 راهنمای وارد کردن:',
     sub_fallback_note: 'ℹ️ برای این اپراتور هنوز کانفیگ داخلی کافی نداریم؛ لیست کامل کانفیگ‌های تست‌شده برات فعال شد.',
     sub_open: '📥 باز کردن لینک',
-    help_text: '❓ <b>راهنمای آریستون</b>\n\n/start — شروع و منوی اصلی\n/gold — ۳ کانفیگ طلایی برتر\n/stats — آمار زندهٔ آخرین اجرا\n/sub — لینک اشتراک شخصی\n/settings — تغییر اپراتور / کلاینت\n/lang — تغییر زبان\n\n👑 هر نیم‌ساعت: جمع‌آوری ← نرمال‌سازی ← تست ← امتیازدهی ← انتشار.',
+    help_text: '❓ <b>راهنمای آریستون</b>\n\n/start — شروع و منوی اصلی\n/gold — ۳ کانفیگ طلایی برتر\n/best — بلیت طلایی: کم‌تأخیرترین سالم\n/stats — آمار زندهٔ آخرین اجرا\n/sub — لینک اشتراک شخصی\n/settings — تغییر اپراتور / کلاینت\n/lang — تغییر زبان\n\n👑 هر نیم‌ساعت: جمع‌آوری ← نرمال‌سازی ← تست ← امتیازدهی ← انتشار.',
     set_pick: '⚙️ چی رو عوض کنم؟',
     saved: '✅ ذخیره شد',
     err_generic: 'ای وای، خطایی پیش اومد ⚠️ چند لحظه بعد دوباره امتحان کن.',
@@ -135,6 +135,9 @@ const T = {
     btn_gold: '🏆 طلایی‌ها', btn_stats: '📊 آمار', btn_sub: '🔗 اشتراک من',
     btn_settings: '⚙️ تنظیمات', btn_help: '❓ راهنما', btn_lang: '🌐 زبان',
     btn_isp: '📡 اپراتور', btn_client: '📱 کلاینت', btn_menu: '↩️ منو',
+    btn_best: '⚡ بلیت طلایی', btn_app: '👑 داشبورد',
+    best_title: 'بلیت طلایی — کم‌تأخیرترین کانفیگ سالم',
+    watchtower: '🔔 <b>اجرای جدید تمام شد!</b>\n\n🥇 طلایی: {gold}\n❤️ سالم: {alive}\n⚡ p50: {p50}ms',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -160,7 +163,7 @@ const T = {
     sub_howto: '📥 How to import:',
     sub_fallback_note: 'ℹ️ Not enough on-shore configs for this ISP yet; the full tested list is enabled for you instead.',
     sub_open: '📥 Open link',
-    help_text: '❓ <b>Ariston guide</b>\n\n/start — start & main menu\n/gold — top 3 gold configs\n/stats — live stats of the last run\n/sub — personal subscription link\n/settings — change ISP / client\n/lang — change language\n\n👑 Every 30 min: collect → normalize → validate → score → publish.',
+    help_text: '❓ <b>Ariston guide</b>\n\n/start — start & main menu\n/gold — top 3 gold configs\n/best — gold ticket: lowest-latency alive\n/stats — live stats of the last run\n/sub — personal subscription link\n/settings — change ISP / client\n/lang — change language\n\n👑 Every 30 min: collect → normalize → validate → score → publish.',
     set_pick: '⚙️ What should I change?',
     saved: '✅ Saved',
     err_generic: 'Oops, something went wrong ⚠️ Please try again in a moment.',
@@ -168,6 +171,9 @@ const T = {
     btn_gold: '🏆 Gold', btn_stats: '📊 Stats', btn_sub: '🔗 My sub',
     btn_settings: '⚙️ Settings', btn_help: '❓ Help', btn_lang: '🌐 Language',
     btn_isp: '📡 ISP', btn_client: '📱 Client', btn_menu: '↩️ Menu',
+    btn_best: '⚡ Gold ticket', btn_app: '👑 Dashboard',
+    best_title: 'Gold ticket — lowest-latency alive config',
+    watchtower: '🔔 <b>New run finished!</b>\n\n🥇 Gold: {gold}\n❤️ Alive: {alive}\n⚡ p50: {p50}ms',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -193,7 +199,7 @@ const T = {
     sub_howto: '📥 Как импортировать:',
     sub_fallback_note: 'ℹ️ Для этого оператора пока мало внутренних конфигов; включён полный проверенный список.',
     sub_open: '📥 Открыть ссылку',
-    help_text: '❓ <b>Гид по Ariston</b>\n\n/start — старт и меню\n/gold — топ-3 золотых конфигов\n/stats — живая статистика прогона\n/sub — ссылка личной подписки\n/settings — сменить оператора / клиент\n/lang — сменить язык\n\n👑 Каждые 30 минут: сбор → нормализация → проверка → оценка → публикация.',
+    help_text: '❓ <b>Гид по Ariston</b>\n\n/start — старт и меню\n/gold — топ-3 золотых\n/best — золотой билет: самый быстрый\n/stats — живая статистика\n/sub — личная подписка\n/settings — сменить оператора / клиент\n/lang — сменить язык\n\n👑 Каждые 30 минут: сбор → нормализация → проверка → оценка → публикация.',
     set_pick: '⚙️ Что изменить?',
     saved: '✅ Сохранено',
     err_generic: 'Упс, что-то пошло не так ⚠️ Попробуйте ещё раз чуть позже.',
@@ -201,6 +207,9 @@ const T = {
     btn_gold: '🏆 Gold', btn_stats: '📊 Статистика', btn_sub: '🔗 Моя подписка',
     btn_settings: '⚙️ Настройки', btn_help: '❓ Помощь', btn_lang: '🌐 Язык',
     btn_isp: '📡 Оператор', btn_client: '📱 Клиент', btn_menu: '↩️ Меню',
+    btn_best: '⚡ Золотой билет', btn_app: '👑 Панель',
+    best_title: 'Золотой билет — самый быстрый живой конфиг',
+    watchtower: '🔔 <b>Новый прогон завершён!</b>\n\n🥇 Gold: {gold}\n❤️ Живых: {alive}\n⚡ p50: {p50}ms',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -226,7 +235,7 @@ const T = {
     sub_howto: '📥 İçe aktarma:',
     sub_fallback_note: 'ℹ️ Bu sağlayıcı için henüz yeterli yerel yapılandırma yok; test edilmiş tam liste etkinleştirildi.',
     sub_open: '📥 Bağlantıyı aç',
-    help_text: '❓ <b>Ariston rehberi</b>\n\n/start — başlangıç ve ana menü\n/gold — ilk 3 altın yapılandırma\n/stats — son çalışmanın canlı istatistiği\n/sub — kişisel abonelik bağlantısı\n/settings — sağlayıcı / istemci değiştir\n/lang — dil değiştir\n\n👑 Her 30 dakika: topla → normalize et → doğrula → puanla → yayınla.',
+    help_text: '❓ <b>Ariston rehberi</b>\n\n/start — başlangıç ve ana menü\n/gold — ilk 3 altın\n/best — altın bilet: en hızlı\n/stats — canlı istatistik\n/sub — kişisel abonelik\n/settings — sağlayıcı / istemci değiştir\n/lang — dil değiştir\n\n👑 Her 30 dakika: topla → normalize et → doğrula → puanla → yayınla.',
     set_pick: '⚙️ Neyi değiştireyim?',
     saved: '✅ Kaydedildi',
     err_generic: 'Hops, bir şeyler ters gitti ⚠️ Lütfen birazdan tekrar dene.',
@@ -234,6 +243,9 @@ const T = {
     btn_gold: '🏆 Gold', btn_stats: '📊 İstatistik', btn_sub: '🔗 Aboneliğim',
     btn_settings: '⚙️ Ayarlar', btn_help: '❓ Yardım', btn_lang: '🌐 Dil',
     btn_isp: '📡 Sağlayıcı', btn_client: '📱 İstemci', btn_menu: '↩️ Menü',
+    btn_best: '⚡ Altın bilet', btn_app: '👑 Panel',
+    best_title: 'Altın bilet — en düşük gecikmeli çalışan yapılandırma',
+    watchtower: '🔔 <b>Yeni çalışma tamamlandı!</b>\n\n🥇 Gold: {gold}\n❤️ Çalışan: {alive}\n⚡ p50: {p50}ms',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -259,7 +271,7 @@ const T = {
     sub_howto: '📥 导入方法：',
     sub_fallback_note: 'ℹ️ 该运营商的本地配置还不够；已为你启用完整已测试列表。',
     sub_open: '📥 打开链接',
-    help_text: '❓ <b>Ariston 指南</b>\n\n/start — 启动与主菜单\n/gold — 前三名金牌配置\n/stats — 最新一轮实时统计\n/sub — 个人订阅链接\n/settings — 更换运营商 / 客户端\n/lang — 更换语言\n\n👑 每 30 分钟：收集 → 规范化 → 验证 → 评分 → 发布。',
+    help_text: '❓ <b>Ariston 指南</b>\n\n/start — 启动与主菜单\n/gold — 前三名金牌\n/best — 金牌票：延迟最低\n/stats — 最新一轮实时统计\n/sub — 个人订阅链接\n/settings — 更换运营商 / 客户端\n/lang — 更换语言\n\n👑 每 30 分钟：收集 → 规范化 → 验证 → 评分 → 发布。',
     set_pick: '⚙️ 要更改什么？',
     saved: '✅ 已保存',
     err_generic: '哎呀，出错了 ⚠️ 请稍后再试。',
@@ -267,6 +279,9 @@ const T = {
     btn_gold: '🏆 金牌', btn_stats: '📊 统计', btn_sub: '🔗 我的订阅',
     btn_settings: '⚙️ 设置', btn_help: '❓ 帮助', btn_lang: '🌐 语言',
     btn_isp: '📡 运营商', btn_client: '📱 客户端', btn_menu: '↩️ 菜单',
+    btn_best: '⚡ 金牌票', btn_app: '👑 仪表盘',
+    best_title: '金牌票 — 延迟最低的可用配置',
+    watchtower: '🔔 <b>新一轮运行完成！</b>\n\n🥇 金牌：{gold}\n❤️ 可用：{alive}\n⚡ p50：{p50}ms',
   },
 };
 
@@ -336,6 +351,108 @@ async function fetchTextCached(env, name, ttlSec) {
 
 const getStats = (env) => fetchTextCached(env, 'stats.json', STATS_TTL_SEC).then((s) => { try { return s ? JSON.parse(s) : null; } catch (_) { return null; } });
 
+/* ─────────────── mini app: initdata auth, enrichment, feedback ─────────────── */
+
+async function sha16(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].slice(0, 8).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* HMAC-SHA256 verification of Telegram WebApp initData (standard algorithm) */
+async function verifyInitData(env, initData) {
+  try {
+    const params = new URLSearchParams(initData || '');
+    const hash = params.get('hash');
+    if (!hash) return null;
+    params.delete('hash');
+    params.delete('signature');
+    const dataCheck = [...params.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([k, v]) => k + '=' + v).join('\n');
+    const enc = new TextEncoder();
+    const midKey = await crypto.subtle.importKey('raw', enc.encode('WebAppData'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const secret = await crypto.subtle.sign('HMAC', midKey, enc.encode(env.BOT_TOKEN));
+    const hmacKey = await crypto.subtle.importKey('raw', secret, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', hmacKey, enc.encode(dataCheck));
+    const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    if (hex !== hash) return null;
+    const user = JSON.parse(params.get('user') || '{}');
+    return user && user.id ? user : null;
+  } catch (_) { return null; }
+}
+
+/* gold list enriched with real engine telemetry from results.json (sha256[:16] map) */
+async function getEnrichedGold(env) {
+  const rich = await kvGet(env, 'rich:gold', 'json');
+  if (rich && rich.ts && Date.now() - rich.ts < 30 * 60 * 1000 && Array.isArray(rich.items) && rich.items.length) return rich.items;
+  const [goldRaw, resultsRaw] = await Promise.all([
+    fetchTextCached(env, 'gold.txt', FILE_TTL_SEC),
+    fetchTextCached(env, 'results.json', 1800),
+  ]);
+  const lines = toLines(goldRaw);
+  if (!lines.length) return [];
+  let res = {};
+  try { res = resultsRaw ? JSON.parse(resultsRaw) : {}; } catch (_) {}
+  const items = [];
+  for (const uri of lines) {
+    const hash = await sha16(uri);
+    const r = res[hash] || {};
+    items.push({
+      uri, hash,
+      ema: typeof r.ema === 'number' ? r.ema : null,
+      ok: r.ok || 0, fail: r.fail || 0,
+      latency_ms: typeof r.latency_ms === 'number' ? r.latency_ms : null,
+      last_ok: r.last_ok || null,
+    });
+  }
+  if (items.length) await kvPut(env, 'rich:gold', JSON.stringify({ ts: Date.now(), items }), 3600);
+  return items;
+}
+
+async function feedbackGet(env, hash) { return (await kvGet(env, 'fb:' + hash, 'json')) || { up: 0, down: 0, users: {} }; }
+
+async function feedbackSet(env, hash, chatId, vote) {
+  const cur = await feedbackGet(env, hash);
+  cur.users = cur.users || {};
+  cur.users[String(chatId)] = vote; // 1 = up, 2 = down
+  const vals = Object.values(cur.users);
+  cur.up = vals.filter((v) => v === 1).length;
+  cur.down = vals.filter((v) => v === 2).length;
+  await kvPut(env, 'fb:' + hash, JSON.stringify(cur));
+  return { up: cur.up, down: cur.down };
+}
+
+/* ─────────────────────── watchtower (new-run broadcast) ───────────────────── */
+
+async function idxAdd(env, chatId) {
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  if (!Array.isArray(idx)) return;
+  if (!idx.includes(chatId)) {
+    idx.push(chatId);
+    await kvPut(env, 'users:index', JSON.stringify(idx.slice(-5000)));
+  }
+}
+
+async function broadcastNewRun(env) {
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring || !s.generated_at) return;
+  const last = await kvGet(env, 'watch:last_gen');
+  if (last === s.generated_at) return;
+  await kvPut(env, 'watch:last_gen', s.generated_at);
+  if (!last) return; // first boot: record baseline, don't spam
+  const origin = await kvGet(env, 'meta:origin');
+  const idx = ((await kvGet(env, 'users:index', 'json')) || []).slice(-20); // free-plan subrequest budget
+  const v = s.validation, p = v.latency_ms || {};
+  for (const chatId of idx) {
+    try {
+      const u = await getUser(env, chatId);
+      const lang = (u && u.lang) || 'fa';
+      const rows = [];
+      if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+      rows.push([{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }]);
+      await sendMessage(env, chatId, t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
+    } catch (_) { /* keep broadcasting */ }
+  }
+}
+
 /* ─────────────────────────────── telegram api ─────────────────────────────── */
 
 async function api(env, method, payload) {
@@ -383,13 +500,15 @@ function clientKb(lang) {
   return { inline_keyboard: rows };
 }
 
-const menuKb = (lang) => ({
-  inline_keyboard: [
-    [{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }, { text: t(lang, 'btn_stats'), callback_data: 'menu:stats' }],
-    [{ text: t(lang, 'btn_sub'), callback_data: 'menu:sub' }],
+const menuKb = (lang, origin) => {
+  const rows = [
+    [{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }, { text: t(lang, 'btn_best'), callback_data: 'menu:best' }],
+    [{ text: t(lang, 'btn_stats'), callback_data: 'menu:stats' }, { text: t(lang, 'btn_sub'), callback_data: 'menu:sub' }],
     [{ text: t(lang, 'btn_settings'), callback_data: 'menu:settings' }, { text: t(lang, 'btn_help'), callback_data: 'menu:help' }],
-  ],
-});
+  ];
+  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+  return { inline_keyboard: rows };
+};
 
 const settingsKb = (lang) => ({
   inline_keyboard: [
@@ -402,8 +521,8 @@ const settingsKb = (lang) => ({
 
 /* ─────────────────────────────── bot actions ──────────────────────────────── */
 
-async function sendMenu(env, chatId, lang, text) {
-  return sendMessage(env, chatId, text || t(lang, 'menu_title'), { reply_markup: menuKb(lang) });
+async function sendMenu(env, chatId, lang, text, origin) {
+  return sendMessage(env, chatId, text || t(lang, 'menu_title'), { reply_markup: menuKb(lang, origin) });
 }
 
 async function askLang(env, chatId) {
@@ -422,9 +541,12 @@ async function askSettings(env, chatId, lang) {
   return sendMessage(env, chatId, t(lang, 'set_pick'), { reply_markup: settingsKb(lang) });
 }
 
-async function cmdStart(env, chatId, msg) {
+async function cmdStart(env, chatId, msg, origin) {
   let user = await getUser(env, chatId);
-  if (user && user.lang && user.isp && user.client) return sendMenu(env, chatId, user.lang);
+  if (user && user.lang && user.isp && user.client) {
+    await idxAdd(env, chatId);
+    return sendMenu(env, chatId, user.lang, null, origin);
+  }
   const lc = String((msg.from && msg.from.language_code) || '').toLowerCase();
   const guess = lc.startsWith('fa') ? 'fa' : lc.startsWith('ru') ? 'ru' : lc.startsWith('tr') ? 'tr' : lc.startsWith('zh') ? 'zh' : lc.startsWith('en') ? 'en' : null;
   if (!user) user = { created: new Date().toISOString().slice(0, 10) };
@@ -452,7 +574,7 @@ async function cmdGold(env, chatId, lang, offset) {
   return sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: rows } });
 }
 
-async function cmdStats(env, chatId, lang) {
+async function cmdStats(env, chatId, lang, origin) {
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring) return sendMessage(env, chatId, t(lang, 'stats_fail'));
   const v = s.validation, sc = s.scoring, p = v.latency_ms || {};
@@ -469,7 +591,7 @@ async function cmdStats(env, chatId, lang) {
     '🥇 ' + fmt(sc.gold) + '   🥈 ' + fmt(sc.silver) + '   🥉 ' + fmt(sc.bronze), '',
     '🌐 ' + PAGES,
   ].join('\n');
-  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang) });
+  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
 }
 
 async function cmdSub(env, chatId, lang, origin) {
@@ -501,8 +623,26 @@ async function cmdSub(env, chatId, lang, origin) {
   });
 }
 
-function cmdHelp(env, chatId, lang) {
-  return sendMessage(env, chatId, t(lang, 'help_text'), { reply_markup: menuKb(lang) });
+function cmdHelp(env, chatId, lang, origin) {
+  return sendMessage(env, chatId, t(lang, 'help_text'), { reply_markup: menuKb(lang, origin) });
+}
+
+async function cmdBest(env, chatId, lang, origin) {
+  const items = await getEnrichedGold(env);
+  if (!items.length) return sendMessage(env, chatId, t(lang, 'gold_empty'));
+  const scored = items.filter((x) => x.ema !== null);
+  const pool = scored.length ? scored : items;
+  const best = [...pool].sort((a, b) =>
+    ((b.ema || 0) - (a.ema || 0)) || ((a.latency_ms === null ? 9e9 : a.latency_ms) - (b.latency_ms === null ? 9e9 : b.latency_ms))
+  )[0];
+  const ema = best.ema !== null ? Math.round(best.ema * 100) + '%' : '—';
+  const lat = best.latency_ms !== null ? Math.round(best.latency_ms) + 'ms' : '—';
+  const msg = [
+    '⚡ <b>' + esc(t(lang, 'best_title')) + '</b>', '',
+    '<code>' + esc(best.uri) + '</code>', '',
+    '✅ ' + ema + '  ·  ⚡ ' + lat + '  ·  ✔ ' + (best.ok || 0) + ' / ✘ ' + (best.fail || 0),
+  ].join('\n');
+  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
 }
 
 /* ─────────────────────────── update router (webhook) ──────────────────────── */
@@ -516,14 +656,15 @@ async function handleUpdate(env, update, origin) {
     const lang = (user && user.lang) || 'fa';
     try {
       switch (cmd) {
-        case '/start': return await cmdStart(env, chatId, msg);
+        case '/start': return await cmdStart(env, chatId, msg, origin);
         case '/gold': return await cmdGold(env, chatId, lang, 0);
-        case '/stats': return await cmdStats(env, chatId, lang);
+        case '/best': return await cmdBest(env, chatId, lang, origin);
+        case '/stats': return await cmdStats(env, chatId, lang, origin);
         case '/sub': return await cmdSub(env, chatId, lang, origin || '');
-        case '/help': return await cmdHelp(env, chatId, lang);
+        case '/help': return await cmdHelp(env, chatId, lang, origin);
         case '/lang': return await askLang(env, chatId);
         case '/settings': return await askSettings(env, chatId, lang);
-        default: return await sendMenu(env, chatId, lang, t(lang, 'menu_fallback'));
+        default: return await sendMenu(env, chatId, lang, t(lang, 'menu_fallback'), origin);
       }
     } catch (e) {
       console.error('command failed', cmd, e && e.message);
@@ -542,33 +683,35 @@ async function handleUpdate(env, update, origin) {
         case 'lang': {
           let user = (await getUser(env, chatId)) || { created: new Date().toISOString().slice(0, 10) };
           user.lang = arg; await saveUser(env, chatId, user);
-          if (user.isp) return sendMenu(env, chatId, arg, t(arg, 'saved'));
+          if (user.isp) return sendMenu(env, chatId, arg, t(arg, 'saved'), origin);
           return askIsp(env, chatId, arg);
         }
         case 'op': {
           const user = await getUser(env, chatId);
           if (!user) return;
           user.isp = arg; await saveUser(env, chatId, user);
-          if (user.client) return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'saved'));
+          if (user.client) return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'saved'), origin);
           return askClient(env, chatId, user.lang || 'fa');
         }
         case 'cl': {
           const user = await getUser(env, chatId);
           if (!user) return;
           user.client = arg; await saveUser(env, chatId, user);
-          return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'setup_done'));
+          await idxAdd(env, chatId);
+          return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'setup_done'), origin);
         }
         case 'menu': {
           const user = await getUser(env, chatId);
           const lang = (user && user.lang) || 'fa';
           switch (arg) {
             case 'gold': return cmdGold(env, chatId, lang, 0);
-            case 'stats': return cmdStats(env, chatId, lang);
+            case 'best': return cmdBest(env, chatId, lang, origin);
+            case 'stats': return cmdStats(env, chatId, lang, origin);
             case 'sub': return cmdSub(env, chatId, lang, origin || '');
             case 'settings': return askSettings(env, chatId, lang);
-            case 'help': return cmdHelp(env, chatId, lang);
+            case 'help': return cmdHelp(env, chatId, lang, origin);
             case 'lang': return askLang(env, chatId);
-            default: return sendMenu(env, chatId, lang);
+            default: return sendMenu(env, chatId, lang, null, origin);
           }
         }
         case 'gold': return cmdGold(env, chatId, (await getUser(env, chatId) || {}).lang || 'fa', parseInt(arg, 10) || 0);
@@ -663,6 +806,408 @@ function landingPage(botUsername) {
     + '</div></body></html>';
 }
 
+/* ───────────────────────────── mini app JSON api ──────────────────────────── */
+
+async function appStats(env) {
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring) return Response.json({ error: 'no_data' }, { status: 503 });
+  const v = s.validation, p = v.latency_ms || {};
+  return Response.json({
+    generated_at: s.generated_at,
+    sources_ok: s.sources_ok || 0, sources_total: s.sources_total || 0,
+    unique: s.unique || 0, probed: v.probed || 0, alive: v.alive || 0,
+    p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0),
+    gold: s.scoring.gold || 0, silver: s.scoring.silver || 0, bronze: s.scoring.bronze || 0,
+    bot: (await kvGet(env, 'meta:bot_username')) || null,
+  });
+}
+
+async function appGold(env, url) {
+  const q = url.searchParams;
+  const limit = Math.min(Math.max(parseInt(q.get('limit') || '8', 10) || 8, 1), 24);
+  const offset = Math.max(parseInt(q.get('offset') || '0', 10) || 0, 0);
+  const all = await getEnrichedGold(env);
+  const slice = all.slice(offset, offset + limit);
+  const items = [];
+  for (const it of slice) {
+    const fb = await feedbackGet(env, it.hash);
+    items.push({ ...it, up: fb.up || 0, down: fb.down || 0 });
+  }
+  return Response.json({ total: all.length, offset, items });
+}
+
+async function appSub(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const chatId = tgUser.id;
+  let user = await getUser(env, chatId);
+  if (!user) { // smoothest path: auto-profile from Telegram identity, isp=other → full tested list
+    const lc = String(tgUser.language_code || '').toLowerCase();
+    const lang = lc.startsWith('fa') ? 'fa' : lc.startsWith('ru') ? 'ru' : lc.startsWith('tr') ? 'tr' : lc.startsWith('zh') ? 'zh' : 'en';
+    user = { created: new Date().toISOString().slice(0, 10), lang, isp: 'other', client: 'other' };
+    await saveUser(env, chatId, user);
+    await idxAdd(env, chatId);
+  }
+  if (!user.isp) { user.isp = 'other'; await saveUser(env, chatId, user); }
+  if (!user.token) {
+    user.token = crypto.randomUUID();
+    await saveUser(env, chatId, user);
+    await kvPut(env, 'sub:' + user.token, JSON.stringify({ chat_id: chatId }));
+  }
+  const origin = new URL(request.url).origin;
+  return Response.json({ url: origin + '/u/' + user.token, isp: user.isp, client: user.client || 'other', lang: user.lang || 'fa' });
+}
+
+async function appFeedback(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const hash = String(body.hash || '');
+  if (!/^[a-f0-9]{16}$/.test(hash)) return Response.json({ error: 'bad_hash' }, { status: 400 });
+  const vote = body.vote === 'up' ? 1 : body.vote === 'down' ? 2 : 0;
+  if (!vote) return Response.json({ error: 'bad_vote' }, { status: 400 });
+  const out = await feedbackSet(env, hash, tgUser.id, vote);
+  return Response.json({ ok: true, ...out });
+}
+
+/* ───────────────────────────── mini app page (/app) ───────────────────────── */
+
+const MINI_APP_HTML = `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>ARISTON ⚡</title>
+<script src="https://telegram.org/js/telegram-web-app.js"><\/script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#14110C;--card:rgba(232,200,114,.055);--card2:rgba(232,200,114,.11);
+--line:rgba(232,200,114,.16);--line2:rgba(232,200,114,.34);
+--gold:#E8C872;--deep:#C9A24A;--silver:#C0C6CC;--bronze:#B87333;
+--txt:#F3ECDD;--dim:#8d8262;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Vazirmatn',system-ui,sans-serif;font-size:15px;line-height:1.65}
+body{min-height:100vh;background-image:radial-gradient(560px 280px at 50% -70px,rgba(232,200,114,.14),transparent 72%)}
+.wrap{max-width:520px;margin:0 auto;padding:14px 16px calc(30px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:10px;padding:8px 2px 14px}
+.emblem{width:36px;height:30px;flex:0 0 auto}
+.brand{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.32em;font-size:15px;text-indent:.32em}
+.hlive{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
+.livewrap{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.14em}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,200,114,.5)}70%{box-shadow:0 0 0 7px rgba(232,200,114,0)}100%{box-shadow:0 0 0 0 rgba(232,200,114,0)}}
+.refresh{background:none;border:1px solid var(--line);color:var(--gold);width:30px;height:30px;border-radius:50%;font-size:13px;cursor:pointer;line-height:1}
+.refresh:active{transform:rotate(30deg)}
+.hero{position:relative;border:1px solid var(--line2);border-radius:20px;padding:22px 20px 18px;overflow:hidden;
+background:linear-gradient(165deg,rgba(232,200,114,.13),rgba(232,200,114,.03) 55%,rgba(232,200,114,.07));animation:up .5s ease both}
+.hero .num{font-family:'Cinzel',serif;font-weight:700;font-size:56px;line-height:1.05;color:var(--gold)}
+.hero .lbl{margin-top:6px;font-weight:700;font-size:14.5px}
+.hero .sub{margin-top:3px;color:var(--dim);font-size:12.5px}
+.hero .kbar{position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;animation:up .5s .07s ease both}
+.stat{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 14px}
+.stat .v{font-family:var(--mono);font-weight:600;font-size:18px;direction:ltr;text-align:end}
+.stat .v small{font-size:11px;color:var(--dim);font-weight:400}
+.stat .k{font-size:11.5px;color:var(--dim);margin-top:1px}
+.sec{display:flex;align-items:center;gap:10px;margin:24px 2px 10px;animation:up .5s .12s ease both}
+.sec h2{font-size:13.5px;font-weight:700;margin:0;color:var(--gold);white-space:nowrap}
+.sec .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.hint{font-size:11px;color:var(--dim);margin:-4px 2px 10px}
+.gcard{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 14px;margin-bottom:8px;cursor:pointer;
+transition:transform .12s ease,border-color .2s ease}
+.gcard:active{transform:scale(.98);border-color:var(--line2)}
+.gtop{display:flex;align-items:center;gap:9px}
+.rank{font-size:15px;width:26px;text-align:center;flex:0 0 auto}
+.chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;border:1px solid;border-radius:6px;padding:2px 7px;flex:0 0 auto}
+.chip.vless{color:var(--gold);border-color:rgba(232,200,114,.45)}
+.chip.trojan{color:var(--silver);border-color:rgba(192,198,204,.45)}
+.chip.hysteria2,.chip.hy2,.chip.tuic{color:var(--bronze);border-color:rgba(184,115,51,.5)}
+.chip.vmess,.chip.ss,.chip.other{color:var(--txt);border-color:rgba(243,236,221,.35)}
+.host{font-family:var(--mono);font-size:11.5px;color:var(--txt);opacity:.82;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;flex:1;text-align:left}
+.metrics{display:flex;gap:6px;align-items:center;flex:0 0 auto;margin-inline-start:auto}
+.ema{font-family:var(--mono);font-size:11.5px;font-weight:600}
+.ema.g{color:var(--gold)}.ema.s{color:var(--silver)}.ema.b{color:var(--bronze)}
+.lat{font-family:var(--mono);font-size:10.5px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.gfoot{display:flex;align-items:center;gap:12px;margin-top:9px;padding-top:9px;border-top:1px dashed rgba(232,200,114,.13)}
+.fb{background:none;border:none;color:var(--dim);font-size:12.5px;cursor:pointer;padding:0 2px;font-family:inherit}
+.fb.on{color:var(--gold)}
+.gfoot .ok{font-family:var(--mono);font-size:10px;color:var(--dim);margin-inline-start:auto;direction:ltr}
+.sub{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:15px 16px;animation:up .5s .18s ease both}
+.sub .t{font-weight:700;font-size:13.5px}
+.sub .url{font-family:var(--mono);font-size:10.5px;color:var(--dim);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:9px 0 11px;border:1px dashed var(--line);border-radius:10px;padding:9px 11px}
+.sub .meta{font-size:11.5px;color:var(--dim);margin-top:10px}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);color:var(--gold);background:rgba(232,200,114,.07);
+border-radius:999px;padding:8px 18px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:700}
+.btn:active{transform:scale(.97)}
+.more{width:100%;border:1px dashed var(--line2);background:none;color:var(--gold);border-radius:12px;padding:11px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:600}
+footer{margin-top:28px;display:flex;justify-content:center;gap:16px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em}
+footer a{color:var(--dim);text-decoration:none}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(18px);opacity:0;transition:.25s ease;
+background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);border-radius:999px;padding:9px 18px;font-size:12.5px;pointer-events:none;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sk{height:54px;border-radius:14px;border:1px solid var(--line);margin-bottom:8px;background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:sh 1.3s infinite}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.err{border:1px dashed rgba(192,101,74,.5);color:#d8a18c;border-radius:14px;padding:14px;font-size:12.5px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="emblem" viewBox="327 239 600 510" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill="#E8C872" d="M627 253 L608 362 L513 455 L537 519 L341 735 Z"/>
+      <path fill="#E8C872" d="M627 253 L646 362 L741 455 L717 519 L913 735 Z"/>
+      <path fill="#B87333" d="M513 455 L627 396 L741 455 L710 486 L627 444 L549 486 Z"/>
+      <path fill="#C0C6CC" d="M554 508 L627 472 L700 508 L678 540 L627 513 L576 540 Z"/>
+      <path fill="#C9A24A" d="M582 559 L627 541 L672 559 L627 644 Z"/>
+      <path fill="#E8C872" d="M624 644 H630 V675 H624 Z"/>
+      <circle cx="627" cy="693" r="19" fill="#E8C872"/>
+    </svg>
+    <div class="brand">ARISTON</div>
+    <div class="hlive">
+      <div class="livewrap"><span class="dot"></span><span>LIVE</span></div>
+      <button class="refresh" id="refresh" aria-label="refresh">⟳</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="kbar"></div>
+    <div class="num" id="heroNum">—</div>
+    <div class="lbl" id="heroLbl">…</div>
+    <div class="sub" id="heroSub">…</div>
+  </section>
+
+  <div class="grid">
+    <div class="stat"><div class="v" id="stAlive">—</div><div class="k" id="stAliveK">…</div></div>
+    <div class="stat"><div class="v" id="stP50">—</div><div class="k" id="stP50K">…</div></div>
+    <div class="stat"><div class="v" id="stSrc">—</div><div class="k" id="stSrcK">…</div></div>
+    <div class="stat"><div class="v" id="stRun">—</div><div class="k" id="stRunK">…</div></div>
+  </div>
+
+  <div class="sec"><h2 id="goldTitle">…</h2><div class="rule"></div></div>
+  <div class="hint" id="goldHint">…</div>
+  <div id="goldList">
+    <div class="sk"></div><div class="sk"></div><div class="sk"></div>
+  </div>
+  <button class="more" id="moreBtn" style="display:none">…</button>
+
+  <div class="sec"><h2 id="subTitle">…</h2><div class="rule"></div></div>
+  <div class="sub" id="subCard">…</div>
+
+  <footer>
+    <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
+    <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
+    <span>D2 · v2.0</span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var I18N = {
+  fa: {hero_lbl:'کانفیگ طلایی', hero_sub:'انتخاب‌شده از {alive} کانفیگ سالم · اجرا {run}',
+    st_alive:'کانفیگ سالم', st_p50:'تأخیر p50', st_src:'منابع فعال', st_run:'آخرین اجرا',
+    rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
+    gold_t:'کانفیگ‌های طلایی', gold_hint:'لمس روی کارت = کپی · 👍 = تجربهٔ خوب تو',
+    more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ثبت شد 🙏', vote_tg:'فقط داخل تلگرام ثبت می‌شه',
+    sub_t:'اشتراک شخصی من', sub_note:'با هر رفرشِ کلاینت، تازه‌ترین سالم‌ها بر اساس اپراتورت', sub_copy:'کپی لینک',
+    sub_meta:'اپراتور: {o} · کلاینت: {c}', sub_need:'اول از ربات /start بزن', open_tg:'برای اشتراک شخصی، این صفحه را داخل تلگرام باز کن',
+    fail:'خطا در دریافت داده — دوباره تلاش کن', isp_other:'همه', cl_other:'سایر'},
+  en: {hero_lbl:'gold configs', hero_sub:'refined from {alive} alive · run {run}',
+    st_alive:'Alive configs', st_p50:'p50 latency', st_src:'Healthy sources', st_run:'Last run',
+    rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
+    gold_t:'Gold configs', gold_hint:'tap a card to copy · 👍 = it worked for you',
+    more:'Show more', copied:'Copied ✅', voted:'Recorded 🙏', vote_tg:'Voting works inside Telegram only',
+    sub_t:'My personal subscription', sub_note:'every client refresh delivers the latest alive picks for your ISP', sub_copy:'Copy link',
+    sub_meta:'ISP: {o} · Client: {c}', sub_need:'press /start in the bot first', open_tg:'open this page inside Telegram for your personal sub',
+    fail:'failed to load — try again', isp_other:'All', cl_other:'Other'},
+  ru: {hero_lbl:'золотых конфигов', hero_sub:'отобрано из {alive} живых · прогон {run}',
+    st_alive:'Живых конфигов', st_p50:'Задержка p50', st_src:'Рабочих источников', st_run:'Последний прогон',
+    rel_min:'{n} мин назад', rel_hour:'{n} ч назад', rel_day:'{n} дн назад',
+    gold_t:'Золотые конфиги', gold_hint:'нажми на карточку — копировать · 👍 = работает',
+    more:'Показать ещё', copied:'Скопировано ✅', voted:'Записано 🙏', vote_tg:'Голосование — только в Telegram',
+    sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — свежие живые по твоему оператору', sub_copy:'Копировать ссылку',
+    sub_meta:'Оператор: {o} · Клиент: {c}', sub_need:'сначала /start в боте', open_tg:'открой эту страницу в Telegram для личной подписки',
+    fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое'},
+  tr: {hero_lbl:'altın yapılandırma', hero_sub:'{alive} çalışan içinden seçildi · çalışma {run}',
+    st_alive:'Çalışan yapılandırma', st_p50:'p50 gecikme', st_src:'Sağlıklı kaynak', st_run:'Son çalışma',
+    rel_min:'{n} dk önce', rel_hour:'{n} sa önce', rel_day:'{n} gün önce',
+    gold_t:'Altın yapılandırmalar', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
+    more:'Daha fazla', copied:'Kopyalandı ✅', voted:'Kaydedildi 🙏', vote_tg:'Oylama sadece Telegram içinde',
+    sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede sağlayıcına göre en güncel çalışanlar', sub_copy:'Bağlantıyı kopyala',
+    sub_meta:'Sağlayıcı: {o} · İstemci: {c}', sub_need:'önce botta /start gönder', open_tg:'kişisel abonelik için bu sayfayı Telegram içinde aç',
+    fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer'},
+  zh: {hero_lbl:'金牌配置', hero_sub:'从 {alive} 个可用中精选 · 第 {run} 轮',
+    st_alive:'可用配置', st_p50:'p50 延迟', st_src:'可用源', st_run:'最近一轮',
+    rel_min:'{n} 分钟前', rel_hour:'{n} 小时前', rel_day:'{n} 天前',
+    gold_t:'金牌配置', gold_hint:'点卡片即复制 · 👍 = 对我有用',
+    more:'显示更多', copied:'已复制 ✅', voted:'已记录 🙏', vote_tg:'仅限在 Telegram 内投票',
+    sub_t:'我的个人订阅', sub_note:'客户端每次刷新都会拿到按运营商过滤的最新可用', sub_copy:'复制链接',
+    sub_meta:'运营商：{o} · 客户端：{c}', sub_need:'请先在机器人里 /start', open_tg:'在 Telegram 内打开此页面以获取个人订阅',
+    fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他'}
+};
+var MEDALS = ['🥇', '🥈', '🥉'];
+var ISPN = {irancell:'Irancell', mci:'MCI', rightel:'Rightel', shatel:'Shatel', asiatech:'Asiatech', tci:'TCI'};
+var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+var initData = tg ? (tg.initData || '') : '';
+var tgu = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+var lang = 'fa';
+var lcx = ((tgu && tgu.language_code) || 'fa').toLowerCase();
+if (lcx.indexOf('en') === 0) lang = 'en'; else if (lcx.indexOf('ru') === 0) lang = 'ru';
+else if (lcx.indexOf('tr') === 0) lang = 'tr'; else if (lcx.indexOf('zh') === 0) lang = 'zh';
+document.documentElement.lang = lang;
+document.documentElement.dir = (lang === 'fa') ? 'rtl' : 'ltr';
+var dict = I18N[lang] || I18N.fa;
+function T(k, vars){ var s = dict[k] || I18N.fa[k] || k;
+  if (vars){ for (var key in vars){ s = s.split('{' + key + '}').join(vars[key]); } } return s; }
+function fmtN(n){ return (n || 0).toLocaleString('en-US'); }
+function haptic(m){ if (tg && tg.HapticFeedback){ try { tg.HapticFeedback.impactOccurred(m || 'light'); } catch (e){} } }
+var toastEl = document.getElementById('toast'), toastT = null;
+function toast(m){ toastEl.textContent = m; toastEl.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(function(){ toastEl.classList.remove('show'); }, 1900); }
+function copyText(s){
+  var done = function(){ haptic('light'); toast(T('copied')); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(s).then(done, function(){ legacy(s); done(); });
+  } else { legacy(s); done(); }
+}
+function legacy(s){ var ta = document.createElement('textarea'); ta.value = s;
+  ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta);
+  ta.select(); try { document.execCommand('copy'); } catch (e){} document.body.removeChild(ta); }
+function rel(iso){ var ms = Date.now() - new Date(iso).getTime();
+  if (!isFinite(ms) || ms < 0) return '—';
+  var m = Math.max(1, Math.round(ms / 60000));
+  if (m < 60) return T('rel_min', {n:m});
+  var h = Math.round(m / 60);
+  if (h < 24) return T('rel_hour', {n:h});
+  return T('rel_day', {n: Math.round(h / 24)}); }
+function countUp(el, to){ var t0 = null, dur = 900;
+  function step(ts){ if (!t0) t0 = ts; var k = Math.min(1, (ts - t0) / dur); k = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmtN(Math.round(to * k)); if (k < 1) requestAnimationFrame(step); }
+  requestAnimationFrame(step); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function applyTexts(){
+  document.getElementById('heroLbl').textContent = T('hero_lbl');
+  document.getElementById('stAliveK').textContent = T('st_alive');
+  document.getElementById('stP50K').textContent = T('st_p50');
+  document.getElementById('stSrcK').textContent = T('st_src');
+  document.getElementById('stRunK').textContent = T('st_run');
+  document.getElementById('goldTitle').textContent = '🏆 ' + T('gold_t');
+  document.getElementById('goldHint').textContent = T('gold_hint');
+  document.getElementById('subTitle').textContent = '🔗 ' + T('sub_t');
+  var mb = document.getElementById('moreBtn'); mb.textContent = T('more');
+}
+var lastStats = null, goldOffset = 0;
+function loadStats(){
+  fetch('/app/api/stats').then(function(r){ return r.json(); }).then(function(s){
+    if (s.error){ return; }
+    lastStats = s;
+    countUp(document.getElementById('heroNum'), s.gold);
+    document.getElementById('heroSub').textContent = T('hero_sub', {alive: fmtN(s.alive), run: rel(s.generated_at)});
+    document.getElementById('stAlive').textContent = fmtN(s.alive);
+    document.getElementById('stP50').innerHTML = fmtN(s.p50) + '<small> ms</small>';
+    document.getElementById('stSrc').innerHTML = fmtN(s.sources_ok) + '<small> / ' + fmtN(s.sources_total) + '</small>';
+    document.getElementById('stRun').textContent = rel(s.generated_at);
+  }).catch(function(){ toast(T('fail')); });
+}
+function goldCard(it, idx){
+  var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
+  var hostPart = it.uri.split('://')[1] || '';
+  hostPart = hostPart.split(/[\\/?#]/)[0];
+  var rank = (goldOffset + idx < 3) ? MEDALS[goldOffset + idx] : ('#' + (goldOffset + idx + 1));
+  var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
+  var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
+  var latTx = it.latency_ms !== null ? Math.round(it.latency_ms) + 'ms' : '—';
+  return '<div class="gcard" data-uri="' + esc(it.uri) + '" style="animation:up .4s ' + (idx * 0.05) + 's ease both">' +
+    '<div class="gtop"><div class="rank">' + rank + '</div>' +
+    '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
+    '<div class="host">' + esc(hostPart) + '</div>' +
+    '<div class="metrics"><span class="ema ' + emaCls + '">' + emaTx + '</span>' +
+    '<span class="lat">' + latTx + '</span></div></div>' +
+    '<div class="gfoot">' +
+    '<button class="fb" data-hash="' + esc(it.hash) + '" data-v="up">👍 <span>' + (it.up || 0) + '</span></button>' +
+    '<button class="fb" data-hash="' + esc(it.hash) + '" data-v="down">👎 <span>' + (it.down || 0) + '</span></button>' +
+    '<span class="ok">✔ ' + (it.ok || 0) + ' / ✘ ' + (it.fail || 0) + '</span></div></div>';
+}
+function bindCards(){
+  var list = document.getElementById('goldList');
+  Array.prototype.forEach.call(list.querySelectorAll('.gcard'), function(card){
+    if (card._bound) return; card._bound = true;
+    card.addEventListener('click', function(ev){
+      if (ev.target.closest && ev.target.closest('.fb')) return;
+      copyText(card.getAttribute('data-uri'));
+    });
+  });
+  Array.prototype.forEach.call(list.querySelectorAll('.fb'), function(btn){
+    if (btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (!initData){ toast(T('vote_tg')); return; }
+      var vote = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
+      haptic('medium');
+      fetch('/app/api/feedback', {method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({initData: initData, hash: hash, vote: vote})})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if (res.ok){ toast(T('voted'));
+            var card = btn.closest('.gcard');
+            Array.prototype.forEach.call(card.querySelectorAll('.fb'), function(b){ b.classList.remove('on'); });
+            btn.classList.add('on');
+            var cnt = btn.querySelector('span'); if (cnt) cnt.textContent = (vote === 'up') ? res.up : res.down;
+          } else toast(T('vote_tg'));
+        }).catch(function(){ toast(T('fail')); });
+    });
+  });
+}
+function loadGold(append){
+  var list = document.getElementById('goldList');
+  if (!append){ list.innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>'; goldOffset = 0; }
+  fetch('/app/api/gold?offset=' + goldOffset + '&limit=6').then(function(r){ return r.json(); }).then(function(d){
+    if (d.error || !d.items){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; return; }
+    if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
+    var html = append ? '' : '';
+    for (var i = 0; i < d.items.length; i++){ html += goldCard(d.items[i], i); }
+    if (append){ list.insertAdjacentHTML('beforeend', html); } else { list.innerHTML = html; }
+    goldOffset += d.items.length;
+    var mb = document.getElementById('moreBtn');
+    mb.style.display = (goldOffset < d.total) ? 'block' : 'none';
+    bindCards();
+  }).catch(function(){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
+}
+function loadSub(){
+  var card = document.getElementById('subCard');
+  if (!initData){
+    card.innerHTML = '<div class="t">' + T('sub_t') + '</div><div class="meta">' + T('open_tg') + '</div>';
+    return;
+  }
+  fetch('/app/api/sub', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({initData: initData})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.error){ card.innerHTML = '<div class="t">' + T('sub_t') + '</div><div class="meta">' + T('sub_need') + '</div>'; return; }
+      var isp = ISPN[d.isp] || T('isp_other');
+      var cl = d.client === 'other' ? T('cl_other') : d.client;
+      card.innerHTML = '<div class="t">' + T('sub_t') + '</div>' +
+        '<div class="url">' + esc(d.url) + '</div>' +
+        '<button class="btn" id="copySub">📋 ' + T('sub_copy') + '</button>' +
+        '<div class="meta">' + T('sub_note') + '</div>' +
+        '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + '</div>';
+      document.getElementById('copySub').addEventListener('click', function(){ copyText(d.url); });
+    }).catch(function(){ card.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
+}
+applyTexts();
+loadStats();
+loadGold(false);
+loadSub();
+document.getElementById('moreBtn').addEventListener('click', function(){ haptic('light'); loadGold(true); });
+document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); loadGold(false); });
+setInterval(loadStats, 5 * 60 * 1000);
+if (tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){} }
+<\/script>
+</body>
+</html>`;
+
 /* ────────────────────────────────── router ────────────────────────────────── */
 
 export default {
@@ -670,13 +1215,15 @@ export default {
     const url = new URL(request.url);
     const origin = url.origin;
 
-    /* POST — telegram webhook */
-    if (request.method === 'POST') {
+    /* POST — telegram webhook (other POST paths fall through to /app/api below) */
+    if (request.method === 'POST' && url.pathname.startsWith('/webhook/')) {
       const m = url.pathname.match(/^\/webhook\/(.+)$/);
       if (!m || m[1] !== env.WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
       if (request.headers.get('x-telegram-bot-api-secret-token') !== env.WEBHOOK_SECRET) {
         return new Response('forbidden', { status: 403 });
       }
+      const known = await kvGet(env, 'meta:origin');
+      if (known !== origin) await kvPut(env, 'meta:origin', origin);
       let update = null;
       try { update = await request.json(); } catch (_) { return new Response('bad request', { status: 400 }); }
       ctx.waitUntil(handleUpdate(env, update, origin).catch((e) => console.error('update error', e && e.message)));
@@ -719,6 +1266,19 @@ export default {
       });
     }
 
+    /* GET /app — Telegram Mini App + its JSON api */
+    if (url.pathname === '/app' || url.pathname === '/app/') {
+      const knownOrigin = await kvGet(env, 'meta:origin');
+      if (knownOrigin !== origin) await kvPut(env, 'meta:origin', origin);
+      return new Response(MINI_APP_HTML, {
+        headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
+      });
+    }
+    if (url.pathname === '/app/api/stats') return appStats(env);
+    if (url.pathname === '/app/api/gold') return appGold(env, url);
+    if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
+    if (url.pathname === '/app/api/feedback' && request.method === 'POST') return appFeedback(env, request);
+
     /* GET / — brand landing */
     if (url.pathname === '/' || url.pathname === '') {
       const username = await kvGet(env, 'meta:bot_username');
@@ -728,5 +1288,10 @@ export default {
     }
 
     return new Response('not found\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+  },
+
+  /* cron — Watchtower: announce finished runs */
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
   },
 };
