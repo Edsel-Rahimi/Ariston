@@ -1,6 +1,6 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  ARISTON — Telegram Bot · Phase D1 MVP
+ *  ARISTON — Telegram Bot · Phase D3 — inline · public API · channel card
  *  Cloudflare Worker (single file, dashboard-deployable) · webhook + KV
  *
  *  Golden rules (from BOT-RESEARCH.md):
@@ -14,8 +14,17 @@
  *  Routes:
  *    POST /webhook/<WEBHOOK_SECRET>   Telegram updates (verified header)
  *    GET  /setup?key=<WEBHOOK_SECRET> one-click setWebhook + self test
+ *         (&channel=@name&lang=fa → register the official channel)
  *    GET  /u/<token>                  personal subscription (auto-refresh)
+ *    GET  /app                        Mini App (D2)
+ *    GET  /api · /api/v1/stats · /api/v1/configs   public API v1 (D3)
+ *    GET  /card.svg                   brand “card of the day” (D3)
  *    GET  /                           brand landing page
+ *
+ *  D3 features:
+ *    · Inline mode — @bot irancell vless in ANY chat → live results
+ *    · Public read-only API for developers (CORS + best-effort rate limit)
+ *    · Daily channel card — one branded post per day (+ shareable SVG)
  *
  *  Required bindings:
  *    KV  (KV namespace)          — user profiles, sub tokens, data cache
@@ -33,6 +42,8 @@ const FILE_TTL_SEC = 600;   // data-branch file cache (KV)
 const STATS_TTL_SEC = 300;  // stats.json cache (KV)
 const SUB_MAX_LINES = 300;  // cap subscription size
 const SUB_MIN_OP_LINES = 10; // operator file below this → fall back to gold+silver
+const API_RATE_LIMIT = 120; // public API: best-effort requests / IP / minute
+const INLINE_MAX = 20;      // inline query result count
 
 /* ─────────────────────────────── catalogs ─────────────────────────────────── */
 
@@ -138,6 +149,9 @@ const T = {
     btn_best: '⚡ بلیت طلایی', btn_app: '👑 داشبورد',
     best_title: 'بلیت طلایی — کم‌تأخیرترین کانفیگ سالم',
     watchtower: '🔔 <b>اجرای جدید تمام شد!</b>\n\n🥇 طلایی: {gold}\n❤️ سالم: {alive}\n⚡ p50: {p50}ms',
+    inline_foot: 'کانفیگ‌های تازه هر نیم‌ساعت → {bot}', inline_none: 'ربات را باز کن',
+    help_inline: 'اینلاین در هر چتی: {bot} irancell vless',
+    daily_title: '👑 <b>کارتِ امروز آریستون</b>', daily_best: '⚡ بهترینِ امروز:', daily_svg: '🛰 کارت امروز (SVG)',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -174,6 +188,9 @@ const T = {
     btn_best: '⚡ Gold ticket', btn_app: '👑 Dashboard',
     best_title: 'Gold ticket — lowest-latency alive config',
     watchtower: '🔔 <b>New run finished!</b>\n\n🥇 Gold: {gold}\n❤️ Alive: {alive}\n⚡ p50: {p50}ms',
+    inline_foot: 'fresh configs every 30 min → {bot}', inline_none: 'Open the bot',
+    help_inline: 'inline in any chat: {bot} irancell vless',
+    daily_title: '👑 <b>Ariston — card of the day</b>', daily_best: '⚡ Best of the day:', daily_svg: '🛰 Card of the day (SVG)',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -210,6 +227,9 @@ const T = {
     btn_best: '⚡ Золотой билет', btn_app: '👑 Панель',
     best_title: 'Золотой билет — самый быстрый живой конфиг',
     watchtower: '🔔 <b>Новый прогон завершён!</b>\n\n🥇 Gold: {gold}\n❤️ Живых: {alive}\n⚡ p50: {p50}ms',
+    inline_foot: 'свежие конфиги каждые 30 мин → {bot}', inline_none: 'Открыть бота',
+    help_inline: 'инлайн в любом чате: {bot} irancell vless',
+    daily_title: '👑 <b>Ariston — карточка дня</b>', daily_best: '⚡ Лучший за день:', daily_svg: '🛰 Карточка дня (SVG)',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -246,6 +266,9 @@ const T = {
     btn_best: '⚡ Altın bilet', btn_app: '👑 Panel',
     best_title: 'Altın bilet — en düşük gecikmeli çalışan yapılandırma',
     watchtower: '🔔 <b>Yeni çalışma tamamlandı!</b>\n\n🥇 Gold: {gold}\n❤️ Çalışan: {alive}\n⚡ p50: {p50}ms',
+    inline_foot: 'güncel yapılandırmalar her 30 dakika → {bot}', inline_none: 'Botu aç',
+    help_inline: 'herhangi bir sohbette inline: {bot} irancell vless',
+    daily_title: '👑 <b>Ariston — günün kartı</b>', daily_best: "⚡ Günün en iyisi:", daily_svg: '🛰 Günün kartı (SVG)',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -282,6 +305,9 @@ const T = {
     btn_best: '⚡ 金牌票', btn_app: '👑 仪表盘',
     best_title: '金牌票 — 延迟最低的可用配置',
     watchtower: '🔔 <b>新一轮运行完成！</b>\n\n🥇 金牌：{gold}\n❤️ 可用：{alive}\n⚡ p50：{p50}ms',
+    inline_foot: '每 30 分钟更新可用配置 → {bot}', inline_none: '打开机器人',
+    help_inline: '任意聊天内联使用：{bot} irancell vless',
+    daily_title: '👑 <b>Ariston 每日卡片</b>', daily_best: '⚡ 今日最佳：', daily_svg: '🛰 今日卡片 (SVG)',
   },
 };
 
@@ -451,6 +477,141 @@ async function broadcastNewRun(env) {
       await sendMessage(env, chatId, t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
     } catch (_) { /* keep broadcasting */ }
   }
+}
+
+/* ─────────────────── daily channel card (official channel) ────────────────── */
+
+async function dailyChannelCard(env) {
+  const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
+  if (!chan) return; // not configured → silent no-op
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  if ((await kvGet(env, 'card:last')) === today) return;      // already posted today
+  if (now.getUTCHours() < 9) return;                           // first cron after 09:00 UTC (≈12:30 Tehran)
+
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring) return;
+  const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
+  const v = s.validation, p = v.latency_ms || {};
+  const dateStr = (() => { try { return new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Tehran' }).format(now); } catch (_) { return today; } })();
+
+  let bestLine = '';
+  try {
+    const items = await getEnrichedGold(env);
+    const scored = items.filter((x) => x.ema !== null);
+    const pool = scored.length ? scored : items;
+    if (pool.length) {
+      const best = [...pool].sort((a, b) =>
+        ((b.ema || 0) - (a.ema || 0)) || ((a.latency_ms === null ? 9e9 : a.latency_ms) - (b.latency_ms === null ? 9e9 : b.latency_ms))
+      )[0];
+      const lat = best.latency_ms !== null ? Math.round(best.latency_ms) + 'ms' : '—';
+      bestLine = '\n\n' + t(lang, 'daily_best') + '\n<code>' + esc(best.uri) + '</code>\n✅ ' + (best.ema !== null ? Math.round(best.ema * 100) + '%' : '—') + ' · ⚡ ' + lat;
+    }
+  } catch (_) { /* card without best-of-day still ships */ }
+
+  const origin = await kvGet(env, 'meta:origin');
+  const bot = (await kvGet(env, 'meta:bot_username')) || null;
+  const msg = [
+    t(lang, 'daily_title'),
+    '🗓 ' + dateStr, '',
+    '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
+    t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
+    '📈 ' + (Object.entries(v.by_protocol_alive || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => esc(k) + ' ' + fmt(n)).join(' · ') || '—'),
+    bestLine,
+  ].join('\n') + (origin ? '\n\n🛰 ' + '<a href="' + origin + '/card.svg">' + t(lang, 'daily_svg') + '</a>' : '');
+
+  const rows = [];
+  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
+  const markup = rows.length ? { reply_markup: { inline_keyboard: rows } } : {};
+  let sent = await sendMessage(env, chan, msg, { ...markup, disable_notification: false });
+  if ((!sent || !sent.ok) && rows.length && rows[0][0].web_app) {
+    // web_app buttons are not accepted everywhere → retry with plain url buttons
+    const fallbackRows = [[{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]];
+    if (bot) fallbackRows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
+    sent = await sendMessage(env, chan, msg, { reply_markup: { inline_keyboard: fallbackRows } });
+  }
+  if (sent && sent.ok) await kvPut(env, 'card:last', today, 172800);
+}
+
+/* ─────────────────── inline mode: @bot <query> in ANY chat ────────────────── */
+
+const guessLang = (code) => {
+  const lc = String(code || '').toLowerCase();
+  return lc.startsWith('fa') ? 'fa' : lc.startsWith('ru') ? 'ru' : lc.startsWith('tr') ? 'tr' : lc.startsWith('zh') ? 'zh' : 'en';
+};
+
+const INLINE_OP_WORDS = {
+  irancell: ['irancell', 'ایرانسل'],
+  mci: ['mci', 'همراه اول', 'hamrah'],
+  rightel: ['rightel', 'رایتل'],
+  shatel: ['shatel', 'شاتل'],
+  asiatech: ['asiatech', 'آسیاتک'],
+  tci: ['tci', 'مخابرات'],
+};
+/* ordered: longer prefixes first so 'vless' never matches as 'ss' etc. */
+const INLINE_PROTOS = { hysteria2: 'hysteria2', vless: 'vless', trojan: 'trojan', vmess: 'vmess', tuic: 'tuic', hy2: 'hysteria2' };
+
+const hostOf = (uri) => {
+  const h = String(uri).split('://')[1] || '';
+  return h.split(/[/?#]/)[0] || h.slice(0, 28) || 'config';
+};
+
+async function handleInline(env, iq) {
+  const q = String(iq.query || '').trim().toLowerCase();
+  const lang = guessLang(iq.from && iq.from.language_code);
+  const proto = Object.keys(INLINE_PROTOS).find((p) => q.includes(p)) || null;
+  const scheme = proto ? INLINE_PROTOS[proto] : null;
+  let op = null;
+  for (const [slug, words] of Object.entries(INLINE_OP_WORDS)) {
+    if (words.some((w) => q.includes(w))) { op = slug; break; }
+  }
+
+  /* pool: operator file if requested (never thin feeds), else gold+silver */
+  let lines = [];
+  if (op) {
+    lines = toLines(await fetchTextCached(env, 'by-operator/' + op + '.txt', FILE_TTL_SEC));
+    if (lines.length < SUB_MIN_OP_LINES) lines = []; // golden rule: no dead feeds
+  }
+  if (!lines.length) {
+    const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC));
+    const silver = toLines(await fetchTextCached(env, 'silver.txt', FILE_TTL_SEC));
+    lines = [...new Set([...gold, ...silver])];
+  }
+  if (scheme) lines = lines.filter((l) => l.toLowerCase().startsWith(scheme + '://'));
+  lines = lines.slice(0, INLINE_MAX);
+
+  const bot = (await kvGet(env, 'meta:bot_username')) || 'Ariston_vbot';
+  const foot = '\n\n⚡ ' + t(lang, 'inline_foot', { bot: '@' + bot });
+
+  const results = [];
+  const seen = new Set();
+  for (let i = 0; i < lines.length; i++) {
+    const uri = lines[i];
+    if (seen.has(uri)) continue;
+    seen.add(uri);
+    const p = (uri.split('://')[0] || 'config').toLowerCase();
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🔗';
+    const title = medal + ' ' + p.toUpperCase() + (op ? ' · ' + ispName(op, lang) : '') + (scheme && scheme !== proto ? ' (hy2)' : '');
+    results.push({
+      type: 'article',
+      id: (await sha16(uri)) + String(i).padStart(2, '0'), // unique even for dup lines
+      title,
+      description: hostOf(uri),
+      input_message_content: {
+        message_text: medal + ' <b>ARISTON</b> · ' + esc(p.toUpperCase()) + (op ? ' · ' + esc(ispName(op, lang)) : '') + '\n<code>' + esc(uri) + '</code>' + foot,
+        parse_mode: 'HTML',
+      },
+    });
+  }
+
+  return api(env, 'answerInlineQuery', {
+    inline_query_id: iq.id,
+    results,
+    cache_time: 60,
+    is_personal: true,
+    ...(results.length ? {} : { switch_pm_text: t(lang, 'inline_none'), switch_pm_parameter: 'start' }),
+  });
 }
 
 /* ─────────────────────────────── telegram api ─────────────────────────────── */
@@ -623,8 +784,12 @@ async function cmdSub(env, chatId, lang, origin) {
   });
 }
 
-function cmdHelp(env, chatId, lang, origin) {
-  return sendMessage(env, chatId, t(lang, 'help_text'), { reply_markup: menuKb(lang, origin) });
+async function cmdHelp(env, chatId, lang, origin) {
+  const bot = await kvGet(env, 'meta:bot_username');
+  let msg = t(lang, 'help_text');
+  if (bot) msg += '\n\n🔎 ' + t(lang, 'help_inline', { bot: '@' + bot });
+  if (origin) msg += '\n🛠 API: ' + origin + '/api';
+  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
 }
 
 async function cmdBest(env, chatId, lang, origin) {
@@ -648,6 +813,12 @@ async function cmdBest(env, chatId, lang, origin) {
 /* ─────────────────────────── update router (webhook) ──────────────────────── */
 
 async function handleUpdate(env, update, origin) {
+  const iq = update.inline_query;
+  if (iq) {
+    try { return await handleInline(env, iq); }
+    catch (e) { console.error('inline error', e && e.message); return api(env, 'answerInlineQuery', { inline_query_id: iq.id, results: [], cache_time: 5 }); }
+  }
+
   const msg = update.message;
   if (msg && msg.text && msg.chat) {
     const chatId = msg.chat.id;
@@ -798,11 +969,15 @@ function landingPage(botUsername) {
     + 'a.btn,span.soon{display:inline-block;margin-top:24px;padding:12px 26px;border:1px solid rgba(232,200,114,.45);border-radius:999px;color:#E8C872;text-decoration:none;letter-spacing:.16em;font-size:13px}'
     + 'span.soon{color:#8d8262;border-style:dashed}'
     + 'a.btn:hover{background:rgba(232,200,114,.08)}'
+    + '.links{margin-top:26px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.18em}'
+    + '.links a{color:#8d8262;text-decoration:none;margin:0 10px}'
+    + '.links a:hover{color:#E8C872}'
     + '</style></head><body><div>'
     + EMBLEM_SVG
     + '<div class="m">ARISTON</div>'
     + '<div class="s">COLLECT · VALIDATE · SCORE · PUBLISH</div>'
     + btn
+    + '<div class="links"><a href="/api">API</a><a href="/card.svg">CARD</a><a href="/app">DASHBOARD</a></div>'
     + '</div></body></html>';
 }
 
@@ -869,6 +1044,174 @@ async function appFeedback(env, request) {
   if (!vote) return Response.json({ error: 'bad_vote' }, { status: 400 });
   const out = await feedbackSet(env, hash, tgUser.id, vote);
   return Response.json({ ok: true, ...out });
+}
+
+/* ───────────────────── public API v1 (developers) ─────────────────────────── */
+
+const CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, OPTIONS',
+  'access-control-allow-headers': 'content-type',
+  'access-control-max-age': '86400',
+};
+
+const jsonRes = (obj, status = 200, extra = {}) =>
+  Response.json(obj, { status, headers: { ...CORS_HEADERS, 'cache-control': 'public, max-age=120', ...extra } });
+
+/* best-effort per-IP-per-minute budget (KV is eventually consistent — a soft cap) */
+async function rateLimit(env, request) {
+  const ip = request.headers.get('cf-connecting-ip') || 'anon';
+  const win = Math.floor(Date.now() / 60000);
+  const key = 'rl:' + ip + ':' + win;
+  const n = parseInt((await kvGet(env, key)) || '0', 10) + 1;
+  await kvPut(env, key, String(n), 120);
+  return n <= API_RATE_LIMIT;
+}
+
+async function apiV1Stats(env) {
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring) return jsonRes({ error: 'no_data' }, 503);
+  const v = s.validation, p = v.latency_ms || {};
+  return jsonRes({
+    generated_at: s.generated_at || null,
+    sources: { ok: s.sources_ok || 0, total: s.sources_total || 0 },
+    unique: s.unique || 0,
+    validation: {
+      probed: v.probed || 0, alive: v.alive || 0,
+      latency_ms: { p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0) },
+      by_protocol_alive: v.by_protocol_alive || {},
+    },
+    scoring: { gold: s.scoring.gold || 0, silver: s.scoring.silver || 0, bronze: s.scoring.bronze || 0 },
+  });
+}
+
+const API_TIERS = { gold: 'gold.txt', silver: 'silver.txt', all: null, validated: 'validated.txt' };
+
+async function apiConfigs(env, url) {
+  const q = url.searchParams;
+  const tier = q.get('tier') in API_TIERS ? q.get('tier') : 'gold';
+  const format = q.get('format') === 'txt' ? 'txt' : 'json';
+  const protoIn = (q.get('protocol') || '').toLowerCase().trim();
+  const scheme = INLINE_PROTOS[protoIn] || protoIn; // hy2 → hysteria2
+  const op = (q.get('operator') || '').toLowerCase().trim();
+  const limit = Math.min(Math.max(parseInt(q.get('limit') || '100', 10) || 100, 1), SUB_MAX_LINES);
+
+  let lines = [], operatorFallback = false;
+  if (op && op !== 'other') {
+    lines = toLines(await fetchTextCached(env, 'by-operator/' + op + '.txt', FILE_TTL_SEC));
+    if (lines.length < SUB_MIN_OP_LINES) { lines = []; operatorFallback = true; } // golden rule
+  }
+  if (!lines.length) {
+    if (tier === 'all') {
+      const g = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC));
+      const sv = toLines(await fetchTextCached(env, 'silver.txt', FILE_TTL_SEC));
+      lines = [...new Set([...g, ...sv])];
+    } else {
+      lines = toLines(await fetchTextCached(env, API_TIERS[tier], FILE_TTL_SEC));
+    }
+  }
+  if (scheme) lines = lines.filter((l) => l.toLowerCase().startsWith(scheme + '://'));
+  lines = lines.slice(0, limit);
+
+  if (format === 'txt') {
+    return new Response(lines.join('\n') + '\n', {
+      status: 200,
+      headers: { ...CORS_HEADERS, 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=300' },
+    });
+  }
+  return jsonRes({
+    tier, protocol: protoIn || null, operator: op || null, operator_fallback: operatorFallback,
+    count: lines.length, limit,
+    items: lines.map((uri) => ({ uri, protocol: uri.split('://')[0] || null })),
+  });
+}
+
+const API_DOCS_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>ARISTON · API v1</title><style>
+body{margin:0;background:#14110C;color:#F3ECDD;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.7}
+main{max-width:860px;margin:0 auto;padding:48px 22px 80px}
+h1{font-family:Cinzel,Georgia,serif;font-weight:700;letter-spacing:.34em;font-size:24px;color:#E8C872;margin:0 0 4px}
+h2{font-family:Cinzel,Georgia,serif;color:#E8C872;letter-spacing:.12em;font-size:15px;margin:44px 0 12px;border-bottom:1px solid rgba(232,200,114,.18);padding-bottom:8px}
+.sub{color:#8d8262;font-size:12px;letter-spacing:.18em;margin-bottom:36px}
+code,p{word-break:break-word}
+pre{background:rgba(232,200,114,.06);border:1px solid rgba(232,200,114,.16);border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:12.5px;color:#F3ECDD}
+b.k{color:#E8C872}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+td,th{border:1px solid rgba(232,200,114,.16);padding:8px 12px;text-align:left;vertical-align:top}
+th{color:#E8C872;font-weight:600;letter-spacing:.08em}
+a{color:#C9A24A;text-decoration:none}a:hover{text-decoration:underline}
+.note{color:#8d8262;font-size:12px}
+</style></head><body><main>
+<h1>ARISTON</h1><div class="sub">PUBLIC API · V1 · READ-ONLY</div>
+<p>Live access to the Ariston pipeline: every 30 minutes thousands of public proxy
+configs are collected, normalized, validated by the xray-core &amp; sing-box engines,
+then scored. <b class="k">Only engine-tested configs are served — never dead ones.</b></p>
+
+<h2>GET /api/v1/stats</h2>
+<p>Latest run summary — sources, validation latency, scoring tiers.</p>
+<pre>curl https://ariston-bot.ariston-vbot.workers.dev/api/v1/stats</pre>
+
+<h2>GET /api/v1/configs</h2>
+<table>
+<tr><th>param</th><th>values</th><th>default</th></tr>
+<tr><td><b class="k">tier</b></td><td>gold · silver · all · validated</td><td>gold</td></tr>
+<tr><td><b class="k">protocol</b></td><td>vless · trojan · vmess · hysteria2/hy2 · tuic</td><td>—</td></tr>
+<tr><td><b class="k">operator</b></td><td>irancell · mci · rightel · shatel · asiatech · tci</td><td>—</td></tr>
+<tr><td><b class="k">format</b></td><td>json · txt (txt = one URI per line → usable as a subscription URL)</td><td>json</td></tr>
+<tr><td><b class="k">limit</b></td><td>1–300</td><td>100</td></tr>
+</table>
+<pre>curl '.../api/v1/configs?tier=gold&amp;protocol=vless&amp;limit=5'
+curl '.../api/v1/configs?operator=irancell&amp;format=txt'   # paste into any client</pre>
+<p class="note">If the operator pool is too thin (&lt;10 alive), the response falls back to the
+tier pool and says so with <code>operator_fallback: true</code>.</p>
+
+<h2>GET /card.svg</h2>
+<p>Brand “card of the day” (1200×630 SVG) — embed it anywhere.</p>
+
+<h2>Etiquette</h2>
+<p class="note">CORS: <code>*</code> · Cache-friendly · Best-effort limit ${API_RATE_LIMIT} req/IP/min
+(exceed → HTTP 429). Data © Ariston pipeline — attribution appreciated:
+<a href="https://github.com/Edsel-Rahimi/Ariston">github.com/Edsel-Rahimi/Ariston</a></p>
+</main></body></html>`;
+
+/* brand “card of the day” — shareable 1200×630 SVG built from live stats */
+function cardSVG(s) {
+  const gold = s && s.scoring ? s.scoring.gold : null;
+  const alive = s && s.validation ? s.validation.alive : null;
+  const p50 = s && s.validation && s.validation.latency_ms ? Math.round(s.validation.latency_ms.p50 || 0) : null;
+  const srcOk = s ? s.sources_ok : null, srcAll = s ? s.sources_total : null;
+  const nf = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString('en-US'));
+  const date = (() => { try { return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Tehran' }).format(new Date()); } catch (_) { return new Date().toISOString().slice(0, 10); } })();
+  /* two independent <text> nodes → identical layout in every renderer (no tspan anchoring quirks) */
+  const MONO_W = 19; // ≈px per char, font-size 30 mono + spacing 1
+  const row = (label, value, y, color) => {
+    const labelX = 1120 - String(value).length * MONO_W - 26;
+    return '<text x="' + labelX + '" y="' + y + '" text-anchor="end" font-family="Cinzel, Georgia, serif" font-size="30" letter-spacing="6" fill="' + (color || '#C0C6CC') + '">' + label + '</text>'
+      + '<text x="1120" y="' + y + '" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-size="30" letter-spacing="1" fill="#F3ECDD">' + value + '</text>';
+  };
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="ARISTON card of the day">
+<rect width="1200" height="630" fill="#14110C"/>
+<rect x="24" y="24" width="1152" height="582" fill="none" stroke="rgba(232,200,114,.28)" stroke-width="1.5"/>
+<rect x="34" y="34" width="1132" height="562" fill="none" stroke="rgba(232,200,114,.12)" stroke-width="1"/>
+<g transform="translate(70,150) scale(0.52) translate(-327,-239)">
+  <path fill="#E8C872" d="M627 253 L608 362 L513 455 L537 519 L341 735 Z"/>
+  <path fill="#E8C872" d="M627 253 L646 362 L741 455 L717 519 L913 735 Z"/>
+  <path fill="#B87333" d="M513 455 L627 396 L741 455 L710 486 L627 444 L549 486 Z"/>
+  <path fill="#C0C6CC" d="M554 508 L627 472 L700 508 L678 540 L627 513 L576 540 Z"/>
+  <path fill="#C9A24A" d="M582 559 L627 541 L672 559 L627 644 Z"/>
+  <path fill="#E8C872" d="M624 644 H630 V675 H624 Z"/>
+  <circle cx="627" cy="693" r="19" fill="#E8C872"/>
+</g>
+<text x="70" y="560" font-family="Cinzel, Georgia, serif" font-size="34" letter-spacing="22" fill="#E8C872">ARISTON</text>
+<text x="72" y="590" font-family="ui-monospace, Menlo, monospace" font-size="13" letter-spacing="4" fill="#8d8262">COLLECT · VALIDATE · SCORE · PUBLISH</text>
+<text x="1120" y="96" text-anchor="end" font-family="Cinzel, Georgia, serif" font-size="22" letter-spacing="10" fill="#C9A24A">CONFIGS OF THE DAY</text>
+<text x="1118" y="238" text-anchor="end" font-family="Cinzel, Georgia, serif" font-size="150" fill="#E8C872">${nf(gold)}</text>
+<text x="1120" y="278" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-size="15" letter-spacing="6" fill="#8d8262">GOLD-TIER · ENGINE-TESTED</text>
+${row('ALIVE', nf(alive), 350)}
+${row('P50 LATENCY', p50 === null ? '—' : nf(p50) + ' ms', 400, '#C9A24A')}
+${row('SOURCES', (srcOk === null ? '—' : nf(srcOk)) + ' / ' + (srcAll === null ? '—' : nf(srcAll)), 450)}
+<text x="1120" y="560" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-size="16" letter-spacing="4" fill="#8d8262">${esc(date)} · TEHRAN</text>
+</svg>`;
 }
 
 /* ───────────────────────────── mini app page (/app) ───────────────────────── */
@@ -1000,7 +1343,7 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D2 · v2.0</span>
+    <span>D3 · v3.0</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -1236,15 +1579,33 @@ export default {
       const set = await api(env, 'setWebhook', {
         url: origin + '/webhook/' + env.WEBHOOK_SECRET,
         secret_token: env.WEBHOOK_SECRET,
-        allowed_updates: ['message', 'callback_query'],
+        allowed_updates: ['message', 'callback_query', 'inline_query'],
         drop_pending_updates: false,
       });
       const me = await api(env, 'getMe');
       if (me && me.ok) await kvPut(env, 'meta:bot_username', me.result.username, 604800);
+
+      /* optional: register the official channel — /setup?key=…&channel=@name&lang=fa */
+      let channel = null;
+      const ch = url.searchParams.get('channel');
+      if (ch) {
+        const g = await api(env, 'getChat', { chat_id: ch });
+        if (g && g.ok) {
+          await kvPut(env, 'meta:channel', String(g.result.id)); // numeric id survives renames
+          channel = { ok: true, id: g.result.id, title: g.result.title || null, type: g.result.type || null };
+        } else {
+          channel = { ok: false, error: (g && g.description) || 'getChat failed — is the bot an admin there?' };
+        }
+      }
+      const cl = url.searchParams.get('lang');
+      if (cl && ['fa', 'en', 'ru', 'tr', 'zh'].includes(cl)) await kvPut(env, 'meta:channel_lang', cl);
+
       const info = await api(env, 'getWebhookInfo');
       return new Response(JSON.stringify({
         webhook_registered: Boolean(set && set.ok),
         bot: me && me.ok ? '@' + me.result.username : null,
+        inline_hint: 'enable inline mode once via @BotFather → /setinline',
+        channel,
         webhook_info: info && info.ok ? info.result : null,
       }, null, 2), { headers: { 'content-type': 'application/json; charset=utf-8' } });
     }
@@ -1279,6 +1640,34 @@ export default {
     if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
     if (url.pathname === '/app/api/feedback' && request.method === 'POST') return appFeedback(env, request);
 
+    /* CORS preflight for the public API */
+    if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg')) {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    /* ── public API v1 (D3) ── */
+    if (url.pathname === '/api' || url.pathname === '/api/') {
+      return new Response(API_DOCS_HTML, {
+        headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=600' },
+      });
+    }
+    if (url.pathname === '/api/v1/stats') {
+      if (!(await rateLimit(env, request))) return jsonRes({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
+      return apiV1Stats(env);
+    }
+    if (url.pathname === '/api/v1/configs') {
+      if (!(await rateLimit(env, request))) return jsonRes({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
+      return apiConfigs(env, url);
+    }
+
+    /* ── brand “card of the day” (D3) ── */
+    if (url.pathname === '/card.svg') {
+      const s = await getStats(env);
+      return new Response(cardSVG(s), {
+        headers: { 'content-type': 'image/svg+xml; charset=utf-8', 'cache-control': 'public, max-age=600', ...CORS_HEADERS },
+      });
+    }
+
     /* GET / — brand landing */
     if (url.pathname === '/' || url.pathname === '') {
       const username = await kvGet(env, 'meta:bot_username');
@@ -1290,8 +1679,9 @@ export default {
     return new Response('not found\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },
 
-  /* cron — Watchtower: announce finished runs */
+  /* cron — Watchtower (new-run alerts) + daily channel card (D3) */
   async scheduled(event, env, ctx) {
     ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
+    ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
   },
 };
