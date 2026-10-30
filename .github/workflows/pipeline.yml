@@ -2,7 +2,7 @@ name: pipeline
 
 on:
   schedule:
-    - cron: "7 * * * *"        # hourly, at :07 past the hour
+    - cron: "7,37 * * * *"     # every 30 minutes, at :07 and :37
   workflow_dispatch: {}        # manual trigger button
 
 permissions:
