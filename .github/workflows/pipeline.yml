@@ -19,7 +19,7 @@ env:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,9 +62,9 @@ jobs:
         env:
           ARISTON_XRAY: ${{ github.workspace }}/bin/xray
           ARISTON_SINGBOX: ${{ github.workspace }}/bin/sing-box
-          ARISTON_CONCURRENCY: "72"
+          ARISTON_CONCURRENCY: "128"
           ARISTON_TIMEOUT: "4.5"
-          ARISTON_TCP_CONCURRENCY: "256"
+          ARISTON_TCP_CONCURRENCY: "512"
           ARISTON_TCP_TIMEOUT: "2.0"
         run: python -m pipeline.main run
 
