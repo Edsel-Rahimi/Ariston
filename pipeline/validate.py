@@ -114,7 +114,10 @@ def tcp_reachable(uri: str) -> bool | None:
     try:
         with socket.create_connection((host, port), timeout=ENV_TCP_TIMEOUT):
             return True
-    except OSError:
+    except (OSError, UnicodeError):
+        # OSError: refused / unreachable / no route.
+        # UnicodeError: host that IDNA can't encode (empty label, >63-char
+        # label, raw unicode) — garbage URIs harvested from wide feeds.
         return False
 
 
