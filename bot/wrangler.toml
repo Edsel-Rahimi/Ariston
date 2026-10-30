@@ -1,0 +1,19 @@
+# ARISTON bot — Cloudflare Worker config (CLI deploys)
+# Dashboard users: you don't need this file — paste bot/worker.js in the editor.
+
+name = "ariston-bot"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+# Create once:  wrangler kv namespace create ariston-kv
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Secrets (never in this file):
+#   wrangler secret put BOT_TOKEN        ← token from @BotFather
+#   wrangler secret put WEBHOOK_SECRET   ← any long random string
+#
+# After deploy, register the webhook (or just open in a browser):
+#   curl "https://ariston-bot.<your-subdomain>.workers.dev/setup?key=<WEBHOOK_SECRET>"
