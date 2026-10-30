@@ -11,15 +11,22 @@ const fmt = n => (n == null ? '—' : Number(n).toLocaleString('en-US'));
 const enc = encodeURIComponent;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* brand palette: gold #E8C872 · deep #C9A24A · silver #C0C6CC
+   bronze #B87333 · olive #7A8450 · khaki #8A7A55 · sienna #C0654A */
 const PROTO_COLORS = {
-  vless: '#00E5A0', vmess: '#38BDF8', ss: '#A78BFA', ssr: '#8B5CF6',
-  trojan: '#FBBF24', hy2: '#FF9F43', hysteria2: '#FF9F43', hysteria: '#FB7185', tuic: '#FB7185',
+  vless: '#E8C872', vmess: '#C0C6CC', ss: '#A8946A', ssr: '#8A7A55',
+  trojan: '#C9A24A', hy2: '#B87333', hysteria2: '#B87333', hysteria: '#C0654A', tuic: '#C0654A',
 };
 const ISP_META = {
   irancell: { fa: 'ایرانسل', en: 'IRANCELL' },
   mci: { fa: 'همراه اول', en: 'MCI' },
+  tci: { fa: 'مخابرات', en: 'TCI' },
+  rightel: { fa: 'رایتل', en: 'RIGHTEL' },
   pishgaman: { fa: 'پیشگامان', en: 'PISHGAMAN' },
+  shatel: { fa: 'شاتل', en: 'SHATEL' },
+  mobinnet: { fa: 'مبین‌نت', en: 'MOBINNET' },
   asiatech: { fa: 'آسیاتک', en: 'ASIATECH' },
+  parsonline: { fa: 'پارس‌آنلاین', en: 'PARSONLINE' },
   respina: { fa: 'رسپینا', en: 'RESPINA' },
   'ir-other': { fa: 'سایر ایران', en: 'IR-OTHER' },
 };
@@ -273,10 +280,10 @@ const PipelineFX = (() => {
     return { x: -6, y: H * 0.42 + (Math.random() - 0.5) * 2 * bandY(0).half, v: 0.55 + Math.random() * 0.85, r: 0.8 + Math.random() * 1.5, a: 0.35 + Math.random() * 0.5 };
   }
   function frame() {
-    ctx.fillStyle = 'rgba(7,12,22,0.20)';
+    ctx.fillStyle = 'rgba(20,17,12,0.20)';
     ctx.fillRect(0, 0, W, H);
     // guide channel
-    ctx.strokeStyle = 'rgba(28,43,71,0.55)';
+    ctx.strokeStyle = 'rgba(74,63,39,0.55)';
     ctx.lineWidth = 1;
     for (const sgn of [-1, 1]) {
       ctx.beginPath();
@@ -290,7 +297,7 @@ const PipelineFX = (() => {
     // stage ticks
     for (let i = 0; i < 6; i++) {
       const { cy, half } = bandY(i);
-      ctx.strokeStyle = i === 5 ? 'rgba(251,191,36,0.5)' : 'rgba(0,229,160,0.35)';
+      ctx.strokeStyle = i === 5 ? 'rgba(232,200,114,0.55)' : 'rgba(192,198,204,0.3)';
       ctx.beginPath();
       ctx.moveTo(stageX(i), cy - half - 4); ctx.lineTo(stageX(i), cy + half + 4);
       ctx.stroke();
@@ -312,7 +319,7 @@ const PipelineFX = (() => {
       const { cy, half } = bandY(Math.min(5, Math.floor((p.x / W) * 5.6)));
       if (Math.abs(p.y - cy) > half) p.y += (cy - p.y) * 0.04 + (Math.random() - 0.5) * 1.1;
       const gold = p.x > stageX(5) - 30;
-      ctx.fillStyle = gold ? `rgba(251,191,36,${p.a})` : `rgba(0,229,160,${p.a})`;
+      ctx.fillStyle = gold ? `rgba(232,200,114,${p.a})` : `rgba(192,198,204,${p.a})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, 7);
       ctx.fill();
@@ -324,17 +331,17 @@ const PipelineFX = (() => {
   function start() {
     resize();
     parts = [];
-    ctx.fillStyle = 'rgba(7,12,22,1)';
+    ctx.fillStyle = 'rgba(20,17,12,1)';
     ctx.fillRect(0, 0, W, H);
     if (REDUCED) { // static render
       cancelAnimationFrame(raf);
-      ctx.fillStyle = 'rgba(7,12,22,1)'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(20,17,12,1)'; ctx.fillRect(0, 0, W, H);
       frameStatic(); return;
     }
     if (!raf) raf = requestAnimationFrame(frame);
   }
   function frameStatic() {
-    ctx.strokeStyle = 'rgba(0,229,160,0.3)';
+    ctx.strokeStyle = 'rgba(192,198,204,0.3)';
     for (const sgn of [-1, 1]) {
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -366,20 +373,20 @@ function renderDonut() {
   const C = 2 * Math.PI * 15.9;
   let off = 0;
   let rings = '';
-  const palette = ['#00E5A0', '#38BDF8', '#A78BFA', '#FBBF24', '#FF9F43', '#FB7185', '#55688C'];
+  const palette = ['#E8C872', '#C0C6CC', '#A8946A', '#C9A24A', '#B87333', '#C0654A', '#6E5F42'];
   top.forEach((e, i) => {
     const frac = e[1] / total;
     const len = frac * C;
-    rings += `<circle r="15.9" cx="21" cy="21" fill="none" stroke="${e[0] === 'other' ? '#55688C' : (PROTO_COLORS[e[0]] || palette[i])}"
+    rings += `<circle r="15.9" cx="21" cy="21" fill="none" stroke="${e[0] === 'other' ? '#6E5F42' : (PROTO_COLORS[e[0]] || palette[i])}"
       stroke-width="4.6" stroke-dasharray="${Math.max(0, len - 0.6)} ${C - len + 0.6}" stroke-dashoffset="${-off}" stroke-linecap="butt"/>`;
     off += len;
   });
-  rings += `<text class="donut-hole" x="21" y="20.4" text-anchor="middle" fill="#E9F2FF" font-size="4.6" font-weight="800" transform="rotate(90 21 21)">${fmt(total)}</text>
-    <text x="21" y="25.4" text-anchor="middle" fill="#55688C" font-size="2.4" transform="rotate(90 21 21)">RAW</text>`;
+  rings += `<text class="donut-hole" x="21" y="20.4" text-anchor="middle" fill="#F3ECDD" font-size="4.6" font-weight="600" font-family="Cinzel, Georgia, serif" transform="rotate(90 21 21)">${fmt(total)}</text>
+    <text x="21" y="25.4" text-anchor="middle" fill="#83734F" font-size="2.4" transform="rotate(90 21 21)">RAW</text>`;
   svg.innerHTML = rings;
   $('#donutTotal').textContent = fmt(total);
   $('#donutLegend').innerHTML = top.map((e, i) =>
-    `<div class="donut-legend__item"><span class="donut-legend__sw" style="background:${e[0] === 'other' ? '#55688C' : (PROTO_COLORS[e[0]] || palette[i])}"></span>
+    `<div class="donut-legend__item"><span class="donut-legend__sw" style="background:${e[0] === 'other' ? '#6E5F42' : (PROTO_COLORS[e[0]] || palette[i])}"></span>
      <span>${e[0]}</span><span class="donut-legend__v">${fmt(e[1])}</span></div>`).join('');
   // draw-in animation, staggered per segment
   requestAnimationFrame(() => {
@@ -400,7 +407,7 @@ function renderBars() {
   $('#barsTotal').textContent = fmt(total);
   $('#aliveBars').innerHTML = entries.map(([k, v]) =>
     `<div class="hbar"><span class="hbar__label">${k}</span>
-     <div class="hbar__track"><div class="hbar__fill" data-w="${(v / max * 100).toFixed(1)}" style="background:${PROTO_COLORS[k] || '#38BDF8'};box-shadow:0 0 12px ${(PROTO_COLORS[k] || '#38BDF8')}55"></div></div>
+     <div class="hbar__track"><div class="hbar__fill" data-w="${(v / max * 100).toFixed(1)}" style="background:${PROTO_COLORS[k] || '#C0C6CC'}"></div></div>
      <span class="hbar__val">${fmt(v)}</span></div>`).join('') || '<span class="panel__chip">—</span>';
   requestAnimationFrame(() => $$('#aliveBars .hbar__fill').forEach((f, i) => {
     f.style.transitionDelay = REDUCED ? '0ms' : `${i * 80}ms`;
@@ -414,11 +421,11 @@ function setGauge(svgId, valId, ms, maxRef) {
   const startA = Math.PI, endA = Math.PI + frac * Math.PI;
   const x2 = cx + r * Math.cos(endA), y2 = cy + r * Math.sin(endA);
   const large = frac > 0.5 ? 1 : 0;
-  const col = frac < 0.55 ? '#00E5A0' : frac < 0.8 ? '#FF9F43' : '#FB7185';
+  const col = frac < 0.55 ? '#7A8450' : frac < 0.8 ? '#B87333' : '#C0654A';
   $(svgId).innerHTML = `
-    <path d="M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}" fill="none" stroke="#142036" stroke-width="7" stroke-linecap="round"/>
-    <path d="M ${cx - r} ${cy} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" style="filter:drop-shadow(0 0 5px ${col})"/>
-    <line x1="${cx}" y1="${cy}" x2="${cx + r + 4}" y2="${cy}" stroke="#1C2B47" stroke-width="1.5"/>`;
+    <path d="M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}" fill="none" stroke="rgba(201,162,74,0.18)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M ${cx - r} ${cy} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round"/>
+    <line x1="${cx}" y1="${cy}" x2="${cx + r + 4}" y2="${cy}" stroke="rgba(201,162,74,0.3)" stroke-width="1.5"/>`;
   const sweepC = Math.PI * r;
   const seg = $(svgId).querySelectorAll('path')[1];
   if (seg && !REDUCED) seg.animate(
@@ -446,12 +453,12 @@ function renderEngines() {
   const cl = S.clients || {};
   const v = S.validation || {};
   const rows = [
-    { name: 'mihomo', ok: cl.mihomo ? cl.mihomo.built : 0, tot: (cl.mihomo ? cl.mihomo.built + cl.mihomo.skipped : 0) || (v.alive || 1), col: '#38BDF8' },
-    { name: 'sing-box', ok: cl.singbox ? cl.singbox.built : 0, tot: (cl.singbox ? cl.singbox.built + cl.singbox.skipped : 0) || (v.alive || 1), col: '#00E5A0' },
+    { name: 'mihomo', ok: cl.mihomo ? cl.mihomo.built : 0, tot: (cl.mihomo ? cl.mihomo.built + cl.mihomo.skipped : 0) || (v.alive || 1), col: '#C0C6CC' },
+    { name: 'sing-box', ok: cl.singbox ? cl.singbox.built : 0, tot: (cl.singbox ? cl.singbox.built + cl.singbox.skipped : 0) || (v.alive || 1), col: '#E8C872' },
   ];
   $('#engineRows').innerHTML = rows.map(r =>
     `<div class="engine-row"><span class="engine-row__name">${r.name}</span>
-     <div class="engine-row__track"><div class="engine-row__fill" data-w="${(r.ok / r.tot * 100).toFixed(1)}" style="background:${r.col};box-shadow:0 0 10px ${r.col}55"></div></div>
+     <div class="engine-row__track"><div class="engine-row__fill" data-w="${(r.ok / r.tot * 100).toFixed(1)}" style="background:${r.col}"></div></div>
      <span class="engine-row__val" style="color:${r.col}">${fmt(r.ok)}</span></div>`).join('');
   requestAnimationFrame(() => $$('#engineRows .engine-row__fill').forEach((f, i) => {
     f.style.transitionDelay = REDUCED ? '0ms' : `${i * 90}ms`;
@@ -462,7 +469,7 @@ function renderEngines() {
 /* ---------------- render: IR ISP ---------------- */
 function renderISP() {
   const op = (S.operators && S.operators.by_slug) || {};
-  const order = ['irancell', 'mci', 'pishgaman', 'asiatech', 'respina', 'ir-other'];
+  const order = ['irancell', 'mci', 'tci', 'rightel', 'pishgaman', 'shatel', 'mobinnet', 'asiatech', 'parsonline', 'respina', 'ir-other'];
   const keys = [...order, ...Object.keys(op).filter(k => !order.includes(k))];
   $('#ispGrid').innerHTML = keys.map(k => {
     const m = ISP_META[k] || { fa: k, en: k.toUpperCase() };
@@ -495,12 +502,12 @@ const TIERS = [
   { id: 'all', file: 'nodes.txt', cls: '' },
 ];
 const CLIENTS = [
-  { name: 'v2rayNG', sub: 'Android', logo: 'V2', col: '#38BDF8', link: u => `v2rayng://install-sub?url=${enc(u)}`, target: 'tier' },
-  { name: 'V2Box', sub: 'iOS', logo: 'VB', col: '#00E5A0', link: u => `v2box://install-sub?url=${enc(u)}`, target: 'tier' },
-  { name: 'Hiddify', sub: 'Android · iOS', logo: 'H', col: '#A78BFA', link: u => `hiddify://import/${enc(u)}`, target: 'tier' },
-  { name: 'Streisand', sub: 'iOS · macOS', logo: 'S', col: '#FF9F43', link: u => `streisand://import/${enc(u)}`, target: 'tier' },
-  { name: 'sing-box', sub: 'all platforms', logo: 'SB', col: '#00E5A0', link: () => `sing-box://import-remote-profile?url=${enc(DATA_BASE + '/singbox.json')}`, target: 'singbox' },
-  { name: 'Clash Meta', sub: 'mihomo core', logo: 'CM', col: '#38BDF8', link: () => `clash://install-config?url=${enc(DATA_BASE + '/mihomo.yaml')}`, target: 'mihomo' },
+  { name: 'v2rayNG', sub: 'Android', logo: 'V2', col: '#C0C6CC', link: u => `v2rayng://install-sub?url=${enc(u)}`, target: 'tier' },
+  { name: 'V2Box', sub: 'iOS', logo: 'VB', col: '#E8C872', link: u => `v2box://install-sub?url=${enc(u)}`, target: 'tier' },
+  { name: 'Hiddify', sub: 'Android · iOS', logo: 'H', col: '#8A7A55', link: u => `hiddify://import/${enc(u)}`, target: 'tier' },
+  { name: 'Streisand', sub: 'iOS · macOS', logo: 'S', col: '#B87333', link: u => `streisand://import/${enc(u)}`, target: 'tier' },
+  { name: 'sing-box', sub: 'all platforms', logo: 'SB', col: '#E8C872', link: () => `sing-box://import-remote-profile?url=${enc(DATA_BASE + '/singbox.json')}`, target: 'singbox' },
+  { name: 'Clash Meta', sub: 'mihomo core', logo: 'CM', col: '#C9A24A', link: () => `clash://install-config?url=${enc(DATA_BASE + '/mihomo.yaml')}`, target: 'mihomo' },
 ];
 let curTier = 'validated';
 

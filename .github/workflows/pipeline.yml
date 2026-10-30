@@ -68,12 +68,13 @@ jobs:
           ARISTON_TCP_TIMEOUT: "2.0"
         run: python -m pipeline.main run
 
-      # Regenerate the live SVG assets: premium stat cards + QR subscribe
-      # cards.  Committed to main together with the README stats below, so
-      # the images inside the README always match the latest run.
+      # Regenerate the live SVG assets: brand-kit artwork (dark + light,
+      # text outlined with the bundled OFL fonts) + QR subscribe cards.
+      # Committed to main together with the README stats below, so the
+      # images inside the README always match the latest run.
       - name: Generate live assets
         run: |
-          pip install -q qrcode
+          pip install -q fonttools uharfbuzz qrcode
           python -m pipeline.assets_gen
 
       # The README is now fully image-driven: every visual section is an
