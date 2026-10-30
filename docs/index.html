@@ -57,23 +57,23 @@
 <main>
 <!-- ===================== HERO ===================== -->
 <section class="hero">
-  <div class="hero__kicker mono" data-i18n="heroKicker">// FREE PROXY NETWORK — HOURLY DUAL-ENGINE VALIDATION</div>
-  <h1 class="hero__title" data-i18n-html="heroTitle">هر ساعت، <em>هزاران گره</em> تست می‌شوند؛<br>فقط بهترین‌ها اینجا می‌مانند.</h1>
+  <div class="hero__kicker mono" data-i18n="heroKicker">// شبکهٔ رایگان پروکسی — تست دو موتوره، هر ۳۰ دقیقه</div>
+  <h1 class="hero__title" data-i18n-html="heroTitle">هر نیم‌ساعت، <em>هزاران گره</em> تست می‌شن؛<br>فقط بهترین‌ها می‌مونن.</h1>
 
   <div class="hero__grid">
     <div class="kpi-row" id="kpiRow">
       <div class="kpi" data-kpi="alive">
-        <div class="kpi__label" data-i18n="kpiAlive">گره زنده</div>
+        <div class="kpi__label" data-i18n="kpiAlive">گرهٔ سالم</div>
         <div class="kpi__value mono" id="kpiAlive">—</div>
         <div class="kpi__foot mono" id="kpiAliveFoot">&nbsp;</div>
       </div>
       <div class="kpi kpi--gold" data-kpi="gold">
-        <div class="kpi__label" data-i18n="kpiGold">رده طلا</div>
+        <div class="kpi__label" data-i18n="kpiGold">ردهٔ طلایی</div>
         <div class="kpi__value mono" id="kpiGold">—</div>
         <div class="kpi__foot mono" id="kpiGoldFoot">&nbsp;</div>
       </div>
       <div class="kpi" data-kpi="unique">
-        <div class="kpi__label" data-i18n="kpiUnique">گره یکتا / اجرا</div>
+        <div class="kpi__label" data-i18n="kpiUnique">گرهٔ غیرتکراری در هر دور</div>
         <div class="kpi__value mono" id="kpiUnique">—</div>
         <div class="kpi__foot mono" id="kpiUniqueFoot">&nbsp;</div>
       </div>
@@ -90,7 +90,7 @@
         <circle class="hc-ring__fill" id="hcRing" cx="60" cy="60" r="51"/>
       </svg>
       <div class="hc-body">
-        <div class="hc-label" data-i18n="hcLabel">اجرای بعدی</div>
+        <div class="hc-label" data-i18n="hcLabel">دور بعدی تست</div>
         <div class="hc-digits mono" id="hcDigits">--:--</div>
         <div class="hc-sub mono">:07 / :37 UTC</div>
       </div>
@@ -106,7 +106,7 @@
 <section class="section" id="pipeline">
   <div class="section__head">
     <h2 class="section__title" data-i18n="pipelineTitle">خط تولید <span class="mono accent">//THE PIPELINE</span></h2>
-    <p class="section__desc" data-i18n="pipelineDesc">مسیر داده از جمع‌آوری خام تا رده طلا. ذرات نور، گره‌های واقعی هستند که در هر مرحله پالایش می‌شوند — روی هر ایستگاه بایستید تا اعداد دقیق را ببینید.</p>
+    <p class="section__desc" data-i18n="pipelineDesc">مسیر گره‌ها از جمع‌آوری خام تا ردهٔ طلایی. هر ذرهٔ نور یه گرهٔ واقعیه که مرحله‌به‌مرحله فیلتر می‌شه — روی هر ایستگاه نگه دار تا عددهای دقیق رو ببینی.</p>
   </div>
   <div class="panel pipeline-panel">
     <div class="pipeline" dir="ltr">
@@ -121,22 +121,22 @@
 <section class="section" id="analytics">
   <div class="section__head">
     <h2 class="section__title" data-i18n="analyticsTitle">تحلیل شبکه <span class="mono accent">//ANALYTICS</span></h2>
-    <p class="section__desc" data-i18n="analyticsDesc">ترکیب پروتکل‌ها، سلامت موتورها و تأخیر واقعی اندازه‌گیری‌شده در آخرین اجرا.</p>
+    <p class="section__desc" data-i18n="analyticsDesc">پروتکل‌ها چقدرن، موتورها چطور کار کردن و پینگ واقعی چقدر بوده — همه از آخرین دور تست.</p>
   </div>
   <div class="bento">
     <div class="panel bento__donut">
-      <div class="panel__head"><span class="panel__title" data-i18n="donutTitle">پروتکل‌ها — خام</span><span class="mono panel__chip" id="donutTotal">—</span></div>
+      <div class="panel__head"><span class="panel__title" data-i18n="donutTitle">پروتکل‌ها (قبل از فیلتر)</span><span class="mono panel__chip" id="donutTotal">—</span></div>
       <div class="donut-wrap">
         <svg id="donutSvg" viewBox="0 0 42 42" role="img" aria-label="protocol share"></svg>
         <div class="donut-legend" id="donutLegend"></div>
       </div>
     </div>
     <div class="panel bento__bars">
-      <div class="panel__head"><span class="panel__title" data-i18n="barsTitle">زنده بر اساس پروتکل</span><span class="mono panel__chip" id="barsTotal">—</span></div>
+      <div class="panel__head"><span class="panel__title" data-i18n="barsTitle">سالم‌ها به تفکیک پروتکل</span><span class="mono panel__chip" id="barsTotal">—</span></div>
       <div class="hbars" id="aliveBars"></div>
     </div>
     <div class="panel bento__latency">
-      <div class="panel__head"><span class="panel__title" data-i18n="latencyTitle">تأخیر (ms)</span><span class="mono panel__chip" id="enginesChip">—</span></div>
+      <div class="panel__head"><span class="panel__title" data-i18n="latencyTitle">پینگ (ms)</span><span class="mono panel__chip" id="enginesChip">—</span></div>
       <div class="gauge-row">
         <div class="gauge"><svg viewBox="0 0 100 62" id="gaugeP50"></svg><div class="gauge__val mono" id="gaugeP50Val">—</div><div class="gauge__label">p50</div></div>
         <div class="gauge"><svg viewBox="0 0 100 62" id="gaugeP80"></svg><div class="gauge__val mono" id="gaugeP80Val">—</div><div class="gauge__label">p80</div></div>
@@ -144,9 +144,9 @@
       <div class="mini-rows" id="latencyRows"></div>
     </div>
     <div class="panel bento__engines">
-      <div class="panel__head"><span class="panel__title" data-i18n="enginesTitle">خروجی کلاینت‌ها</span></div>
+      <div class="panel__head"><span class="panel__title" data-i18n="enginesTitle">خروجی برای هر اپ</span></div>
       <div class="engine-rows" id="engineRows"></div>
-      <div class="engine-note" data-i18n="enginesNote">هر گره با هر دو موتور واقعی تست و مسیریابی می‌شود.</div>
+      <div class="engine-note" data-i18n="enginesNote">هر گره با هر دو موتور واقعی تست می‌شه و بعد بسته‌بندی.</div>
     </div>
   </div>
 </section>
@@ -163,8 +163,8 @@
 <!-- ===================== IMPORT ===================== -->
 <section class="section" id="import">
   <div class="section__head">
-    <h2 class="section__title" data-i18n="importTitle">اتصال یک‌ضربه‌ای <span class="mono accent">//ONE-TAP</span></h2>
-    <p class="section__desc" data-i18n="importDesc">لایه هدف را انتخاب کنید و روی کلاینت بزنید — لینک ورود مستقیم باز می‌شود. روی دسکتاپ، دکمه کپی یا QR.</p>
+    <h2 class="section__title" data-i18n="importTitle">اتصال با یه لمس <span class="mono accent">//ONE-TAP</span></h2>
+    <p class="section__desc" data-i18n="importDesc">یه رده انتخاب کن و روی اپت بزن؛ لینک ورود مستقیم باز می‌شه. توی دسکتاپ می‌تونی لینک رو کپی کنی یا QR رو اسکن کنی.</p>
   </div>
   <div class="panel import-panel">
     <div class="tier-select" id="tierSelect" role="tablist" aria-label="subscription tier"></div>
@@ -173,14 +173,14 @@
   </div>
   <div class="panel wire-panel rv" id="wirePanel">
     <div class="panel__head">
-      <span class="panel__title" data-i18n="wireTitle">تست تأخیر واقعی + کپی یک‌کلیکی</span>
+      <span class="panel__title" data-i18n="wireTitle">تست پینگ واقعی + کپی با یه کلیک</span>
       <span class="wire-head-tools">
         <span class="mono panel__chip" id="wireChip">—</span>
         <button class="wire-row__btn" id="wireAll" type="button" data-i18n="wirePingAll">تست همه</button>
       </span>
     </div>
     <div class="wire-rows" id="wireRows"></div>
-    <div class="wire-note" data-i18n="wireNote">تأخیر از مرورگر شما اندازه گرفته می‌شود — بسته به شبکه‌ی شما با عدد سرور متفاوت است.</div>
+    <div class="wire-note" data-i18n="wireNote">پینگ از مرورگر خودت اندازه‌گیری می‌شه، پس ممکنه با عددی که سرور ثبت کرده فرق داشته باشه.</div>
   </div>
 </section>
 
@@ -188,7 +188,7 @@
 <section class="section" id="explorer">
   <div class="section__head">
     <h2 class="section__title" data-i18n="explorerTitle">مرورگر گره <span class="mono accent">//NODES</span></h2>
-    <p class="section__desc" data-i18n="explorerDesc">لیست زنده گره‌های تأییدشده. جستجو، فیلتر پروتکل، کپــی تکی یا خروجی base64 از همه نتایج فیلترشده.</p>
+    <p class="section__desc" data-i18n="explorerDesc">لیست زندهٔ گره‌های تأییدشده. جستجو کن، پروتکل فیلتر کن، تکی کپی بگیر یا همهٔ نتایج فیلترشده رو یه‌جا به‌صورت base64 بردار.</p>
   </div>
   <div class="panel explorer-panel">
     <div class="explorer__bar">
@@ -196,18 +196,18 @@
       <input type="search" class="explorer__search" id="explorerSearch" data-i18n-ph="explorerSearch" placeholder="جستجو در تگ، هاست، پروتکل…" aria-label="search nodes">
     </div>
     <div class="explorer__tools">
-      <button class="btn btn--mint" id="probeBatch" type="button" data-i18n="probeBatch">⚡ پروب زنده‌ی دسته‌ای</button>
-      <button class="btn btn--ghost" id="sortLat" type="button" data-i18n="sortLat">↑ مرتب‌سازی: تأخیر</button>
+      <button class="btn btn--mint" id="probeBatch" type="button" data-i18n="probeBatch">⚡ تست زندهٔ گروهی</button>
+      <button class="btn btn--ghost" id="sortLat" type="button" data-i18n="sortLat">↑ مرتب‌سازی: پینگ</button>
       <button class="btn btn--ghost" id="aliveOnly" type="button" data-i18n="aliveOnly">فقط سالم‌ها</button>
       <span class="explorer__probemeta mono" id="probeMeta"></span>
     </div>
     <div class="explorer__meta mono" id="explorerMeta">—</div>
     <div class="explorer__list" id="explorerList" aria-live="polite">
-      <div class="explorer__loading" id="explorerLoading"><span class="spinner"></span><span data-i18n="explorerLoading">برای مشاهده، لیست گره‌ها بارگیری می‌شود…</span></div>
+      <div class="explorer__loading" id="explorerLoading"><span class="spinner"></span><span data-i18n="explorerLoading">در حال بارگذاری لیست گره‌ها…</span></div>
     </div>
     <div class="explorer__foot">
       <button class="btn btn--ghost" id="explorerMore" hidden data-i18n="showMore">نمایش بیشتر</button>
-      <button class="btn btn--mint" id="explorerCopy" hidden data-i18n="copyFiltered">کپی فیلترشده به‌صورت base64</button>
+      <button class="btn btn--mint" id="explorerCopy" hidden data-i18n="copyFiltered">کپی نتایج فیلترشده (base64)</button>
     </div>
   </div>
 </section>
@@ -216,11 +216,11 @@
 <section class="section" id="sources">
   <div class="section__head">
     <h2 class="section__title" data-i18n="sourcesTitle">ماتریس منابع <span class="mono accent">//SOURCES</span></h2>
-    <p class="section__desc" data-i18n="sourcesDesc">هر نقطه یک منبع است؛ اندازه‌اش حجم خام این اجراست. قرمز = خطا در آخرین اجرا.</p>
+    <p class="section__desc" data-i18n="sourcesDesc">هر نقطه یه منبعه و اندازه‌اش نشون می‌ده این دور چقدر داده خام ازش گرفتیم. قرمز یعنی توی آخرین دور خطا داشته.</p>
   </div>
   <div class="panel sources-panel">
     <div class="sources__bar">
-      <input type="search" class="sources__search" id="sourcesSearch" data-i18n-ph="sourcesSearch" placeholder="جستجوی شناسه منبع…" aria-label="search sources">
+      <input type="search" class="sources__search" id="sourcesSearch" data-i18n-ph="sourcesSearch" placeholder="جستجوی شناسهٔ منبع…" aria-label="search sources">
       <div class="sources__legend mono">
         <span class="dot-legend"><i class="dot dot--ok"></i><span data-i18n="legendOk">فعال</span></span>
         <span class="dot-legend"><i class="dot dot--fail"></i><span data-i18n="legendFail">خطا</span></span>
@@ -235,7 +235,7 @@
 <section class="section" id="download">
   <div class="section__head">
     <h2 class="section__title" data-i18n="downloadTitle">مرکز دانلود <span class="mono accent">//EXPORTS</span></h2>
-    <p class="section__desc" data-i18n="downloadDesc">همه خروجی‌های آخرین اجرا — فایل خام، base64، فرمت کلاینت و تفکیک پروتکل.</p>
+    <p class="section__desc" data-i18n="downloadDesc">همهٔ خروجی‌های آخرین دور: فایل خام، base64، فرمت مخصوص هر اپ و فایل جدا برای هر پروتکل.</p>
   </div>
   <div class="dl-grid" id="dlGrid"></div>
 </section>
@@ -244,7 +244,7 @@
 <footer class="footer">
   <div class="footer__inner">
     <span class="mono" id="footerStamp">—</span>
-    <span data-i18n="footerText">با خط تولید دو-موتوره‌ی ساعتی — جمع‌آوری، پالایش TCP، اعتبارسنجی واقعی، رده‌بندی.</span>
+    <span data-i18n="footerText">خط تولید دو موتوره — هر ۳۰ دقیقه جمع‌آوری، فیلتر اولیهٔ TCP، اعتبارسنجی واقعی و رده‌بندی.</span>
     <a class="footer__link" href="https://github.com/Edsel-Rahimi/Ariston" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
 </footer>
@@ -253,7 +253,7 @@
 <dialog class="qr-modal" id="qrModal">
   <div class="qr-modal__box">
     <div class="qr-modal__head">
-      <span class="panel__title" data-i18n="qrTitle">اسکن برای ورود</span>
+      <span class="panel__title" data-i18n="qrTitle">برای اتصال، اسکن کن</span>
       <button class="icon-btn" id="qrClose" aria-label="close">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>

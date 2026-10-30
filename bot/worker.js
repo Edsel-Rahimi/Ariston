@@ -81,35 +81,35 @@ const CLIENT_ORDER = ['v2rayng', 'hiddify', 'streisand', 'singbox', 'other'];
 /* how-to import the personal sub, per client × language */
 const HOWTO = {
   v2rayng: {
-    fa: 'v2rayNG ← اشتراک‌ها ← + ← «وارد کردن از کلیپ‌بورد» یا «URL» ← لینک را جای‌گذاری کن ← ذخیره. سپس «به‌روزرسانی اشتراک» بزن.',
+    fa: 'توی v2rayNG برو به «اشتراک‌ها» ← + ← «وارد کردن از کلیپ‌بورد» (یا URL) ← لینک رو پیست کن ← ذخیره. آخرشم «به‌روزرسانی اشتراک» رو بزن.',
     en: 'v2rayNG → Subscriptions → + → Import from clipboard/URL → paste the link → Save → Update subscription.',
     ru: 'v2rayNG → Подписки → + → Импорт из буфера/URL → вставить ссылку → Сохранить → Обновить подписку.',
     tr: 'v2rayNG → Abonelikler → + → Panodan/URL\'den içe aktar → bağlantıyı yapıştır → Kaydet → Aboneliği güncelle.',
     zh: 'v2rayNG → 订阅分组 → + → 从剪贴板/URL 导入 → 粘贴链接 → 保存 → 更新订阅。',
   },
   hiddify: {
-    fa: 'Hiddify ← «افزودن پروفایل» ← از کلیپ‌بورد یا لینک ← لینک را جای‌گذاری کن ← ذخیره.',
+    fa: 'توی Hiddify روی «افزودن پروفایل» بزن ← از کلیپ‌بورد یا لینک ← لینک رو پیست کن ← ذخیره.',
     en: 'Hiddify → Add profile → From clipboard / URL → paste the link → Save.',
     ru: 'Hiddify → Добавить профиль → Из буфера / URL → вставить ссылку → Сохранить.',
     tr: 'Hiddify → Profil ekle → Panodan / URL\'den → bağlantıyı yapıştır → Kaydet.',
     zh: 'Hiddify → 添加配置 → 从剪贴板 / URL → 粘贴链接 → 保存。',
   },
   streisand: {
-    fa: 'Streisand ← + ← «افزودن اشتراک» ← لینک را جای‌گذاری کن ← ذخیره.',
+    fa: 'توی Streisand روی + بزن ← «افزودن اشتراک» ← لینک رو پیست کن ← ذخیره.',
     en: 'Streisand → + → Add subscription → paste the link → Save.',
     ru: 'Streisand → + → Добавить подписку → вставить ссылку → Сохранить.',
     tr: 'Streisand → + → Abonelik ekle → bağlantıyı yapıştır → Kaydet.',
     zh: 'Streisand → + → 添加订阅 → 粘贴链接 → 保存。',
   },
   singbox: {
-    fa: 'sing-box خالص فقط فایل JSON می‌پذیرد؛ ساده‌ترین راه: اپ Hiddify یا NekoBox (هر دو موتور sing-box دارند) و همین لینک اشتراک.',
+    fa: 'sing-box خالص فقط فایل JSON قبول می‌کنه. ساده‌ترین راه اینه که از Hiddify یا NekoBox استفاده کنی (هر دو هستهٔ sing-box دارن) و همین لینک اشتراک رو توشون وارد کنی.',
     en: 'Plain sing-box only accepts JSON files; easiest path: Hiddify or NekoBox (both run the sing-box core) with this same subscription link.',
     ru: 'Чистый sing-box принимает только JSON; проще всего: Hiddify или NekoBox (ядро sing-box) с этой же ссылкой.',
     tr: 'Saf sing-box yalnızca JSON kabul eder; en kolay yol: Hiddify veya NekoBox (sing-box çekirdeği) ve aynı abonelik bağlantısı.',
     zh: '原生 sing-box 只接受 JSON；最简单的方式：使用 Hiddify 或 NekoBox（sing-box 内核）导入同一订阅链接。',
   },
   other: {
-    fa: 'لینک را در بخش Subscription / پروفایل کلاینت خودت جای‌گذاری کن.',
+    fa: 'لینک رو توی بخش Subscription (اشتراک) یا Profile اپت پیست کن.',
     en: 'Paste the link into your client\'s Subscription / profile section.',
     ru: 'Вставьте ссылку в раздел «Подписка» вашего клиента.',
     tr: 'Bağlantıyı istemcinizin Abonelik / profil bölümüne yapıştırın.',
@@ -121,64 +121,65 @@ const HOWTO = {
 
 const T = {
   fa: {
-    start_new: '👑 به آریستون خوش اومدی!\n\nآریستون هر نیم‌ساعت هزاران کانفیگ عمومی رو جمع می‌کنه، با دو موتور xray-core و sing-box تست می‌کنه و فقط سالم‌ها رو تحویل می‌ده.\n\n⬇️ اول چند تنظیم سریع:',
-    pick_lang: '🌐 زبان رو انتخاب کن:',
-    pick_isp: '📡 اپراتور اینترنتیت چیه؟\nاشتراک شخصیت بر همین اساس فیلتر می‌شه.',
-    pick_client: '📱 با کدوم کلاینت وصل می‌شی؟\nبرای راهنمای دقیقِ وارد کردن می‌پرسم.',
-    setup_done: '✅ تمومه! تنظیماتت ذخیره شد.\n\nحالا از منو «🏆 طلایی‌ها» رو امتحان کن.',
-    menu_title: 'از منو انتخاب کن:',
-    menu_fallback: 'این رو نمی‌فهمم 🙈 از منو استفاده کن:',
-    gold_page: '🏆 <b>طلایی‌ها {a}–{b}</b> از {n} — بهترین‌های آخرین اجرا',
-    gold_empty: 'فهرست طلایی همین حالا خالیه ⏳\nچند دقیقه دیگه که اجرای جدید تموم شد دوباره بزن.',
-    gold_hint: '💡 برای کپی: روی متن بزن و نگه دار ← Copy',
+    start_new: '👑 سلام! به آریستون خوش اومدی\n\nآریستون هر نیم‌ساعت هزاران کانفیگ عمومی جمع می‌کنه، با دو موتور xray-core و sing-box امتحانشون می‌کنه و فقط اونایی که واقعاً کار می‌کنن رو بهت می‌ده.\n\n⬇️ قبل از شروع، چندتا سؤال کوتاه:',
+    pick_lang: '🌐 زبانت رو انتخاب کن:',
+    pick_isp: '📡 اینترنتت از کدوم اپراتوره؟\nاشتراکت رو بر همین اساس فیلتر می‌کنم.',
+    pick_client: '📱 با کدوم اپ وصل می‌شی؟\nمی‌پرسم که بتونم دقیق بگم چطور واردش کنی.',
+    setup_done: '✅ همه‌چی آماده‌ست! تنظیماتت ذخیره شد.\n\nاز منو یه سر به «🏆 طلایی‌ها» بزن.',
+    menu_title: 'چی لازم داری؟ از منو انتخاب کن 👇',
+    menu_fallback: 'متوجه نشدم 🙈 از منوی پایین انتخاب کن:',
+    gold_page: '🏆 <b>طلایی‌ها {a}–{b}</b> از {n} — بهترین‌های آخرین دور تست',
+    gold_empty: 'لیست طلایی الان خالیه ⏳\nدور جدید تست در جریانه؛ چند دقیقه دیگه دوباره سر بزن.',
+    gold_hint: '💡 برای کپی: روی کانفیگ بزن و نگه دار، بعد «Copy» رو بزن',
     more: '🔄 سه‌تای بعدی',
-    stats_fail: 'داده‌ها الان در دسترس نیستن ⏳ چند لحظه بعد دوباره امتحان کن.',
-    stats_head: '📊 <b>وضعیت زندهٔ شبکه</b>',
-    last_run: '🕐 آخرین اجرا: {t}',
+    stats_fail: 'الان نتونستم آمار رو بگیرم ⏳ یه کم بعد دوباره امتحان کن.',
+    stats_head: '📊 <b>وضعیت لحظه‌ای شبکه</b>',
+    last_run: '🕐 آخرین تست: {t}',
     sources: '📡 منابع سالم: {ok} از {total}',
-    unique_n: '📥 کانفیگ یکتا: {n}',
+    unique_n: '📥 کانفیگ غیرتکراری: {n}',
     probed_n: '🧪 تست‌شده: {a} | ❤️ سالم: {b}',
-    latency: '⚡ تأخیر p50: {p50}ms | میانگین: {avg}ms',
+    latency: '⚡ پینگ p50: {p50}ms | میانگین: {avg}ms',
     sub_title: '🔗 <b>اشتراک شخصی تو</b>',
-    sub_note: 'این لینک مخصوص خودته — با کسی به اشتراک نذاش.\nهر بار کلاینتت رفرش کنه، تازه‌ترین کانفیگ‌های سالمِ فیلترشده بر اساس اپراتورت رو می‌گیری.',
-    sub_howto: '📥 راهنمای وارد کردن:',
-    sub_fallback_note: 'ℹ️ برای این اپراتور هنوز کانفیگ داخلی کافی نداریم؛ لیست کامل کانفیگ‌های تست‌شده برات فعال شد.',
+    sub_note: 'این لینک فقط مال خودته، به کسی نده 🤫\nهر بار اپت رو آپدیت کنی، تازه‌ترین کانفیگ‌های سالمِ مخصوص اپراتورت می‌رسه.',
+    sub_howto: '📥 طرز اضافه کردن به اپ:',
+    sub_fallback_note: 'ℹ️ برای اپراتور تو هنوز کانفیگ مخصوصِ کافی نداریم؛ برای همین فعلاً کل لیستِ تست‌شده‌ها رو می‌گیری.',
     sub_open: '📥 باز کردن لینک',
-    help_text: '❓ <b>راهنمای آریستون</b>\n\n/start — شروع و منوی اصلی\n/gold — ۳ کانفیگ طلایی برتر\n/best — بلیت طلایی: کم‌تأخیرترین سالم\n/stats — آمار زندهٔ آخرین اجرا\n/sub — لینک اشتراک شخصی\n/ref — دعوت دوستان، سهمیه تا ۲۰ کانفیگ\n/settings — تغییر اپراتور / کلاینت\n/lang — تغییر زبان\n\n👑 هر نیم‌ساعت: جمع‌آوری ← نرمال‌سازی ← تست ← امتیازدهی ← انتشار.',
+    help_text: '❓ <b>راهنمای آریستون</b>\n\n/start — شروع و منوی اصلی\n/gold — بهترین کانفیگ‌های طلایی\n/best — سریع‌ترین کانفیگ سالم (بلیت طلایی)\n/stats — آمار زندهٔ آخرین دور تست\n/sub — لینک اشتراک شخصی\n/ref — دعوت از دوستان و گرفتن کانفیگ بیشتر (تا ۲۰ تا)\n/settings — عوض کردن اپراتور / اپ\n/lang — عوض کردن زبان\n\n👑 هر نیم‌ساعت یه دور کامل می‌زنم: جمع‌آوری ← تمیزکاری ← تست ← امتیازدهی ← انتشار.',
     set_pick: '⚙️ چی رو عوض کنم؟',
     saved: '✅ ذخیره شد',
-    err_generic: 'ای وای، خطایی پیش اومد ⚠️ چند لحظه بعد دوباره امتحان کن.',
+    err_generic: 'ای وای، یه مشکلی پیش اومد ⚠️ چند لحظه دیگه دوباره امتحان کن.',
     rel_min: '{n} دقیقه پیش', rel_hour: '{n} ساعت پیش', rel_day: '{n} روز پیش',
     btn_gold: '🏆 طلایی‌ها', btn_stats: '📊 آمار', btn_sub: '🔗 اشتراک من',
     btn_settings: '⚙️ تنظیمات', btn_help: '❓ راهنما', btn_lang: '🌐 زبان',
-    btn_isp: '📡 اپراتور', btn_client: '📱 کلاینت', btn_menu: '↩️ منو',
+    btn_isp: '📡 اپراتور', btn_client: '📱 اپ', btn_menu: '↩️ منو',
     btn_best: '⚡ بلیت طلایی', btn_app: '👑 داشبورد',
-    best_title: 'بلیت طلایی — کم‌تأخیرترین کانفیگ سالم',
-    watchtower: '🔔 <b>اجرای جدید تمام شد!</b>\n\n🥇 طلایی: {gold}\n❤️ سالم: {alive}\n⚡ p50: {p50}ms',
-    inline_foot: 'کانفیگ‌های تازه هر نیم‌ساعت → {bot}', inline_none: 'ربات را باز کن',
-    help_inline: 'اینلاین در هر چتی: {bot} irancell vless',
+    best_title: '⚡ بلیت طلایی — سریع‌ترین کانفیگ سالمِ الان',
+    watchtower: '🔔 <b>تست جدید تموم شد!</b>\n\n🥇 طلایی: {gold}\n❤️ سالم: {alive}\n⚡ پینگ p50: {p50}ms',
+    inline_foot: 'کانفیگ‌های تازه هر نیم‌ساعت → {bot}', inline_none: 'ربات رو باز کن',
+    help_inline: '💡 توی هر چتی می‌تونی بنویسی: {bot} irancell vless',
     daily_title: '👑 <b>کارتِ امروز آریستون</b>', daily_best: '⚡ بهترینِ امروز:', daily_svg: '🛰 کارت امروز (SVG)',
-    join_wall: '🔔 برای استفاده از آریستون اول باید عضو چنل رسمی بشی.\n\nبعد از عضویت، دکمه «✅ عضو شدم» رو بزن.',
-    join_done: '✅ عضو شدم', join_ok: '✅ عضویتت تأیید شد — خوش اومدی!',
-    join_still: 'هنوز عضو چنل نشدی 🙈 اول عضو شو',
-    btn_ref: '👥 رفرال',
-    ref_title: '👥 <b>دعوت دوستان = کانفیگ بیشتر</b>',
-    ref_stat: '📈 رفرال‌های تأییدشده: {n}\n🎁 سهمیهٔ تو: {q} از {cap} کانفیگ',
-    ref_rule: 'هر دوستی که با لینک تو بیاد، عضو چنل بشه و تنظیماتش رو کامل کنه:\n• رفرال ۱ و ۲ → هرکدوم +۱\n• رفرال ۳ تا ۵ → هرکدوم +۲\n• از رفرال ششم → هرکدوم +۳\n🎯 سقف: ۲۰ کانفیگ',
-    ref_share: '📤 هم‌رسانی لینک دعوت',
-    ref_share_text: '⚡ کانفیگ‌های تست‌شده و سالم، رایگان، هر نیم‌ساعت به‌روز — ربات آریستون:',
-    ref_credited: '🎉 {name} با لینک تو عضو شد!\n🎁 سهمیهٔ تو: {q} از {cap} کانفیگ',
-    pick_name: '✍️ اسمت رو بنویس — روی کانفیگ‌های اختصاصیت می‌آد:\n(مثلاً: Ali)',
-    name_skip: '⏭ بدون اسم', name_saved: '✅ ممنون، {name}! اسمت روی کانفیگ‌هات می‌آد.',
-    set_name: '✍️ نام', set_rot: '🔁 چرخش: {mode}', rot_day: 'روزانه', rot_run: 'هر اجرا',
-    rot_hint: '🔁 چرخش عوض شد: {mode} — دفعهٔ بعد که کلاینت رفرش کنه، سهم جدید می‌گیری.',
-    name_now: '✍️ نام: {name}', name_hint: '✍️ اسم جدید رو بفرست (یا «رد کردن»):',
-    sub_rot_line: '🔁 چرخش: {mode} · 📦 {n} کانفیگ اختصاصی',
-    digest_title: '📊 <b>Ariston — وضعیت زنده</b>',
-    freq_now: '⏱ پست دوره‌ای کانال: هر {n} ساعت\nبرای تغییر: <code>/freq 4</code> (۱ تا ۲۴ ساعت)',
-    freq_set: '✅ شد! از این به بعد هر {n} ساعت یک گزارش زنده در کانال می‌رود.',
-    freq_bad: '⚠️ یک عدد بین ۱ تا ۲۴ بفرست، مثل: <code>/freq 4</code>',
-    freq_denied: '⛔ این فرمان مخصوص مالک ربات است.',
+    join_wall: '🔔 برای استفاده از آریستون، اول باید عضو کانال رسمیش بشی.\n\nبعدش دکمهٔ «✅ عضو شدم» رو بزن.',
+    join_done: '✅ عضو شدم', join_ok: '✅ عضویتت تأیید شد، خوش اومدی!',
+    join_still: 'هنوز عضو کانال نشدی 🙈 اول عضو شو، بعد دوباره امتحان کن',
+    btn_ref: '👥 دعوت دوستان',
+    ref_title: '👥 <b>دوستاتو دعوت کن، کانفیگ بیشتر بگیر</b>',
+    ref_stat: '📈 دوستانِ تأییدشده: {n}\n🎁 سهمیه‌ات الان {q} از {cap} کانفیگه',
+    ref_rule: 'هر دوستی که با لینک تو بیاد، عضو کانال بشه و تنظیماتش رو کامل کنه، به سهمیه‌ات اضافه می‌کنه:\n• دوست اول و دوم → هرکدوم ۱ کانفیگ\n• دوست سوم تا پنجم → هرکدوم ۲ کانفیگ\n• از دوست ششم به بعد → هرکدوم ۳ کانفیگ\n🎯 سقف: ۲۰ کانفیگ',
+    ref_share: '📤 فرستادن لینک دعوت',
+    ref_share_text: '⚡ کانفیگ سالم و تست‌شدهٔ رایگان، با آپدیت هر نیم‌ساعت — ربات آریستون:',
+    ref_credited: '🎉 {name} با لینک تو اومد!\n🎁 سهمیه‌ات شد {q} از {cap} کانفیگ',
+    pick_name: '✍️ اسمت رو بنویس تا روی کانفیگ‌های مخصوصت بیفته:\n(مثلاً Ali)',
+    name_skip: '⏭ بدون اسم', name_saved: '✅ ممنون {name}! اسمت روی کانفیگ‌هات می‌افته.',
+    set_name: '✍️ اسم', set_rot: '🔁 تعویض کانفیگ‌ها: {mode}', rot_day: 'روزانه', rot_run: 'هر دور تست',
+    rot_hint: '🔁 تغییر کرد: {mode} — دفعهٔ بعد که اپت رو آپدیت کنی، دستهٔ تازه می‌گیری.',
+    name_now: '✍️ اسم: {name}', name_hint: '✍️ اسم جدیدت رو بفرست (یا «بدون اسم» رو بزن):',
+    sub_rot_line: '🔁 تعویض: {mode} · 📦 {n} کانفیگ مخصوص تو',
+    digest_title: '📊 <b>آریستون — وضعیت لحظه‌ای</b>',
+    freq_now: '⏱ گزارش دوره‌ای کانال: هر {n} ساعت یه‌بار\nبرای تغییر: <code>/freq 4</code> (بین ۱ تا ۲۴ ساعت)',
+    freq_set: '✅ انجام شد! از الان هر {n} ساعت یه گزارش زنده توی کانال می‌ذارم.',
+    freq_bad: '⚠️ یه عدد بین ۱ تا ۲۴ بفرست، مثلاً: <code>/freq 4</code>',
+    freq_denied: '⛔ این دستور فقط برای صاحب رباته.',
+    btn_panel: '🛠 پنل مدیریت', panel_denied: '⛔ پنل مدیریت فقط برای مدیرهای ربات باز می‌شه.',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -239,6 +240,7 @@ const T = {
     freq_set: '✅ Done! A live digest will be posted to the channel every {n} h.',
     freq_bad: '⚠️ Send a number between 1 and 24, like: <code>/freq 4</code>',
     freq_denied: '⛔ This command is for the bot owner only.',
+    btn_panel: '🛠 Admin panel', panel_denied: '⛔ The admin panel is open to bot admins only.',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -299,6 +301,7 @@ const T = {
     freq_set: '✅ Готово! Живой отчёт будет в канале каждые {n} ч.',
     freq_bad: '⚠️ Пришлите число от 1 до 24, например: <code>/freq 4</code>',
     freq_denied: '⛔ Команда только для владельца бота.',
+    btn_panel: '🛠 Панель админа', panel_denied: '⛔ Панель доступна только админам бота.',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -359,6 +362,7 @@ const T = {
     freq_set: '✅ Tamam! Kanala her {n} saatte bir canlı özet düşecek.',
     freq_bad: '⚠️ 1 ile 24 arasında bir sayı gönder, örn.: <code>/freq 4</code>',
     freq_denied: '⛔ Bu komut yalnızca bot sahibine ait.',
+    btn_panel: '🛠 Yönetim paneli', panel_denied: '⛔ Yönetim paneli yalnızca bot yöneticilerine açık.',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -419,6 +423,7 @@ const T = {
     freq_set: '✅ 好了！以后每 {n} 小时向频道发送一次实时报告。',
     freq_bad: '⚠️ 请发送 1–24 之间的数字，例如：<code>/freq 4</code>',
     freq_denied: '⛔ 该命令仅限机器人所有者使用。',
+    btn_panel: '🛠 管理面板', panel_denied: '⛔ 管理面板仅限机器人管理员使用。',
   },
 };
 
@@ -582,6 +587,7 @@ const CFG_DEFAULT = {
   force_join: true,          // gate the bot behind official-channel membership
   channel_user: CHANNEL_USER,
   card_enabled: true,        // daily photo card in the channel
+  digest_enabled: true,      // periodic live digest in the channel (/freq)
   watchtower_enabled: true,  // per-run alerts to opted-in users
   ref_base: REF_BASE,
   ref_cap: REF_CAP,
@@ -830,7 +836,8 @@ async function dailyChannelCard(env, force = false) {
         ((b.ema || 0) - (a.ema || 0)) || ((a.latency_ms === null ? 9e9 : a.latency_ms) - (b.latency_ms === null ? 9e9 : b.latency_ms))
       )[0];
       const lat = best.latency_ms !== null ? Math.round(best.latency_ms) + 'ms' : '—';
-      bestLine = '\n\n' + t(lang, 'daily_best') + '\n<code>' + esc(best.uri) + '</code>\n✅ ' + (best.ema !== null ? Math.round(best.ema * 100) + '%' : '—') + ' · ⚡ ' + lat;
+      /* D5: stats only in the caption — the config link itself never goes to the channel */
+      bestLine = '\n\n' + t(lang, 'daily_best') + '\n✅ ' + (best.ema !== null ? Math.round(best.ema * 100) + '%' : '—') + ' · ⚡ ' + lat + '\n👑 ' + t(lang, 'btn_app');
     }
   } catch (_) { /* card without best-of-day still ships */ }
 
@@ -845,9 +852,16 @@ async function dailyChannelCard(env, force = false) {
     bestLine,
   ].join('\n');
 
+  /* D4.2 approved buttons — deep links open the bot on the right screen */
   const rows = [];
-  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app', style: 'primary' }]);
-  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot, style: 'primary' }]);
+  if (bot) rows.push([
+    { text: '⚡ ' + t(lang, 'btn_best'), url: 'https://t.me/' + bot + '?start=best', style: 'primary' },
+    { text: '🔗 ' + t(lang, 'btn_sub'), url: 'https://t.me/' + bot + '?start=sub', style: 'success' },
+  ]);
+  const row2 = [];
+  if (origin) row2.push({ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' });
+  if (bot) row2.push({ text: '🚀 @' + bot, url: 'https://t.me/' + bot });
+  if (row2.length) rows.push(row2);
 
   /* D4.2: the brand PNG committed by CI beats the in-worker raster; text is the last resort */
   let sent = null;
@@ -862,6 +876,8 @@ async function dailyChannelCard(env, force = false) {
 /* ───────── periodic channel digest — every N hours (/freq) ───────────────── */
 
 async function channelDigest(env) {
+  const cfg = await getCfg(env);
+  if (cfg.digest_enabled === false) return;
   const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
   if (!chan) return; // not configured → silent no-op
   const hours = Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6));
@@ -883,8 +899,14 @@ async function channelDigest(env) {
   const origin = await kvGet(env, 'meta:origin');
   const bot = (await kvGet(env, 'meta:bot_username')) || null;
   const rows = [];
-  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app', style: 'primary' }]);
-  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot, style: 'primary' }]);
+  if (bot) rows.push([
+    { text: '⚡ ' + t(lang, 'btn_best'), url: 'https://t.me/' + bot + '?start=best', style: 'primary' },
+    { text: '🔗 ' + t(lang, 'btn_sub'), url: 'https://t.me/' + bot + '?start=sub', style: 'success' },
+  ]);
+  const row2 = [];
+  if (origin) row2.push({ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' });
+  if (bot) row2.push({ text: '🚀 @' + bot, url: 'https://t.me/' + bot });
+  if (row2.length) rows.push(row2);
   const markup = { reply_markup: { inline_keyboard: rows } };
 
   /* D4.2: digest goes out as a photo post too (the user-facing card image) */
@@ -1113,7 +1135,11 @@ async function askClient(env, chatId, lang) {
 
 async function askSettings(env, chatId, lang) {
   const user = await getUser(env, chatId);
-  return sendMessage(env, chatId, t(lang, 'set_pick'), { reply_markup: settingsKb(lang, user) });
+  const kb = settingsKb(lang, user);
+  if (await isAdmin(env, chatId)) { // D5: admins get the settings panel shortcut
+    kb.inline_keyboard.splice(kb.inline_keyboard.length - 1, 0, [{ text: t(lang, 'btn_panel'), callback_data: 'menu:panel' }]);
+  }
+  return sendMessage(env, chatId, t(lang, 'set_pick'), { reply_markup: kb });
 }
 
 async function cmdStart(env, chatId, msg, origin) {
@@ -1125,6 +1151,11 @@ async function cmdStart(env, chatId, msg, origin) {
       user.await = 'name'; await saveUser(env, chatId, user);
       return askName(env, chatId, user.lang);
     }
+    /* D5: deep links from the channel post buttons → open the right screen */
+    const pl = String(msg.text || '').trim().split(/\s+/)[1] || '';
+    if (pl === 'best') return cmdBest(env, chatId, user.lang, origin);
+    if (pl === 'sub') return cmdSub(env, chatId, user.lang, origin || '');
+    if (pl === 'gold') return cmdGold(env, chatId, user.lang, 0);
     return sendMenu(env, chatId, user.lang, null, origin);
   }
   const lc = String((msg.from && msg.from.language_code) || '').toLowerCase();
@@ -1261,6 +1292,15 @@ async function cmdFreq(env, chatId, lang, argText) {
   return sendMessage(env, chatId, t(lang, 'freq_set', { n }));
 }
 
+/* D5 — /panel: open the admin settings Mini App (admins only) */
+async function cmdPanel(env, chatId, lang, origin) {
+  if (!(await isAdmin(env, chatId))) return sendMessage(env, chatId, t(lang, 'panel_denied'));
+  if (!origin) return sendMessage(env, chatId, t(lang, 'err_generic'));
+  return sendMessage(env, chatId, t(lang, 'btn_panel') + '\n\n' + t(lang, 'menu_title'), {
+    reply_markup: { inline_keyboard: [[{ text: '🛠 ' + t(lang, 'btn_panel'), web_app: { url: origin + '/panel' } }]] },
+  });
+}
+
 async function cmdBest(env, chatId, lang, origin) {
   const items = await getEnrichedGold(env);
   if (!items.length) return sendMessage(env, chatId, t(lang, 'gold_empty'));
@@ -1272,7 +1312,7 @@ async function cmdBest(env, chatId, lang, origin) {
   const ema = best.ema !== null ? Math.round(best.ema * 100) + '%' : '—';
   const lat = best.latency_ms !== null ? Math.round(best.latency_ms) + 'ms' : '—';
   const msg = [
-    '⚡ <b>' + esc(t(lang, 'best_title')) + '</b>', '',
+    '<b>' + esc(t(lang, 'best_title')) + '</b>', '',
     '<code>' + esc(best.uri) + '</code>', '',
     '✅ ' + ema + '  ·  ⚡ ' + lat + '  ·  ✔ ' + (best.ok || 0) + ' / ✘ ' + (best.fail || 0),
   ].join('\n');
@@ -1315,6 +1355,7 @@ async function handleUpdate(env, update, origin) {
         case '/help': return await cmdHelp(env, chatId, lang, origin);
         case '/lang': return await askLang(env, chatId);
         case '/settings': return await askSettings(env, chatId, lang);
+        case '/panel': return await cmdPanel(env, chatId, lang, origin);
         case '/freq': return await cmdFreq(env, chatId, lang, msg.text.trim().split(/\s+/).slice(1).join(' '));
         default: return await sendMenu(env, chatId, lang, t(lang, 'menu_fallback'), origin);
       }
@@ -1398,6 +1439,7 @@ async function handleUpdate(env, update, origin) {
             case 'sub': return cmdSub(env, chatId, lang, origin || '');
             case 'ref': return cmdRef(env, chatId, lang, origin);
             case 'settings': return askSettings(env, chatId, lang);
+            case 'panel': return cmdPanel(env, chatId, lang, origin);
             case 'help': return cmdHelp(env, chatId, lang, origin);
             case 'lang': return askLang(env, chatId);
             default: return sendMenu(env, chatId, lang, null, origin);
@@ -1518,16 +1560,31 @@ async function appStats(env) {
   });
 }
 
-async function appGold(env, url) {
+async function appGold(env, url, request) {
   const q = url.searchParams;
-  const limit = Math.min(Math.max(parseInt(q.get('limit') || '8', 10) || 8, 1), 24);
-  const offset = Math.max(parseInt(q.get('offset') || '0', 10) || 0, 0);
+  let limit = Math.min(Math.max(parseInt(q.get('limit') || '8', 10) || 8, 1), 24);
+  let offset = Math.max(parseInt(q.get('offset') || '0', 10) || 0, 0);
+  /* D5: POST + initData → the caller is a known user → stamp their personal name on the copies */
+  let remarkName = null;
+  if (request && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    const tgUser = await verifyInitData(env, body.initData);
+    if (tgUser) {
+      const u = await getUser(env, tgUser.id);
+      if (u && u.name) remarkName = cleanName(u.name);
+      if (body.offset != null && isFinite(parseInt(body.offset, 10))) offset = Math.max(parseInt(body.offset, 10), 0);
+      if (body.limit != null && isFinite(parseInt(body.limit, 10))) limit = Math.min(Math.max(parseInt(body.limit, 10), 1), 24);
+    }
+  }
   const all = await getEnrichedGold(env);
   const slice = all.slice(offset, offset + limit);
   const items = [];
   for (const it of slice) {
     const fb = await feedbackGet(env, it.hash);
-    items.push({ ...it, up: fb.up || 0, down: fb.down || 0 });
+    items.push({
+      ...it, up: fb.up || 0, down: fb.down || 0,
+      uri: remarkName ? remarkUri(it.uri, brandRemark(remarkName, it.latency_ms)) : it.uri,
+    });
   }
   return Response.json({ total: all.length, offset, items });
 }
@@ -1554,12 +1611,16 @@ async function appSub(env, request) {
   if (!user.name && tgUser.first_name) { user.name = cleanName(tgUser.first_name); await saveUser(env, chatId, user); } // D4
   const origin = new URL(request.url).origin;
   const rotMode = user.rotation === 'run' ? 'run' : 'day';
+  const uname = cleanName(user.name); // D5: the name saved in the bot travels onto every copy
   let items = [];
-  try { // D4: the 10 personalized picks + the user's own connect marks
+  try { // D4: the personalized picks + the user's own connect marks
     const alloc = await allocateSub(env, user);
     if (alloc && Array.isArray(alloc.items)) {
       const marks = await marksGet(env, chatId);
-      items = alloc.items.map((it) => ({ uri: it.uri, hash: it.hash, ping: it.ping, mark: marks[it.hash] || 0 }));
+      items = alloc.items.map((it) => ({
+        uri: remarkUri(it.uri, brandRemark(uname, it.ping)), // personal brand remark on tap-to-copy
+        hash: it.hash, ping: it.ping, mark: marks[it.hash] || 0,
+      }));
     }
   } catch (_) { /* sub link still works without picks */ }
   return Response.json({
@@ -1590,6 +1651,91 @@ async function appFeedback(env, request) {
   if (!vote) return Response.json({ error: 'bad_vote' }, { status: 400 });
   const out = await feedbackSet(env, hash, tgUser.id, vote);
   return Response.json({ ok: true, ...out });
+}
+
+/* ─────────────── D5 — admin panel api (initData + isAdmin) ───────────────── */
+
+/* runs fn(env, body) only when the initData belongs to a registered admin */
+async function guardAdmin(env, request, fn) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await isAdmin(env, tgUser.id))) return Response.json({ error: 'forbidden' }, { status: 403 });
+  return fn(env, body);
+}
+
+async function adminState(env) {
+  const cfg = await getCfg(env);
+  const s = await getStats(env);
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  return Response.json({
+    cfg,
+    every_hours: Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6)),
+    channel: await resolveChannel(env, cfg),
+    users_total: Array.isArray(idx) ? idx.length : 0,
+    stats: s && s.validation && s.scoring ? {
+      generated_at: s.generated_at,
+      gold: s.scoring.gold || 0, alive: s.validation.alive || 0,
+      p50: Math.round((s.validation.latency_ms || {}).p50 || 0),
+      sources_ok: s.sources_ok || 0, sources_total: s.sources_total || 0, unique: s.unique || 0,
+    } : null,
+  });
+}
+
+const ADMIN_SET_KEYS = {
+  force_join: 'bool', card_enabled: 'bool', digest_enabled: 'bool', watchtower_enabled: 'bool',
+  ref_base: 'int:5-50', ref_cap: 'int:10-100', every_hours: 'int:1-24', channel_user: 'handle',
+};
+
+async function adminSet(env, body) {
+  const key = String(body.key || ''), spec = ADMIN_SET_KEYS[key];
+  if (!spec) return Response.json({ error: 'bad_key' }, { status: 400 });
+  let v = body.value;
+  if (spec === 'bool') v = Boolean(v);
+  else if (spec === 'handle') {
+    v = String(v || '').replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '');
+    if (v.length < 4) return Response.json({ error: 'bad_value' }, { status: 400 });
+  } else {
+    const m = spec.match(/^int:(\d+)-(\d+)$/);
+    v = parseInt(v, 10);
+    if (!m || !isFinite(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
+    v = Math.min(parseInt(m[2], 10), Math.max(parseInt(m[1], 10), v));
+  }
+  if (key === 'every_hours') { // lives outside cfg — /freq reads the same knob
+    await kvPut(env, 'ch:every_hours', String(v));
+    await kvDel(env, 'ch:last_post'); // new interval takes effect on the next tick
+    return Response.json({ ok: true, key, value: v });
+  }
+  const cfg = await getCfg(env);
+  cfg[key] = v;
+  await putCfg(env, cfg);
+  if (key === 'channel_user') await kvDel(env, 'meta:channel'); // force re-resolve
+  return Response.json({ ok: true, key, value: v });
+}
+
+async function adminPostNow(env, body) {
+  const kind = body.kind === 'digest' ? 'digest' : 'card';
+  if (kind === 'card') await dailyChannelCard(env, true);
+  else { await kvDel(env, 'ch:last_post'); await channelDigest(env); }
+  return Response.json({ ok: true, kind });
+}
+
+async function adminUsers(env, body) {
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  const total = Array.isArray(idx) ? idx.length : 0;
+  const off = Math.max(parseInt(body.offset, 10) || 0, 0);
+  const limit = Math.min(Math.max(parseInt(body.limit, 10) || 30, 1), 100);
+  const slice = idx.slice(Math.max(0, total - off - limit), Math.max(0, total - off)).reverse(); // newest first
+  const items = [];
+  for (const id of slice) {
+    const u = await getUser(env, id);
+    items.push({
+      chat_id: id, name: (u && u.name) || null, tg: (u && u.tg) || null,
+      lang: (u && u.lang) || '—', isp: (u && u.isp) || '—', client: (u && u.client) || '—',
+      refs: (u && u.ref_count) || 0, since: (u && u.created) || null,
+    });
+  }
+  return Response.json({ total, offset: off, items });
 }
 
 /* ───────────────────── public API v1 (developers) ─────────────────────────── */
@@ -2045,15 +2191,15 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
 
 <script>
 var I18N = {
-  fa: {hero_lbl:'کانفیگ طلایی', hero_sub:'انتخاب‌شده از {alive} کانفیگ سالم · اجرا {run}',
-    st_alive:'کانفیگ سالم', st_p50:'تأخیر p50', st_src:'منابع فعال', st_run:'آخرین اجرا',
+  fa: {hero_lbl:'کانفیگ طلایی', hero_sub:'برگزیده از بین {alive} کانفیگ سالم · دور {run}',
+    st_alive:'کانفیگ سالم', st_p50:'پینگ p50', st_src:'منابع فعال', st_run:'آخرین تست',
     rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
-    gold_t:'کانفیگ‌های طلایی', gold_hint:'لمس روی کارت = کپی · 👍 = تجربهٔ خوب تو',
-    more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ثبت شد 🙏', vote_tg:'فقط داخل تلگرام ثبت می‌شه',
-    sub_t:'اشتراک شخصی من', sub_note:'با هر رفرشِ کلاینت، سهم ۱۰تایی اختصاصی‌ات را می‌گیری (چرخش روزانه یا هر اجرا)', sub_copy:'کپی لینک',
-    sub_meta:'اپراتور: {o} · کلاینت: {c}', sub_need:'اول از ربات /start بزن', open_tg:'برای اشتراک شخصی، این صفحه را داخل تلگرام باز کن',
-    mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های اختصاصی من', rot_day:'چرخش: روزانه', rot_run:'چرخش: هر اجرا',
-    marked:'ثبت شد', fail:'خطا در دریافت داده — دوباره تلاش کن', isp_other:'همه', cl_other:'سایر'},
+    gold_t:'کانفیگ‌های طلایی', gold_hint:'روی کارت بزن تا کپی بشه · 👍 یعنی برات کار کرد',
+    more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ممنون! ثبت شد 🙏', vote_tg:'رأی دادن فقط توی تلگرام ممکنه',
+    sub_t:'اشتراک شخصی من', sub_note:'هر بار اپت رو آپدیت کنی، ۱۰ تا کانفیگ مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_copy:'کپی لینک',
+    sub_meta:'اپراتور: {o} · اپ: {c}', sub_need:'اول توی ربات /start رو بزن', open_tg:'برای دیدن اشتراک شخصی، این صفحه رو توی تلگرام باز کن',
+    mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های مخصوص من', rot_day:'تعویض: روزانه', rot_run:'تعویض: هر دور تست',
+    marked:'ثبت شد', fail:'نتونستم اطلاعات رو بگیرم — دوباره امتحان کن', isp_other:'همه', cl_other:'سایر'},
   en: {hero_lbl:'gold configs', hero_sub:'refined from {alive} alive · run {run}',
     st_alive:'Alive configs', st_p50:'p50 latency', st_src:'Healthy sources', st_run:'Last run',
     rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
@@ -2158,7 +2304,7 @@ function loadStats(){
 function goldCard(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
   var hostPart = it.uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0];
+  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\/\//i, '').slice(0, 26) || '—';
   var rank = (goldOffset + idx < 3) ? MEDALS[goldOffset + idx] : ('#' + (goldOffset + idx + 1));
   var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
   var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
@@ -2207,7 +2353,12 @@ function bindCards(){
 function loadGold(append){
   var list = document.getElementById('goldList');
   if (!append){ list.innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>'; goldOffset = 0; }
-  fetch('/app/api/gold?offset=' + goldOffset + '&limit=6').then(function(r){ return r.json(); }).then(function(d){
+  /* D5: POST + initData → the server stamps the user's own name on the copied configs */
+  var req = initData
+    ? fetch('/app/api/gold', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 6 }) })
+    : fetch('/app/api/gold?offset=' + goldOffset + '&limit=6');
+  req.then(function(r){ return r.json(); }).then(function(d){
     if (d.error || !d.items){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; return; }
     if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
     var html = append ? '' : '';
@@ -2215,14 +2366,15 @@ function loadGold(append){
     if (append){ list.insertAdjacentHTML('beforeend', html); } else { list.innerHTML = html; }
     goldOffset += d.items.length;
     var mb = document.getElementById('moreBtn');
-    mb.style.display = (goldOffset < d.total) ? 'block' : 'none';
+    /* D5: keep the app light — at most 12 gold cards, the rest lives in the bot (/gold) */
+    mb.style.display = (goldOffset < d.total && goldOffset < 12) ? 'block' : 'none';
     bindCards();
   }).catch(function(){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
 }
 function subRow(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
   var hostPart = it.uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0];
+  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\/\//i, '').slice(0, 26) || '—';
   var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
   var okOn = it.mark === 1 ? ' on' : '', badOn = it.mark === 2 ? ' on' : '';
   return '<div class="scard" data-uri="' + esc(it.uri) + '">' +
@@ -2276,11 +2428,12 @@ function loadSub(){
       var isp = ISPN[d.isp] || T('isp_other');
       var cl = d.client === 'other' ? T('cl_other') : d.client;
       var rotChip = '<span class="rot">' + T(d.rotation === 'run' ? 'rot_run' : 'rot_day') + '</span>';
+      var nameTag = d.name ? ' · ✍️ ' + esc(d.name) : '';
       var html = '<div class="t">' + T('sub_t') + ' ' + rotChip + '</div>' +
         '<div class="url">' + esc(d.url) + '</div>' +
         '<button class="btn" id="copySub">📋 ' + T('sub_copy') + '</button>' +
         '<div class="meta">' + T('sub_note') + '</div>' +
-        '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + '</div>';
+        '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + nameTag + '</div>';
       if (d.items && d.items.length){
         html += '<div class="meta" style="margin-top:14px;font-weight:700;color:var(--gold)">📦 ' + T('my10') + ' · ' + d.items.length + '</div>';
         for (var i = 0; i < d.items.length; i++){ html += subRow(d.items[i], i); }
@@ -2301,6 +2454,178 @@ setInterval(loadStats, 5 * 60 * 1000);
 if (tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){} }
 <\/script>
 </body>
+</html>`;
+
+/* ─────────────────────── D5 — admin settings panel (/panel) ─────────────────
+ * Telegram Mini App, opened via /panel (admins only — initData is verified on
+ * every api call; the UI is a thin client over /app/api/admin/*). */
+
+const ADMIN_PANEL_HTML = `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>ARISTON · پنل مدیریت</title>
+<script src="https://telegram.org/js/telegram-web-app.js"><\/script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#14110C;--card:rgba(232,200,114,.06);--line:rgba(232,200,114,.18);
+--gold:#E8C872;--deep:#C9A24A;--txt:#F3ECDD;--dim:#8d8262;--bad:#e06c5a;--ok:#7ec97e;
+--mono:'JetBrains Mono',ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Vazirmatn',system-ui,sans-serif;font-size:15px;line-height:1.7}
+body{min-height:100vh;background-image:radial-gradient(560px 280px at 50% -70px,rgba(232,200,114,.14),transparent 72%)}
+.wrap{max-width:520px;margin:0 auto;padding:14px 16px calc(30px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:baseline;gap:10px;padding:8px 2px 14px}
+.brand{font-family:'Cinzel',Georgia,serif;font-weight:700;letter-spacing:.32em;font-size:15px;color:var(--gold)}
+.sub{color:var(--dim);font-size:12px}
+h2{font-size:13.5px;color:var(--deep);margin:22px 2px 8px;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+h2::after{content:'';flex:1;height:1px;background:var(--line)}
+h2 .n{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 14px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(232,200,114,.1)}
+.row:last-child{border-bottom:none}
+.k{font-size:13.5px;font-weight:500}
+.hint{color:var(--dim);font-size:11.5px;margin-top:2px}
+.tg{font-family:var(--mono);direction:ltr}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.chip{border:1px solid var(--line);background:none;color:var(--txt);border-radius:999px;padding:6px 13px;font-family:var(--mono);font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--gold);color:#14110C;border-color:var(--gold);font-weight:700}
+.tgl{border:1px solid var(--line);background:none;color:var(--txt);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;flex:0 0 auto}
+.tgl.on{background:rgba(126,201,126,.14);color:var(--ok);border-color:rgba(126,201,126,.5)}
+.tgl.off{background:rgba(224,108,90,.1);color:var(--bad);border-color:rgba(224,108,90,.45)}
+.btn{flex:1;border:1px solid var(--gold);background:var(--gold);color:#14110C;font-weight:700;font-family:inherit;font-size:13.5px;border-radius:12px;padding:11px;cursor:pointer}
+.btn.ghost{background:none;color:var(--gold)}
+input{width:92px;background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:7px 10px;font-family:var(--mono);font-size:13px;direction:ltr;text-align:center}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 0}
+.stat div{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:11px;padding:8px 4px;text-align:center}
+.stat b{display:block;font-family:var(--mono);font-size:15px;color:var(--gold);direction:ltr}
+.stat span{font-size:10.5px;color:var(--dim)}
+#users .u{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;border-bottom:1px dashed rgba(232,200,114,.08)}
+#users .u:last-child{border-bottom:none}
+.toast{position:fixed;inset-inline:0;bottom:18px;margin:auto;width:max-content;max-width:88vw;background:var(--gold);color:#14110C;font-weight:700;font-size:13px;border-radius:999px;padding:9px 18px;opacity:0;pointer-events:none;transition:.25s;z-index:9}
+.toast.show{opacity:1}
+.lock{text-align:center;padding:60px 10px;color:var(--dim)}
+</style>
+</head>
+<body><div class="wrap">
+<header><span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت</span></header>
+<div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
+<div id="panel" hidden>
+  <h2>وضعیت لحظه‌ای</h2>
+  <div class="card"><div class="stat" id="stat"></div><div class="hint" id="statTime" style="padding:0 2px 8px"></div></div>
+
+  <h2>کانال</h2>
+  <div class="card">
+    <div class="row"><div><div class="k">کانال رسمی</div><div class="hint tg" id="chName">—</div></div></div>
+    <div class="row"><div><div class="k">فاصلهٔ گزارش دوره‌ای</div><div class="hint">هر چند ساعت یه پست زنده توی کانال</div></div>
+      <div class="chips" id="freqChips"></div></div>
+    <div class="row"><div class="k">کارت روزانه (عکس برند)</div><button class="tgl" id="tglCard"></button></div>
+    <div class="row"><div class="k">گزارش دوره‌ای</div><button class="tgl" id="tglDigest"></button></div>
+    <div class="row"><div class="k">هشدار «تست جدید» به کاربرها</div><button class="tgl" id="tglWatch"></button></div>
+    <div style="display:flex;gap:8px;padding:10px 0 8px">
+      <button class="btn ghost" id="postCard">🖼 پست فوری: کارت</button>
+      <button class="btn ghost" id="postDigest">📊 پست فوری: گزارش</button>
+    </div>
+  </div>
+
+  <h2>رفتار ربات</h2>
+  <div class="card">
+    <div class="row"><div><div class="k">عضویت اجباری در کانال</div><div class="hint">بدون عضویت، ربات به کسی چیزی نمی‌ده</div></div><button class="tgl" id="tglJoin"></button></div>
+    <div class="row"><div><div class="k">کانال اجباری</div><div class="hint tg" id="chUser">@Ariston_CH</div></div>
+      <div style="display:flex;gap:6px;align-items:center"><input id="chUserIn" placeholder="@name" style="width:120px"><button class="tgl" id="saveCh">ثبت</button></div></div>
+  </div>
+
+  <h2>دعوت دوستان</h2>
+  <div class="card">
+    <div class="row"><div><div class="k">سهمیهٔ پایه</div><div class="hint">هر کاربر تازه با /start</div></div><input id="refBase" type="number" min="5" max="50"></div>
+    <div class="row"><div><div class="k">سقف سهمیه</div><div class="hint">با دعوت دوستان تا این عدد</div></div><input id="refCap" type="number" min="10" max="100"></div>
+    <div style="padding:10px 0 8px"><button class="btn" id="saveRef">ذخیره</button></div>
+  </div>
+
+  <h2>کاربرها <span class="n" id="uTotal"></span></h2>
+  <div class="card" id="users"><div class="hint">—</div></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+var initData = tg ? (tg.initData || '') : '';
+function $(id){ return document.getElementById(id); }
+var toastT = null;
+function toast(m){ var el = $('toast'); el.textContent = m; el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(function(){ el.classList.remove('show'); }, 1800); }
+function post(path, body){
+  return fetch('/app/api/admin/' + path, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(Object.assign({ initData: initData }, body || {})) }).then(function(r){ return r.json(); }); }
+function fmt(n){ return (n || 0).toLocaleString('en-US'); }
+function drawTgl(el, on){ el.textContent = on ? '✅ روشن' : '⛔ خاموش';
+  el.classList.toggle('on', !!on); el.classList.toggle('off', !on); }
+var FREQS = [1, 2, 3, 6, 12, 24], S = null;
+function draw(){
+  drawTgl($('tglCard'), S.cfg.card_enabled !== false);
+  drawTgl($('tglDigest'), S.cfg.digest_enabled !== false);
+  drawTgl($('tglWatch'), S.cfg.watchtower_enabled !== false);
+  drawTgl($('tglJoin'), S.cfg.force_join !== false);
+  $('refBase').value = S.cfg.ref_base || 10; $('refCap').value = S.cfg.ref_cap || 20;
+  $('chName').textContent = S.channel ? ('@' + S.channel.user + ' · id ' + S.channel.id) : '— هنوز ثبت نشده —';
+  $('chUserIn').value = '@' + (S.cfg.channel_user || 'Ariston_CH');
+  var ch = '';
+  for (var i = 0; i < FREQS.length; i++){ var h = FREQS[i];
+    ch += '<button class="chip' + (h === S.every_hours ? ' on' : '') + '" data-h="' + h + '">' + h + 'h</button>'; }
+  $('freqChips').innerHTML = ch;
+  Array.prototype.forEach.call($('freqChips').querySelectorAll('.chip'), function(b){
+    b.onclick = function(){ set('every_hours', parseInt(b.getAttribute('data-h'), 10)); }; });
+  if (S.stats){ var st = S.stats;
+    $('stat').innerHTML = '<div><b>' + fmt(st.gold) + '</b><span>طلایی</span></div>' +
+      '<div><b>' + fmt(st.alive) + '</b><span>سالم</span></div>' +
+      '<div><b>' + fmt(st.p50) + '</b><span>p50 ms</span></div>' +
+      '<div><b>' + fmt(st.sources_ok) + '/' + fmt(st.sources_total) + '</b><span>منابع</span></div>';
+    try { $('statTime').textContent = 'آخرین تست: ' + new Date(st.generated_at).toLocaleString('fa-IR'); }
+    catch (e){ $('statTime').textContent = st.generated_at || ''; }
+  } else { $('stat').innerHTML = '<div style="grid-column:1/-1;color:var(--dim);text-align:center;padding:6px 0">آمار در دسترس نیست</div>'; $('statTime').textContent = ''; }
+}
+function set(key, value){
+  post('set', { key: key, value: value }).then(function(r){
+    if (r && r.ok){ toast('ذخیره شد ✓');
+      if (key === 'every_hours') S.every_hours = r.value; else S.cfg[key] = r.value;
+      draw(); } else toast('خطا — دوباره بزن');
+  }).catch(function(){ toast('خطا'); });
+}
+function loadUsers(){
+  post('users', { offset: 0, limit: 30 }).then(function(d){
+    if (!d || d.error) return;
+    $('uTotal').textContent = '· ' + fmt(d.total) + ' نفر';
+    if (!d.items.length){ $('users').innerHTML = '<div class="hint">هنوز کاربری ثبت نشده</div>'; return; }
+    var h = '';
+    for (var i = 0; i < d.items.length; i++){ var u = d.items[i];
+      h += '<div class="u"><span>' + (u.name ? '✍️ ' + u.name : (u.tg || '👤')) +
+        ' <span style="color:var(--dim);font-family:var(--mono);font-size:10.5px">' + u.lang + '</span></span>' +
+        '<span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + u.isp + ' · 👥' + u.refs + '</span></div>'; }
+    $('users').innerHTML = h;
+  }).catch(function(){});
+}
+if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; }
+else post('state').then(function(d){
+  if (!d || d.error){ $('lock').hidden = false; return; }
+  S = d; $('panel').hidden = false; draw(); loadUsers();
+}).catch(function(){ $('lock').hidden = false; });
+$('tglCard').onclick = function(){ if (S) set('card_enabled', S.cfg.card_enabled === false); };
+$('tglDigest').onclick = function(){ if (S) set('digest_enabled', S.cfg.digest_enabled === false); };
+$('tglWatch').onclick = function(){ if (S) set('watchtower_enabled', S.cfg.watchtower_enabled === false); };
+$('tglJoin').onclick = function(){ if (S) set('force_join', S.cfg.force_join === false); };
+$('saveRef').onclick = function(){ if (!S) return;
+  set('ref_base', parseInt($('refBase').value, 10));
+  setTimeout(function(){ set('ref_cap', parseInt($('refCap').value, 10)); }, 350); };
+$('saveCh').onclick = function(){ if (S) set('channel_user', $('chUserIn').value); };
+$('postCard').onclick = function(){ toast('دارم می‌فرستم…');
+  post('post_now', { kind: 'card' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
+$('postDigest').onclick = function(){ toast('دارم می‌فرستم…');
+  post('post_now', { kind: 'digest' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
+if (tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){} }
+<\/script>
+</div></body>
 </html>`;
 
 /* ────────────────────────────────── router ────────────────────────────────── */
@@ -2351,6 +2676,7 @@ export default {
           { command: 'ref', description: 'Invite friends — quota up to 20' },
           { command: 'settings', description: 'ISP / client / name / rotation' },
           { command: 'lang', description: 'Change language' },
+          { command: 'panel', description: 'Admin settings panel' },
           { command: 'freq', description: 'Channel digest interval (owner)' },
         ],
       });
@@ -2430,10 +2756,19 @@ export default {
       });
     }
     if (url.pathname === '/app/api/stats') return appStats(env);
-    if (url.pathname === '/app/api/gold') return appGold(env, url);
+    if (url.pathname === '/app/api/gold') return appGold(env, url, request);
     if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
     if (url.pathname === '/app/api/mark' && request.method === 'POST') return appMark(env, request);
     if (url.pathname === '/app/api/feedback' && request.method === 'POST') return appFeedback(env, request);
+
+    /* ── D5 admin panel: page + api ── */
+    if (url.pathname === '/panel' || url.pathname === '/panel/') {
+      return new Response(ADMIN_PANEL_HTML, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+    }
+    if (url.pathname === '/app/api/admin/state' && request.method === 'POST') return guardAdmin(env, request, adminState);
+    if (url.pathname === '/app/api/admin/set' && request.method === 'POST') return guardAdmin(env, request, adminSet);
+    if (url.pathname === '/app/api/admin/post_now' && request.method === 'POST') return guardAdmin(env, request, adminPostNow);
+    if (url.pathname === '/app/api/admin/users' && request.method === 'POST') return guardAdmin(env, request, adminUsers);
 
     /* CORS preflight for the public API */
     if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg' || url.pathname === '/card.png')) {
