@@ -161,6 +161,11 @@ const T = {
     rot_hint: '🔁 چرخش عوض شد: {mode} — دفعهٔ بعد که کلاینت رفرش کنه، سهم جدید می‌گیری.',
     name_now: '✍️ نام: {name}', name_hint: '✍️ اسم جدید رو بفرست (یا «رد کردن»):',
     sub_rot_line: '🔁 چرخش: {mode} · 📦 {n} کانفیگ اختصاصی',
+    digest_title: '📊 <b>Ariston — وضعیت زنده</b>',
+    freq_now: '⏱ پست دوره‌ای کانال: هر {n} ساعت\nبرای تغییر: <code>/freq 4</code> (۱ تا ۲۴ ساعت)',
+    freq_set: '✅ شد! از این به بعد هر {n} ساعت یک گزارش زنده در کانال می‌رود.',
+    freq_bad: '⚠️ یک عدد بین ۱ تا ۲۴ بفرست، مثل: <code>/freq 4</code>',
+    freq_denied: '⛔ این فرمان مخصوص مالک ربات است.',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -206,6 +211,11 @@ const T = {
     rot_hint: '🔁 Rotation changed: {mode} — your next client refresh delivers a fresh set.',
     name_now: '✍️ Name: {name}', name_hint: '✍️ Send the new name (or press skip):',
     sub_rot_line: '🔁 Rotation: {mode} · 📦 {n} personal picks',
+    digest_title: '📊 <b>Ariston — live status</b>',
+    freq_now: '⏱ Channel digest interval: every {n} h\nTo change: <code>/freq 4</code> (1–24 hours)',
+    freq_set: '✅ Done! A live digest will be posted to the channel every {n} h.',
+    freq_bad: '⚠️ Send a number between 1 and 24, like: <code>/freq 4</code>',
+    freq_denied: '⛔ This command is for the bot owner only.',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -251,6 +261,11 @@ const T = {
     rot_hint: '🔁 Ротация изменена: {mode} — следующее обновление клиента даст новый набор.',
     name_now: '✍️ Имя: {name}', name_hint: '✍️ Отправьте новое имя (или «Пропустить»):',
     sub_rot_line: '🔁 Ротация: {mode} · 📦 {n} личных конфигов',
+    digest_title: '📊 <b>Ariston — живой статус</b>',
+    freq_now: '⏱ Интервал постов в канал: каждые {n} ч\nИзменить: <code>/freq 4</code> (1–24 часа)',
+    freq_set: '✅ Готово! Живой отчёт будет в канале каждые {n} ч.',
+    freq_bad: '⚠️ Пришлите число от 1 до 24, например: <code>/freq 4</code>',
+    freq_denied: '⛔ Команда только для владельца бота.',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -296,6 +311,11 @@ const T = {
     rot_hint: '🔁 Rotasyon değişti: {mode} — bir sonraki istemci yenilemesi yeni set verir.',
     name_now: '✍️ İsim: {name}', name_hint: '✍️ Yeni ismi gönder (veya «Atla»):',
     sub_rot_line: '🔁 Rotasyon: {mode} · 📦 {n} kişisel seçki',
+    digest_title: '📊 <b>Ariston — canlı durum</b>',
+    freq_now: '⏱ Kanal özet aralığı: her {n} sa\nDeğiştirmek için: <code>/freq 4</code> (1–24 saat)',
+    freq_set: '✅ Tamam! Kanala her {n} saatte bir canlı özet düşecek.',
+    freq_bad: '⚠️ 1 ile 24 arasında bir sayı gönder, örn.: <code>/freq 4</code>',
+    freq_denied: '⛔ Bu komut yalnızca bot sahibine ait.',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -341,6 +361,11 @@ const T = {
     rot_hint: '🔁 轮换已更改：{mode}——下次客户端刷新会拿到新的一组。',
     name_now: '✍️ 名字：{name}', name_hint: '✍️ 发送新名字（或点「跳过」）：',
     sub_rot_line: '🔁 轮换：{mode} · 📦 {n} 个专属配置',
+    digest_title: '📊 <b>Ariston — 实时状态</b>',
+    freq_now: '⏱ 频道定时播报间隔：每 {n} 小时\n修改：<code>/freq 4</code>（1–24 小时）',
+    freq_set: '✅ 好了！以后每 {n} 小时向频道发送一次实时报告。',
+    freq_bad: '⚠️ 请发送 1–24 之间的数字，例如：<code>/freq 4</code>',
+    freq_denied: '⛔ 该命令仅限机器人所有者使用。',
   },
 };
 
@@ -686,6 +711,37 @@ async function dailyChannelCard(env) {
   if (sent && sent.ok) await kvPut(env, 'card:last', today, 172800);
 }
 
+/* ───────── periodic channel digest — every N hours (/freq) ───────────────── */
+
+async function channelDigest(env) {
+  const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
+  if (!chan) return; // not configured → silent no-op
+  const hours = Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6));
+  const last = await kvGet(env, 'ch:last_post');
+  if (last) {
+    const lastMs = Date.parse(last);
+    if (isFinite(lastMs) && Date.now() - lastMs < hours * 3600e3) return; // not due yet
+  }
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring) return; // golden rule: no stats → no post
+  const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
+  const v = s.validation, p = v.latency_ms || {};
+  const msg = [
+    t(lang, 'digest_title'),
+    '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
+    t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
+    t(lang, 'last_run', { t: relTime(s.generated_at, lang) }),
+  ].join('\n');
+  const origin = await kvGet(env, 'meta:origin');
+  const bot = (await kvGet(env, 'meta:bot_username')) || null;
+  const rows = [];
+  if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]);
+  if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
+  const sent = await sendMessage(env, chan, msg, rows.length ? { reply_markup: { inline_keyboard: rows } } : {});
+  if (!sent || !sent.ok) return; // marker only on success → auto-retry next tick
+  await kvPut(env, 'ch:last_post', new Date().toISOString(), 172800);
+}
+
 /* ─────────────────── inline mode: @bot <query> in ANY chat ────────────────── */
 
 const guessLang = (code) => {
@@ -886,6 +942,7 @@ async function askSettings(env, chatId, lang) {
 
 async function cmdStart(env, chatId, msg, origin) {
   let user = await getUser(env, chatId);
+  if (!(await kvGet(env, 'meta:owner'))) await kvPut(env, 'meta:owner', String(chatId)); // first /start claims ownership
   if (user && user.lang && user.isp && user.client) {
     await idxAdd(env, chatId);
     if (user.name === undefined) { // D4: one-time name ask for pre-D4 users (skip = never asks again)
@@ -981,6 +1038,26 @@ async function cmdHelp(env, chatId, lang, origin) {
   return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
 }
 
+/* D4 — /freq [hours]: owner-only knob for the periodic channel digest */
+async function cmdFreq(env, chatId, lang, argText) {
+  const owner = await kvGet(env, 'meta:owner');
+  if (!owner) {
+    const idx = (await kvGet(env, 'users:index', 'json')) || [];
+    if (idx.includes(chatId)) await kvPut(env, 'meta:owner', String(chatId)); // first-comer claims
+  } else if (owner !== String(chatId)) {
+    return sendMessage(env, chatId, t(lang, 'freq_denied'));
+  }
+  const n = parseInt(String(argText || '').trim(), 10);
+  if (!n) { // no / bad number → show current interval
+    const cur = Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6));
+    return sendMessage(env, chatId, t(lang, 'freq_now', { n: cur }));
+  }
+  if (n < 1 || n > 24) return sendMessage(env, chatId, t(lang, 'freq_bad'));
+  await kvPut(env, 'ch:every_hours', String(n));
+  await kvDel(env, 'ch:last_post'); // make the new interval effective immediately
+  return sendMessage(env, chatId, t(lang, 'freq_set', { n }));
+}
+
 async function cmdBest(env, chatId, lang, origin) {
   const items = await getEnrichedGold(env);
   if (!items.length) return sendMessage(env, chatId, t(lang, 'gold_empty'));
@@ -1032,6 +1109,7 @@ async function handleUpdate(env, update, origin) {
         case '/help': return await cmdHelp(env, chatId, lang, origin);
         case '/lang': return await askLang(env, chatId);
         case '/settings': return await askSettings(env, chatId, lang);
+        case '/freq': return await cmdFreq(env, chatId, lang, msg.text.trim().split(/\s+/).slice(1).join(' '));
         default: return await sendMenu(env, chatId, lang, t(lang, 'menu_fallback'), origin);
       }
     } catch (e) {
@@ -2030,6 +2108,23 @@ export default {
       const me = await api(env, 'getMe');
       if (me && me.ok) await kvPut(env, 'meta:bot_username', me.result.username, 604800);
 
+      /* D4: menu button (Mini App one tap away) + the command list */
+      const menuBtn = await api(env, 'setChatMenuButton', {
+        menu_button: { type: 'web_app', text: '👑 ARISTON', web_app: { url: origin + '/app' } },
+      });
+      const cmds = await api(env, 'setMyCommands', {
+        commands: [
+          { command: 'start', description: 'Start / main menu' },
+          { command: 'gold', description: 'Top gold configs' },
+          { command: 'best', description: 'Gold ticket — fastest alive' },
+          { command: 'stats', description: 'Live run stats' },
+          { command: 'sub', description: 'Personal subscription link' },
+          { command: 'settings', description: 'ISP / client / name / rotation' },
+          { command: 'lang', description: 'Change language' },
+          { command: 'freq', description: 'Channel digest interval (owner)' },
+        ],
+      });
+
       /* optional: register the official channel — /setup?key=…&channel=@name&lang=fa */
       let channel = null;
       const ch = url.searchParams.get('channel');
@@ -2050,6 +2145,8 @@ export default {
         webhook_registered: Boolean(set && set.ok),
         bot: me && me.ok ? '@' + me.result.username : null,
         inline_hint: 'enable inline mode once via @BotFather → /setinline',
+        menu_button: Boolean(menuBtn && menuBtn.ok),
+        commands: Boolean(cmds && cmds.ok),
         channel,
         webhook_info: info && info.ok ? info.result : null,
       }, null, 2), { headers: { 'content-type': 'application/json; charset=utf-8' } });
@@ -2137,10 +2234,11 @@ export default {
     return new Response('not found\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },
 
-  /* cron — Watchtower (new-run alerts) + daily channel card (D3/D4) */
+  /* cron — Watchtower (new-run alerts) + daily channel card + periodic digest (D4) */
   async scheduled(event, env, ctx) {
     ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
     ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
+    ctx.waitUntil(channelDigest(env).catch((e) => console.error('digest error', e && e.message)));
   },
 };
 
