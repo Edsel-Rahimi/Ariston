@@ -15,5 +15,9 @@ id = "11aee99018c44322bb2bfbfe974953d0"
 #   wrangler secret put BOT_TOKEN        ← token from @BotFather
 #   wrangler secret put WEBHOOK_SECRET   ← any long random string
 #
+# Cron (D2/D3 — Watchtower every 30 min + daily channel card):
+[triggers]
+crons = ["*/30 * * * *"]
+
 # After deploy, register the webhook (or just open in a browser):
 #   curl "https://ariston-bot.<your-subdomain>.workers.dev/setup?key=<WEBHOOK_SECRET>"
