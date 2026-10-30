@@ -9,7 +9,7 @@ compatibility_date = "2026-01-01"
 # then paste the returned id below.
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "11aee99018c44322bb2bfbfe974953d0"
 
 # Secrets (never in this file):
 #   wrangler secret put BOT_TOKEN        ← token from @BotFather
