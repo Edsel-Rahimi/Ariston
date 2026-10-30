@@ -1,6 +1,6 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  ARISTON — Telegram Bot · Phase D3 — inline · public API · channel card
+ *  ARISTON — Telegram Bot · Phase D4 — inline · API · photo card · 10-pick subs
  *  Cloudflare Worker (single file, dashboard-deployable) · webhook + KV
  *
  *  Golden rules (from BOT-RESEARCH.md):
@@ -19,6 +19,7 @@
  *    GET  /app                        Mini App (D2)
  *    GET  /api · /api/v1/stats · /api/v1/configs   public API v1 (D3)
  *    GET  /card.svg                   brand “card of the day” (D3)
+ *    GET  /card.png                   same card rasterized → postable photo (D4)
  *    GET  /                           brand landing page
  *
  *  D3 features:
@@ -44,6 +45,8 @@ const SUB_MAX_LINES = 300;  // cap subscription size
 const SUB_MIN_OP_LINES = 10; // operator file below this → fall back to gold+silver
 const API_RATE_LIMIT = 120; // public API: best-effort requests / IP / minute
 const INLINE_MAX = 20;      // inline query result count
+const SUB_ALLOCATION = 10;  // D4: personalized picks per user per rotation period
+const BRAND = 'Ariston';    // remark brand: <name>-Ariston-<ping>ms
 
 /* ─────────────────────────────── catalogs ─────────────────────────────────── */
 
@@ -152,6 +155,12 @@ const T = {
     inline_foot: 'کانفیگ‌های تازه هر نیم‌ساعت → {bot}', inline_none: 'ربات را باز کن',
     help_inline: 'اینلاین در هر چتی: {bot} irancell vless',
     daily_title: '👑 <b>کارتِ امروز آریستون</b>', daily_best: '⚡ بهترینِ امروز:', daily_svg: '🛰 کارت امروز (SVG)',
+    pick_name: '✍️ اسمت رو بنویس — روی کانفیگ‌های اختصاصیت می‌آد:\n(مثلاً: Ali)',
+    name_skip: '⏭ بدون اسم', name_saved: '✅ ممنون، {name}! اسمت روی کانفیگ‌هات می‌آد.',
+    set_name: '✍️ نام', set_rot: '🔁 چرخش: {mode}', rot_day: 'روزانه', rot_run: 'هر اجرا',
+    rot_hint: '🔁 چرخش عوض شد: {mode} — دفعهٔ بعد که کلاینت رفرش کنه، سهم جدید می‌گیری.',
+    name_now: '✍️ نام: {name}', name_hint: '✍️ اسم جدید رو بفرست (یا «رد کردن»):',
+    sub_rot_line: '🔁 چرخش: {mode} · 📦 {n} کانفیگ اختصاصی',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -191,6 +200,12 @@ const T = {
     inline_foot: 'fresh configs every 30 min → {bot}', inline_none: 'Open the bot',
     help_inline: 'inline in any chat: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — card of the day</b>', daily_best: '⚡ Best of the day:', daily_svg: '🛰 Card of the day (SVG)',
+    pick_name: '✍️ Type your name — it will be stamped on your personal configs:\n(e.g. Ali)',
+    name_skip: '⏭ Skip', name_saved: '✅ Thanks, {name}! Your configs will carry your name.',
+    set_name: '✍️ Name', set_rot: '🔁 Rotation: {mode}', rot_day: 'daily', rot_run: 'per run',
+    rot_hint: '🔁 Rotation changed: {mode} — your next client refresh delivers a fresh set.',
+    name_now: '✍️ Name: {name}', name_hint: '✍️ Send the new name (or press skip):',
+    sub_rot_line: '🔁 Rotation: {mode} · 📦 {n} personal picks',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -230,6 +245,12 @@ const T = {
     inline_foot: 'свежие конфиги каждые 30 мин → {bot}', inline_none: 'Открыть бота',
     help_inline: 'инлайн в любом чате: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — карточка дня</b>', daily_best: '⚡ Лучший за день:', daily_svg: '🛰 Карточка дня (SVG)',
+    pick_name: '✍️ Напишите имя — оно будет на ваших личных конфигах:\n(например: Ali)',
+    name_skip: '⏭ Пропустить', name_saved: '✅ Спасибо, {name}! Имя будет на ваших конфигах.',
+    set_name: '✍️ Имя', set_rot: '🔁 Ротация: {mode}', rot_day: 'ежедневно', rot_run: 'каждый прогон',
+    rot_hint: '🔁 Ротация изменена: {mode} — следующее обновление клиента даст новый набор.',
+    name_now: '✍️ Имя: {name}', name_hint: '✍️ Отправьте новое имя (или «Пропустить»):',
+    sub_rot_line: '🔁 Ротация: {mode} · 📦 {n} личных конфигов',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -269,6 +290,12 @@ const T = {
     inline_foot: 'güncel yapılandırmalar her 30 dakika → {bot}', inline_none: 'Botu aç',
     help_inline: 'herhangi bir sohbette inline: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — günün kartı</b>', daily_best: "⚡ Günün en iyisi:", daily_svg: '🛰 Günün kartı (SVG)',
+    pick_name: '✍️ Adını yaz — kişisel yapılandırmalarında görünecek:\n(örn. Ali)',
+    name_skip: '⏭ Atla', name_saved: '✅ Sağol, {name}! Yapılandırmalarında adın görünecek.',
+    set_name: '✍️ İsim', set_rot: '🔁 Rotasyon: {mode}', rot_day: 'günlük', rot_run: 'her çalışma',
+    rot_hint: '🔁 Rotasyon değişti: {mode} — bir sonraki istemci yenilemesi yeni set verir.',
+    name_now: '✍️ İsim: {name}', name_hint: '✍️ Yeni ismi gönder (veya «Atla»):',
+    sub_rot_line: '🔁 Rotasyon: {mode} · 📦 {n} kişisel seçki',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -308,6 +335,12 @@ const T = {
     inline_foot: '每 30 分钟更新可用配置 → {bot}', inline_none: '打开机器人',
     help_inline: '任意聊天内联使用：{bot} irancell vless',
     daily_title: '👑 <b>Ariston 每日卡片</b>', daily_best: '⚡ 今日最佳：', daily_svg: '🛰 今日卡片 (SVG)',
+    pick_name: '✍️ 输入你的名字——会显示在你的专属配置上：\n（例如：Ali）',
+    name_skip: '⏭ 跳过', name_saved: '✅ 谢谢，{name}！你的配置将带上你的名字。',
+    set_name: '✍️ 名字', set_rot: '🔁 轮换：{mode}', rot_day: '每天', rot_run: '每轮运行',
+    rot_hint: '🔁 轮换已更改：{mode}——下次客户端刷新会拿到新的一组。',
+    name_now: '✍️ 名字：{name}', name_hint: '✍️ 发送新名字（或点「跳过」）：',
+    sub_rot_line: '🔁 轮换：{mode} · 📦 {n} 个专属配置',
   },
 };
 
@@ -348,6 +381,15 @@ function relTime(iso, lang) {
 async function kvGet(env, key, type = 'text') { try { return await env.KV.get(key, type); } catch (_) { return null; } }
 async function kvPut(env, key, value, ttl) {
   try { await env.KV.put(key, value, ttl ? { expirationTtl: ttl } : undefined); } catch (_) {}
+}
+async function kvDel(env, key) { try { await env.KV.delete(key); } catch (_) {} }
+
+/* D4 — helpers for the personalized 10-pick allocation */
+const tehranDate = () => { try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tehran' }).format(new Date()); } catch (_) { return new Date().toISOString().slice(0, 10); } }; // YYYY-MM-DD
+const fnv = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
 async function getUser(env, chatId) { return kvGet(env, 'user:' + chatId, 'json'); }
@@ -446,6 +488,104 @@ async function feedbackSet(env, hash, chatId, vote) {
   return { up: cur.up, down: cur.down };
 }
 
+/* ───────────── D4 — brand remarks + personalized 10-pick allocation ───────── */
+
+const cleanName = (s) => String(s || '').replace(/[#\r\n<>&|]/g, '').trim().slice(0, 24);
+
+/* remark = <name>-Ariston-<ping>ms (bot/miniapp) or Ariston-<ping>ms (github) */
+const brandRemark = (name, ping) =>
+  [name ? cleanName(name) : null, BRAND, ping != null && isFinite(ping) ? Math.round(ping) + 'ms' : null]
+    .filter(Boolean).join('-');
+
+function remarkUri(uri, remark) {
+  if (!remark || typeof uri !== 'string') return uri;
+  const base = uri.split('#')[0];
+  if (base.startsWith('vmess://')) {
+    try { // vmess carries the label inside the base64 JSON (ps field)
+      const raw = atob(base.slice(8).replace(/-/g, '+').replace(/_/g, '/'));
+      const json = JSON.parse(new TextDecoder().decode(Uint8Array.from(raw, (c) => c.charCodeAt(0))));
+      json.ps = remark;
+      const enc = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(json))));
+      return 'vmess://' + enc;
+    } catch (_) { return uri; }
+  }
+  return base + '#' + encodeURIComponent(remark);
+}
+
+/* results.json → { hash16: latency_ms } — cached 30 min */
+async function getLatencyMap(env) {
+  const cached = await kvGet(env, 'rich:latmap', 'json');
+  if (cached && cached.ts && Date.now() - cached.ts < 30 * 60 * 1000 && cached.map) return cached.map;
+  const raw = await fetchTextCached(env, 'results.json', 1800);
+  let res = {}; try { res = raw ? JSON.parse(raw) : {}; } catch (_) {}
+  const map = {};
+  for (const [h, r] of Object.entries(res)) if (r && typeof r.latency_ms === 'number') map[h] = r.latency_ms;
+  if (Object.keys(map).length) await kvPut(env, 'rich:latmap', JSON.stringify({ ts: Date.now(), map }), 3600);
+  return map;
+}
+
+/* same golden-rule pool as the old subscription (operator → gold+silver → validated) */
+async function buildPool(env, user) {
+  let lines = [], usedFallback = false;
+  if (user.isp && user.isp !== 'other') {
+    lines = toLines(await fetchTextCached(env, 'by-operator/' + user.isp + '.txt', FILE_TTL_SEC));
+  }
+  if (lines.length < SUB_MIN_OP_LINES) {
+    const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC));
+    const silver = toLines(await fetchTextCached(env, 'silver.txt', FILE_TTL_SEC));
+    lines = [...new Set([...gold, ...silver])];
+    if (!lines.length) lines = toLines(await fetchTextCached(env, 'validated.txt', FILE_TTL_SEC));
+    usedFallback = Boolean(user.isp && user.isp !== 'other');
+  }
+  return { lines, usedFallback };
+}
+
+/*
+ * D4 — personal allocation: SUB_ALLOCATION picks per user, stable for the whole
+ * rotation period (daily by Tehran date, or "per run" = latest generated_at).
+ * Deterministic per (token, period) but diversified across users: everyone gets
+ * a different slice of the quality-ordered pool (rank + seeded jitter window),
+ * so load spreads over many configs instead of hammering the same top-10.
+ */
+async function allocateSub(env, user) {
+  const rot = user.rotation === 'run' ? 'run' : 'day';
+  let period;
+  if (rot === 'run') { const s = await getStats(env); period = (s && s.generated_at) || tehranDate(); }
+  else period = tehranDate();
+  const prev = await kvGet(env, 'alloc:' + user.token, 'json');
+  if (prev && prev.period === period && Array.isArray(prev.items) && prev.items.length) {
+    return { ...prev, rotation: rot };
+  }
+  const { lines, usedFallback } = await buildPool(env, user);
+  if (!lines.length) return null;
+  const latmap = await getLatencyMap(env);
+  const scored = [];
+  for (const uri of lines) {
+    const hash = await sha16(uri);
+    const ping = latmap[hash] != null ? latmap[hash] : null;
+    scored.push({ uri, hash, ping });
+  }
+  const order = scored.map((_, i) => i);
+  order.sort((a, b) => (scored[a].ping ?? 9e9) - (scored[b].ping ?? 9e9)); // quality: latency asc, unknown last
+  const spread = Math.min(50, scored.length);
+  const rnd = mulberry32(fnv(String(user.token) + '|' + period));
+  const keyed = order.map((idx, rank) => ({ idx, key: rank + Math.floor(rnd() * spread) }));
+  keyed.sort((a, b) => a.key - b.key);
+  const items = keyed.slice(0, SUB_ALLOCATION).map((k) => scored[k.idx]);
+  const out = { period, rotation: rot, created: new Date().toISOString(), usedFallback, items };
+  await kvPut(env, 'alloc:' + user.token, JSON.stringify(out), 172800);
+  return out;
+}
+
+/* per-user connect marks (✅/❌ in the Mini App) — separate from crowd 👍/👎 */
+async function marksGet(env, chatId) { return (await kvGet(env, 'fbu:' + chatId, 'json')) || {}; }
+async function markSet(env, chatId, hash, mark) { // mark: 1 ok | 2 fail | 0 clear
+  const cur = await marksGet(env, chatId);
+  if (mark) cur[hash] = mark; else delete cur[hash];
+  await kvPut(env, 'fbu:' + chatId, JSON.stringify(cur), 604800);
+  return cur[hash] || 0;
+}
+
 /* ─────────────────────── watchtower (new-run broadcast) ───────────────────── */
 
 async function idxAdd(env, chatId) {
@@ -518,13 +658,25 @@ async function dailyChannelCard(env) {
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     '📈 ' + (Object.entries(v.by_protocol_alive || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => esc(k) + ' ' + fmt(n)).join(' · ') || '—'),
     bestLine,
-  ].join('\n') + (origin ? '\n\n🛰 ' + '<a href="' + origin + '/card.svg">' + t(lang, 'daily_svg') + '</a>' : '');
+  ].join('\n');
 
   const rows = [];
   if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
   if (bot) rows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
   const markup = rows.length ? { reply_markup: { inline_keyboard: rows } } : {};
-  let sent = await sendMessage(env, chan, msg, { ...markup, disable_notification: false });
+
+  /* D4: post the card itself as a real PNG photo (Telegram rejects SVG) + caption */
+  let sent = null;
+  try {
+    const png = await renderCardPNG(s);
+    sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), { ...markup, disable_notification: false });
+    if ((!sent || !sent.ok) && rows.length && rows[0][0].web_app) {
+      const fallbackRows = [[{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]];
+      if (bot) fallbackRows.push([{ text: '🚀 @' + bot, url: 'https://t.me/' + bot }]);
+      sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), { reply_markup: { inline_keyboard: fallbackRows } });
+    }
+  } catch (e) { console.error('card png error', e && e.message); }
+  if (!sent || !sent.ok) sent = await sendMessage(env, chan, msg, { ...markup, disable_notification: false });
   if ((!sent || !sent.ok) && rows.length && rows[0][0].web_app) {
     // web_app buttons are not accepted everywhere → retry with plain url buttons
     const fallbackRows = [[{ text: '👑 ' + t(lang, 'btn_app'), url: origin + '/app' }]];
@@ -634,6 +786,21 @@ function sendMessage(env, chatId, text, extra = {}) {
   });
 }
 
+/* D4 — multipart photo upload (Workers FormData/File), JSON API can't take binary */
+async function sendPhotoFile(env, chatId, pngBytes, filename, caption, extra = {}) {
+  try {
+    const fd = new FormData();
+    fd.append('chat_id', String(chatId));
+    fd.append('photo', new File([pngBytes], filename, { type: 'image/png' }));
+    fd.append('caption', caption || '');
+    fd.append('parse_mode', 'HTML');
+    if (extra.reply_markup) fd.append('reply_markup', JSON.stringify(extra.reply_markup));
+    if (extra.disable_notification) fd.append('disable_notification', 'true');
+    const r = await fetch('https://api.telegram.org/bot' + env.BOT_TOKEN + '/sendPhoto', { method: 'POST', body: fd });
+    return await r.json().catch(() => null);
+  } catch (_) { return null; }
+}
+
 /* ──────────────────────────────── keyboards ───────────────────────────────── */
 
 const langKb = () => {
@@ -671,14 +838,28 @@ const menuKb = (lang, origin) => {
   return { inline_keyboard: rows };
 };
 
-const settingsKb = (lang) => ({
-  inline_keyboard: [
-    [{ text: t(lang, 'btn_isp'), callback_data: 'set:isp' }],
-    [{ text: t(lang, 'btn_client'), callback_data: 'set:client' }],
-    [{ text: t(lang, 'btn_lang'), callback_data: 'menu:lang' }],
-    [{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }],
-  ],
+const settingsKb = (lang, user) => {
+  const rotMode = t(lang, (user && user.rotation === 'run' ? 'rot_run' : 'rot_day'));
+  const nameRow = [{ text: t(lang, 'name_now', { name: (user && user.name) || '—' }), callback_data: 'set:name' }];
+  return {
+    inline_keyboard: [
+      [{ text: t(lang, 'btn_isp'), callback_data: 'set:isp' }, { text: t(lang, 'btn_client'), callback_data: 'set:client' }],
+      nameRow,
+      [{ text: t(lang, 'set_rot', { mode: rotMode }), callback_data: 'set:rot' }],
+      [{ text: t(lang, 'btn_lang'), callback_data: 'menu:lang' }],
+      [{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }],
+    ],
+  };
+};
+
+const nameKb = (lang) => ({
+  inline_keyboard: [[{ text: t(lang, 'name_skip'), callback_data: 'name:skip' }]],
 });
+
+/* D4 — ask the personal name (stamped onto config remarks) */
+async function askName(env, chatId, lang, hint) {
+  return sendMessage(env, chatId, hint || t(lang, 'pick_name'), { reply_markup: nameKb(lang) });
+}
 
 /* ─────────────────────────────── bot actions ──────────────────────────────── */
 
@@ -699,13 +880,18 @@ async function askClient(env, chatId, lang) {
 }
 
 async function askSettings(env, chatId, lang) {
-  return sendMessage(env, chatId, t(lang, 'set_pick'), { reply_markup: settingsKb(lang) });
+  const user = await getUser(env, chatId);
+  return sendMessage(env, chatId, t(lang, 'set_pick'), { reply_markup: settingsKb(lang, user) });
 }
 
 async function cmdStart(env, chatId, msg, origin) {
   let user = await getUser(env, chatId);
   if (user && user.lang && user.isp && user.client) {
     await idxAdd(env, chatId);
+    if (user.name === undefined) { // D4: one-time name ask for pre-D4 users (skip = never asks again)
+      user.await = 'name'; await saveUser(env, chatId, user);
+      return askName(env, chatId, user.lang);
+    }
     return sendMenu(env, chatId, user.lang, null, origin);
   }
   const lc = String((msg.from && msg.from.language_code) || '').toLowerCase();
@@ -772,12 +958,15 @@ async function cmdSub(env, chatId, lang, origin) {
   }
   const how = HOWTO[user.client] ? (HOWTO[user.client][lang] || HOWTO[user.client].en) : HOWTO.other[lang] || HOWTO.other.en;
   const clientLine = user.client ? clName(user.client, lang) : '—';
+  const rotMode = t(lang, user.rotation === 'run' ? 'rot_run' : 'rot_day');
   const msg = [
     t(lang, 'sub_title'), '',
     '<code>' + esc(url) + '</code>', '',
-    t(lang, 'sub_note'), note, '',
-    '📡 ' + ispName(user.isp, lang) + ' · 📱 ' + clientLine, '',
-    t(lang, 'sub_howto'), how,
+    t(lang, 'sub_note'), '',
+    t(lang, 'sub_rot_line', { mode: rotMode, n: SUB_ALLOCATION }),
+    '📡 ' + ispName(user.isp, lang) + ' · 📱 ' + clientLine + (user.name ? ' · ✍️ ' + esc(cleanName(user.name)) : ''), note, '',
+    t(lang, 'sub_howto'), how, '',
+    '⚙️ ' + t(lang, 'set_rot', { mode: rotMode }) + ' · ' + t(lang, 'set_name'),
   ].join('\n');
   return sendMessage(env, chatId, msg, {
     reply_markup: { inline_keyboard: [[{ text: t(lang, 'sub_open'), url }], [{ text: t(lang, 'btn_menu'), callback_data: 'menu:main' }]] },
@@ -826,6 +1015,14 @@ async function handleUpdate(env, update, origin) {
     const user = await getUser(env, chatId);
     const lang = (user && user.lang) || 'fa';
     try {
+      /* D4 — free-text name capture (awaited after onboarding or from settings) */
+      if (user && user.await === 'name' && !msg.text.startsWith('/')) {
+        const name = cleanName(msg.text.trim());
+        delete user.await;
+        if (name) { user.name = name; await saveUser(env, chatId, user); return sendMenu(env, chatId, lang, t(lang, 'name_saved', { name: esc(name) }), origin || ''); }
+        await saveUser(env, chatId, user);
+        return askName(env, chatId, lang);
+      }
       switch (cmd) {
         case '/start': return await cmdStart(env, chatId, msg, origin);
         case '/gold': return await cmdGold(env, chatId, lang, 0);
@@ -860,7 +1057,9 @@ async function handleUpdate(env, update, origin) {
         case 'op': {
           const user = await getUser(env, chatId);
           if (!user) return;
+          const ispChanged = user.isp !== arg;
           user.isp = arg; await saveUser(env, chatId, user);
+          if (ispChanged && user.token) await kvDel(env, 'alloc:' + user.token); // D4: new pool → re-allocate
           if (user.client) return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'saved'), origin);
           return askClient(env, chatId, user.lang || 'fa');
         }
@@ -869,7 +1068,19 @@ async function handleUpdate(env, update, origin) {
           if (!user) return;
           user.client = arg; await saveUser(env, chatId, user);
           await idxAdd(env, chatId);
+          if (!user.name) return askName(env, chatId, user.lang || 'fa'); // D4: stamp name → remarks
           return sendMenu(env, chatId, user.lang || 'fa', t(user.lang || 'fa', 'setup_done'), origin);
+        }
+        case 'name': { // D4 — «skip» pressed on the name prompt
+          const user = await getUser(env, chatId);
+          if (!user) return;
+          delete user.await;
+          user.name = user.name || '';
+          await saveUser(env, chatId, user);
+          const lg = user.lang || 'fa';
+          if (user.isp && user.client) return sendMenu(env, chatId, lg, t(lg, 'setup_done'), origin);
+          if (!user.isp) return askIsp(env, chatId, lg);
+          return askClient(env, chatId, lg);
         }
         case 'menu': {
           const user = await getUser(env, chatId);
@@ -891,6 +1102,18 @@ async function handleUpdate(env, update, origin) {
           const lang = (user && user.lang) || 'fa';
           if (arg === 'isp') return askIsp(env, chatId, lang);
           if (arg === 'client') return askClient(env, chatId, lang);
+          if (arg === 'name') { // D4 — await a fresh name in the next plain message
+            if (user) { user.await = 'name'; await saveUser(env, chatId, user); }
+            return askName(env, chatId, lang, t(lang, 'name_hint'));
+          }
+          if (arg === 'rot') { // D4 — toggle rotation day ↔ run, drop the current allocation
+            if (!user) return;
+            user.rotation = user.rotation === 'run' ? 'day' : 'run';
+            await saveUser(env, chatId, user);
+            if (user.token) await kvDel(env, 'alloc:' + user.token);
+            const mode = t(lang, user.rotation === 'run' ? 'rot_run' : 'rot_day');
+            return sendMenu(env, chatId, lang, t(lang, 'rot_hint', { mode }), origin);
+          }
           return;
         }
         default: return;
@@ -911,27 +1134,18 @@ async function buildSubscription(env, token) {
   if (!user) return null;
   const lang = user.lang || 'fa';
 
-  let lines = [], usedFallback = false;
-  if (user.isp && user.isp !== 'other') {
-    lines = toLines(await fetchTextCached(env, 'by-operator/' + user.isp + '.txt', FILE_TTL_SEC));
-  }
-  if (lines.length < SUB_MIN_OP_LINES) { // golden rule: never hand out an empty feed
-    const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC));
-    const silver = toLines(await fetchTextCached(env, 'silver.txt', FILE_TTL_SEC));
-    lines = [...new Set([...gold, ...silver])];
-    if (!lines.length) lines = toLines(await fetchTextCached(env, 'validated.txt', FILE_TTL_SEC));
-    usedFallback = Boolean(user.isp && user.isp !== 'other');
-  }
-  if (!lines.length) return null;
-
-  const title = 'ARISTON ' + (usedFallback ? '⭐' : '⚡') + ' ' + ispName(user.isp || 'other', lang);
+  /* D4: 10 personalized picks (stable per rotation period) with brand remarks */
+  const alloc = await allocateSub(env, user);
+  if (!alloc || !alloc.items || !alloc.items.length) return null;
+  const name = cleanName(user.name);
+  const title = 'ARISTON ' + (alloc.usedFallback ? '⭐' : '⚡') + ' ' + ispName(user.isp || 'other', lang);
   const header = [
     '#profile-title: ' + title,
     '#profile-update-interval: 12',
     '#profile-web-page-url: ' + PAGES,
   ].join('\n');
-  const body = header + '\n' + lines.slice(0, SUB_MAX_LINES).join('\n');
-  return { body: b64(body), title, count: Math.min(lines.length, SUB_MAX_LINES) };
+  const body = header + '\n' + alloc.items.map((it) => remarkUri(it.uri, brandRemark(name, it.ping))).join('\n');
+  return { body: b64(body), title, count: alloc.items.length };
 }
 
 /* ──────────────────────────────── landing page ────────────────────────────── */
@@ -1030,8 +1244,33 @@ async function appSub(env, request) {
     await saveUser(env, chatId, user);
     await kvPut(env, 'sub:' + user.token, JSON.stringify({ chat_id: chatId }));
   }
+  if (!user.name && tgUser.first_name) { user.name = cleanName(tgUser.first_name); await saveUser(env, chatId, user); } // D4
   const origin = new URL(request.url).origin;
-  return Response.json({ url: origin + '/u/' + user.token, isp: user.isp, client: user.client || 'other', lang: user.lang || 'fa' });
+  const rotMode = user.rotation === 'run' ? 'run' : 'day';
+  let items = [];
+  try { // D4: the 10 personalized picks + the user's own connect marks
+    const alloc = await allocateSub(env, user);
+    if (alloc && Array.isArray(alloc.items)) {
+      const marks = await marksGet(env, chatId);
+      items = alloc.items.map((it) => ({ uri: it.uri, hash: it.hash, ping: it.ping, mark: marks[it.hash] || 0 }));
+    }
+  } catch (_) { /* sub link still works without picks */ }
+  return Response.json({
+    url: origin + '/u/' + user.token, isp: user.isp, client: user.client || 'other', lang: user.lang || 'fa',
+    name: user.name || null, rotation: rotMode, n: items.length,
+    items, // [{uri, hash, ping, mark: 0|1|2}] — 1 = connected ✅, 2 = failed ❌
+  });
+}
+
+async function appMark(env, request) { // D4 — ✅/❌ "did it connect for me"
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const hash = String(body.hash || '');
+  if (!/^[a-f0-9]{16}$/.test(hash)) return Response.json({ error: 'bad_hash' }, { status: 400 });
+  const mark = body.mark === 'ok' ? 1 : body.mark === 'fail' ? 2 : 0;
+  const cur = await markSet(env, tgUser.id, hash, mark);
+  return Response.json({ ok: true, mark: cur });
 }
 
 async function appFeedback(env, request) {
@@ -1174,6 +1413,147 @@ tier pool and says so with <code>operator_fallback: true</code>.</p>
 <a href="https://github.com/Edsel-Rahimi/Ariston">github.com/Edsel-Rahimi/Ariston</a></p>
 </main></body></html>`;
 
+/* ─────────── D4 — brand card as REAL PNG (Telegram rejects SVG photos) ───────
+ * Pure-JS rasterizer: flat fills + the funnel-A emblem as polygons + a classic
+ * 5×7 bitmap font, deflated through CompressionStream into a valid PNG.
+ * Same 1200×630 layout and palette as cardSVG. */
+
+const PNG_W = 1200, PNG_H = 630;
+
+/* classic 5×7 font — bytes = columns, LSB = top row */
+const FONT57 = {
+  A: [0x7e, 0x11, 0x11, 0x11, 0x7e], B: [0x7f, 0x49, 0x49, 0x49, 0x36], C: [0x3e, 0x41, 0x41, 0x41, 0x22],
+  D: [0x7f, 0x41, 0x41, 0x22, 0x1c], E: [0x7f, 0x49, 0x49, 0x49, 0x41], F: [0x7f, 0x09, 0x09, 0x09, 0x01],
+  G: [0x3e, 0x41, 0x49, 0x49, 0x7a], H: [0x7f, 0x08, 0x08, 0x08, 0x7f], I: [0x00, 0x41, 0x7f, 0x41, 0x00],
+  J: [0x20, 0x40, 0x41, 0x3f, 0x01], K: [0x7f, 0x08, 0x14, 0x22, 0x41], L: [0x7f, 0x40, 0x40, 0x40, 0x40],
+  M: [0x7f, 0x02, 0x0c, 0x02, 0x7f], N: [0x7f, 0x04, 0x08, 0x10, 0x7f], O: [0x3e, 0x41, 0x41, 0x41, 0x3e],
+  P: [0x7f, 0x09, 0x09, 0x09, 0x06], Q: [0x3e, 0x41, 0x51, 0x21, 0x5e], R: [0x7f, 0x09, 0x19, 0x29, 0x46],
+  S: [0x46, 0x49, 0x49, 0x49, 0x31], T: [0x01, 0x01, 0x7f, 0x01, 0x01], U: [0x3f, 0x40, 0x40, 0x40, 0x3f],
+  V: [0x1f, 0x20, 0x40, 0x20, 0x1f], W: [0x3f, 0x40, 0x38, 0x40, 0x3f], X: [0x63, 0x14, 0x08, 0x14, 0x63],
+  Y: [0x07, 0x08, 0x70, 0x08, 0x07], Z: [0x61, 0x51, 0x49, 0x45, 0x43],
+  0: [0x3e, 0x51, 0x49, 0x45, 0x3e], 1: [0x00, 0x42, 0x7f, 0x40, 0x00], 2: [0x42, 0x61, 0x51, 0x49, 0x46],
+  3: [0x21, 0x41, 0x45, 0x4b, 0x31], 4: [0x18, 0x14, 0x12, 0x7f, 0x10], 5: [0x27, 0x45, 0x45, 0x45, 0x39],
+  6: [0x3c, 0x4a, 0x49, 0x49, 0x30], 7: [0x01, 0x71, 0x09, 0x05, 0x03], 8: [0x36, 0x49, 0x49, 0x49, 0x36],
+  9: [0x06, 0x49, 0x49, 0x29, 0x1e],
+  ' ': [0, 0, 0, 0, 0], '-': [0x08, 0x08, 0x08, 0x08, 0x08], '.': [0x00, 0x60, 0x60, 0x00, 0x00],
+  ',': [0x00, 0x50, 0x30, 0x00, 0x00], ':': [0x00, 0x36, 0x36, 0x00, 0x00], '/': [0x20, 0x10, 0x08, 0x04, 0x02],
+  '·': [0x00, 0x00, 0x18, 0x18, 0x00], '%': [0x23, 0x13, 0x08, 0x64, 0x62],
+};
+
+/* funnel-A emblem polygons (EMBLEM_SVG coords) + the same translate/scale */
+const EMBLEM_POLYS = [
+  { c: [0xe8, 0xc8, 0x72], pts: [[627, 253], [608, 362], [513, 455], [537, 519], [341, 735]] },
+  { c: [0xe8, 0xc8, 0x72], pts: [[627, 253], [646, 362], [741, 455], [717, 519], [913, 735]] },
+  { c: [0xb8, 0x73, 0x33], pts: [[513, 455], [627, 396], [741, 455], [710, 486], [627, 444], [549, 486]] },
+  { c: [0xc0, 0xc6, 0xcc], pts: [[554, 508], [627, 472], [700, 508], [678, 540], [627, 513], [576, 540]] },
+  { c: [0xc9, 0xa2, 0x4a], pts: [[582, 559], [627, 541], [672, 559], [627, 644]] },
+  { c: [0xe8, 0xc8, 0x72], pts: [[624, 644], [630, 644], [630, 675], [624, 675]] },
+];
+const EMBLEM_CIRCLE = { x: 627, y: 693, r: 19, c: [0xe8, 0xc8, 0x72] };
+
+function makeCanvas(w, h) {
+  const px = new Uint8ClampedArray(w * h * 4);
+  const set = (x, y, c) => { if (x < 0 || y < 0 || x >= w || y >= h) return; const o = (y * w + x) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; };
+  const hex = (v) => [parseInt(v.slice(1, 3), 16), parseInt(v.slice(3, 5), 16), parseInt(v.slice(5, 7), 16)];
+  const rect = (x, y, ww, hh, c) => { for (let j = 0; j < hh; j++) for (let i = 0; i < ww; i++) set(x + i, y + j, c); };
+  const circle = (cx, cy, r, c) => { for (let j = -r; j <= r; j++) { const half = Math.floor(Math.sqrt(r * r - j * j)); for (let i = -half; i <= half; i++) set(cx + i, cy + j, c); } };
+  const poly = (pts, c) => { // scanline even-odd fill
+    let minY = Infinity, maxY = -Infinity;
+    for (const p of pts) { minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]); }
+    for (let y = Math.ceil(minY); y <= Math.floor(maxY); y++) {
+      const xs = [];
+      for (let i = 0; i < pts.length; i++) {
+        const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length];
+        if ((y1 <= y && y2 > y) || (y2 <= y && y1 > y)) xs.push(x1 + ((y - y1) / (y2 - y1)) * (x2 - x1));
+      }
+      xs.sort((a, b) => a - b);
+      for (let k = 0; k + 1 < xs.length; k += 2) { const a = Math.round(xs[k]), b = Math.round(xs[k + 1]); for (let x = a; x <= b; x++) set(x, y, c); }
+    }
+  };
+  const textW = (str, sc, ls) => str.length * (5 * sc + (ls || 0)) - (ls || 0);
+  const text = (str, x, y, sc, c, ls, align) => {
+    str = String(str).toUpperCase();
+    if (align === 'right') x -= textW(str, sc, ls);
+    if (align === 'center') x -= Math.floor(textW(str, sc, ls) / 2);
+    for (let n = 0; n < str.length; n++) {
+      const g = FONT57[str[n]] || FONT57[' '];
+      for (let col = 0; col < 5; col++) for (let row = 0; row < 7; row++) {
+        if (g[col] & (1 << row)) rect(x + n * (5 * sc + (ls || 0)) + col * sc, y + row * sc, sc, sc, c);
+      }
+    }
+    return textW(str, sc, ls);
+  };
+  return { px, set, hex, rect, circle, poly, text, textW };
+}
+
+async function encodePNG(cv) {
+  const w = PNG_W, h = PNG_H;
+  const raw = new Uint8Array((w * 4 + 1) * h);
+  for (let y = 0; y < h; y++) {
+    raw[y * (w * 4 + 1)] = 0; // filter: none
+    raw.set(cv.px.subarray(y * w * 4, (y + 1) * w * 4), y * (w * 4 + 1) + 1);
+  }
+  const stream = new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate'));
+  const idat = new Uint8Array(await new Response(stream).arrayBuffer());
+  const CRC = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+    return (buf) => { let c = 0xffffffff; for (let i = 0; i < buf.length; i++) c = t[(c ^ buf[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  })();
+  const be32 = (v) => new Uint8Array([(v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255]);
+  const chunk = (type, data) => {
+    const out = new Uint8Array(12 + data.length);
+    out.set(be32(data.length), 0);
+    for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+    out.set(data, 8);
+    const crcBuf = out.subarray(4, 8 + data.length);
+    out.set(be32(CRC(crcBuf)), 8 + data.length);
+    return out;
+  };
+  const ihdr = new Uint8Array(13);
+  ihdr.set(be32(w), 0); ihdr.set(be32(h), 4);
+  ihdr[8] = 8; ihdr[9] = 6; // 8-bit RGBA
+  const parts = [chunk('IHDR', ihdr), chunk('IDAT', idat), chunk('IEND', new Uint8Array(0))];
+  const total = parts.reduce((a, p) => a + p.length, 8);
+  const png = new Uint8Array(total);
+  png.set(new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), 0);
+  let off = 8; for (const p of parts) { png.set(p, off); off += p.length; }
+  return png;
+}
+
+async function renderCardPNG(s) {
+  const cv = makeCanvas(PNG_W, PNG_H);
+  const bg = cv.hex('#14110C'), gold = cv.hex('#E8C872'), deep = cv.hex('#C9A24A'),
+    silver = cv.hex('#C0C6CC'), cream = cv.hex('#F3ECDD'), dim = cv.hex('#8d8262');
+  cv.rect(0, 0, PNG_W, PNG_H, bg);
+  cv.rect(24, 24, PNG_W - 48, PNG_H - 48, gold); cv.rect(26, 26, PNG_W - 52, PNG_H - 52, bg); // outer border
+  cv.rect(34, 34, PNG_W - 68, PNG_H - 68, deep); cv.rect(35, 35, PNG_W - 70, PNG_H - 70, bg); // inner hairline
+  /* emblem — same transform as cardSVG: translate(70,150) scale(.52) translate(-327,-239) */
+  const ex = (x) => Math.round(70 + (x - 327) * 0.52), ey = (y) => Math.round(150 + (y - 239) * 0.52);
+  for (const sh of EMBLEM_POLYS) cv.poly(sh.pts.map(([x, y]) => [ex(x), ey(y)]), sh.c);
+  cv.circle(ex(EMBLEM_CIRCLE.x), ey(EMBLEM_CIRCLE.y), Math.round(EMBLEM_CIRCLE.r * 0.52), EMBLEM_CIRCLE.c);
+  const goldN = s && s.scoring ? s.scoring.gold : null;
+  const alive = s && s.validation ? s.validation.alive : null;
+  const p50 = s && s.validation && s.validation.latency_ms ? Math.round(s.validation.latency_ms.p50 || 0) : null;
+  const srcOk = s ? s.sources_ok : null, srcAll = s ? s.sources_total : null;
+  const nf = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString('en-US'));
+  const date = (() => { try { return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Tehran' }).format(new Date()); } catch (_) { return tehranDate(); } })();
+  cv.text('ARISTON', 70, 508, 8, gold, 14);
+  cv.text('COLLECT · VALIDATE · SCORE · PUBLISH', 72, 576, 2, dim, 4);
+  cv.text('CONFIGS OF THE DAY', 1120, 74, 3, deep, 6, 'right');
+  cv.text(nf(goldN), 1120, 128, 22, gold, 10, 'right');
+  cv.text('GOLD-TIER · ENGINE-TESTED', 1120, 300, 2, dim, 5, 'right');
+  const row = (label, value, y, lc) => {
+    const vw = cv.text(value, 1120, y, 3, cream, 4, 'right');
+    cv.text(label, 1120 - vw - 26, y, 3, lc, 4, 'right');
+  };
+  row('ALIVE', nf(alive), 372, silver);
+  row('P50 LATENCY', p50 === null ? '—' : nf(p50) + ' MS', 424, deep);
+  row('SOURCES', (srcOk === null ? '—' : nf(srcOk)) + '/' + (srcAll === null ? '—' : nf(srcAll)), 476, silver);
+  cv.text(date + ' · TEHRAN', 1120, 560, 2, dim, 4, 'right');
+  return encodePNG(cv);
+}
+
 /* brand “card of the day” — shareable 1200×630 SVG built from live stats */
 function cardSVG(s) {
   const gold = s && s.scoring ? s.scoring.gold : null;
@@ -1282,6 +1662,14 @@ transition:transform .12s ease,border-color .2s ease}
 .sub .t{font-weight:700;font-size:13.5px}
 .sub .url{font-family:var(--mono);font-size:10.5px;color:var(--dim);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:9px 0 11px;border:1px dashed var(--line);border-radius:10px;padding:9px 11px}
 .sub .meta{font-size:11.5px;color:var(--dim);margin-top:10px}
+.scard{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:9px 11px;margin-top:8px;cursor:pointer;transition:transform .12s ease,border-color .2s ease}
+.scard:active{transform:scale(.98);border-color:var(--line2)}
+.scard .host{font-family:var(--mono);font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;flex:1;text-align:left}
+.scard .ping{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:1px 6px;flex:0 0 auto}
+.mk{background:none;border:1px solid var(--line);border-radius:8px;font-size:12px;width:30px;height:26px;cursor:pointer;line-height:1;flex:0 0 auto;padding:0}
+.mk.ok.on{border-color:rgba(232,200,114,.6);background:rgba(232,200,114,.14)}
+.mk.bad.on{border-color:rgba(192,101,74,.55);background:rgba(192,101,74,.14)}
+.rot{font-family:var(--mono);font-size:10px;color:var(--gold);border:1px dashed var(--line2);border-radius:8px;padding:2px 8px;flex:0 0 auto}
 .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);color:var(--gold);background:rgba(232,200,114,.07);
 border-radius:999px;padding:8px 18px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:700}
 .btn:active{transform:scale(.97)}
@@ -1343,7 +1731,7 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D3 · v3.0</span>
+    <span>D4 · v4.0</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -1355,41 +1743,46 @@ var I18N = {
     rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
     gold_t:'کانفیگ‌های طلایی', gold_hint:'لمس روی کارت = کپی · 👍 = تجربهٔ خوب تو',
     more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ثبت شد 🙏', vote_tg:'فقط داخل تلگرام ثبت می‌شه',
-    sub_t:'اشتراک شخصی من', sub_note:'با هر رفرشِ کلاینت، تازه‌ترین سالم‌ها بر اساس اپراتورت', sub_copy:'کپی لینک',
+    sub_t:'اشتراک شخصی من', sub_note:'با هر رفرشِ کلاینت، سهم ۱۰تایی اختصاصی‌ات را می‌گیری (چرخش روزانه یا هر اجرا)', sub_copy:'کپی لینک',
     sub_meta:'اپراتور: {o} · کلاینت: {c}', sub_need:'اول از ربات /start بزن', open_tg:'برای اشتراک شخصی، این صفحه را داخل تلگرام باز کن',
-    fail:'خطا در دریافت داده — دوباره تلاش کن', isp_other:'همه', cl_other:'سایر'},
+    mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های اختصاصی من', rot_day:'چرخش: روزانه', rot_run:'چرخش: هر اجرا',
+    marked:'ثبت شد', fail:'خطا در دریافت داده — دوباره تلاش کن', isp_other:'همه', cl_other:'سایر'},
   en: {hero_lbl:'gold configs', hero_sub:'refined from {alive} alive · run {run}',
     st_alive:'Alive configs', st_p50:'p50 latency', st_src:'Healthy sources', st_run:'Last run',
     rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
     gold_t:'Gold configs', gold_hint:'tap a card to copy · 👍 = it worked for you',
     more:'Show more', copied:'Copied ✅', voted:'Recorded 🙏', vote_tg:'Voting works inside Telegram only',
-    sub_t:'My personal subscription', sub_note:'every client refresh delivers the latest alive picks for your ISP', sub_copy:'Copy link',
+    sub_t:'My personal subscription', sub_note:'every client refresh delivers your personal 10-pick (daily or per-run rotation)', sub_copy:'Copy link',
     sub_meta:'ISP: {o} · Client: {c}', sub_need:'press /start in the bot first', open_tg:'open this page inside Telegram for your personal sub',
-    fail:'failed to load — try again', isp_other:'All', cl_other:'Other'},
+    mk_ok:'connected', mk_fail:'failed', my10:'My personal picks', rot_day:'rotation: daily', rot_run:'rotation: per run',
+    marked:'Recorded', fail:'failed to load — try again', isp_other:'All', cl_other:'Other'},
   ru: {hero_lbl:'золотых конфигов', hero_sub:'отобрано из {alive} живых · прогон {run}',
     st_alive:'Живых конфигов', st_p50:'Задержка p50', st_src:'Рабочих источников', st_run:'Последний прогон',
     rel_min:'{n} мин назад', rel_hour:'{n} ч назад', rel_day:'{n} дн назад',
     gold_t:'Золотые конфиги', gold_hint:'нажми на карточку — копировать · 👍 = работает',
     more:'Показать ещё', copied:'Скопировано ✅', voted:'Записано 🙏', vote_tg:'Голосование — только в Telegram',
-    sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — свежие живые по твоему оператору', sub_copy:'Копировать ссылку',
+    sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — твоя персональная десятка (день или прогон)', sub_copy:'Копировать ссылку',
     sub_meta:'Оператор: {o} · Клиент: {c}', sub_need:'сначала /start в боте', open_tg:'открой эту страницу в Telegram для личной подписки',
-    fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое'},
+    mk_ok:'подключилось', mk_fail:'не вышло', my10:'Мои личные конфиги', rot_day:'ротация: день', rot_run:'ротация: прогон',
+    marked:'Записано', fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое'},
   tr: {hero_lbl:'altın yapılandırma', hero_sub:'{alive} çalışan içinden seçildi · çalışma {run}',
     st_alive:'Çalışan yapılandırma', st_p50:'p50 gecikme', st_src:'Sağlıklı kaynak', st_run:'Son çalışma',
     rel_min:'{n} dk önce', rel_hour:'{n} sa önce', rel_day:'{n} gün önce',
     gold_t:'Altın yapılandırmalar', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
     more:'Daha fazla', copied:'Kopyalandı ✅', voted:'Kaydedildi 🙏', vote_tg:'Oylama sadece Telegram içinde',
-    sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede sağlayıcına göre en güncel çalışanlar', sub_copy:'Bağlantıyı kopyala',
+    sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede kişisel 10’luk seçkin (günlük veya her çalışma)', sub_copy:'Bağlantıyı kopyala',
     sub_meta:'Sağlayıcı: {o} · İstemci: {c}', sub_need:'önce botta /start gönder', open_tg:'kişisel abonelik için bu sayfayı Telegram içinde aç',
-    fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer'},
+    mk_ok:'bağlandı', mk_fail:'olmadı', my10:'Kişisel seçkilerim', rot_day:'rotasyon: günlük', rot_run:'rotasyon: çalışma',
+    marked:'Kaydedildi', fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer'},
   zh: {hero_lbl:'金牌配置', hero_sub:'从 {alive} 个可用中精选 · 第 {run} 轮',
     st_alive:'可用配置', st_p50:'p50 延迟', st_src:'可用源', st_run:'最近一轮',
     rel_min:'{n} 分钟前', rel_hour:'{n} 小时前', rel_day:'{n} 天前',
     gold_t:'金牌配置', gold_hint:'点卡片即复制 · 👍 = 对我有用',
     more:'显示更多', copied:'已复制 ✅', voted:'已记录 🙏', vote_tg:'仅限在 Telegram 内投票',
-    sub_t:'我的个人订阅', sub_note:'客户端每次刷新都会拿到按运营商过滤的最新可用', sub_copy:'复制链接',
+    sub_t:'我的个人订阅', sub_note:'客户端每次刷新拿到你的专属 10 个（按天或每轮轮换）', sub_copy:'复制链接',
     sub_meta:'运营商：{o} · 客户端：{c}', sub_need:'请先在机器人里 /start', open_tg:'在 Telegram 内打开此页面以获取个人订阅',
-    fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他'}
+    mk_ok:'连上了', mk_fail:'连不上', my10:'我的专属配置', rot_day:'轮换：每天', rot_run:'轮换：每轮',
+    marked:'已记录', fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他'}
 };
 var MEDALS = ['🥇', '🥈', '🥉'];
 var ISPN = {irancell:'Irancell', mci:'MCI', rightel:'Rightel', shatel:'Shatel', asiatech:'Asiatech', tci:'TCI'};
@@ -1519,6 +1912,50 @@ function loadGold(append){
     bindCards();
   }).catch(function(){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
 }
+function subRow(it, idx){
+  var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
+  var hostPart = it.uri.split('://')[1] || '';
+  hostPart = hostPart.split(/[\\/?#]/)[0];
+  var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
+  var okOn = it.mark === 1 ? ' on' : '', badOn = it.mark === 2 ? ' on' : '';
+  return '<div class="scard" data-uri="' + esc(it.uri) + '">' +
+    '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
+    '<div class="host">' + esc(hostPart) + '</div>' +
+    '<span class="ping">' + esc(pingTx) + '</span>' +
+    '<button class="mk ok' + okOn + '" data-hash="' + esc(it.hash) + '" data-v="ok" title="' + T('mk_ok') + '">✅</button>' +
+    '<button class="mk bad' + badOn + '" data-hash="' + esc(it.hash) + '" data-v="fail" title="' + T('mk_fail') + '">❌</button>' +
+    '</div>';
+}
+function bindSubMarks(){
+  Array.prototype.forEach.call(document.querySelectorAll('#subCard .scard'), function(card){
+    if (card._bound) return; card._bound = true;
+    card.addEventListener('click', function(ev){
+      if (ev.target.closest && ev.target.closest('.mk')) return;
+      copyText(card.getAttribute('data-uri'));
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#subCard .mk'), function(btn){
+    if (btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (!initData){ toast(T('vote_tg')); return; }
+      var v = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
+      var wasOn = btn.classList.contains('on');
+      var mark = wasOn ? 'clear' : v;
+      haptic('medium');
+      fetch('/app/api/mark', {method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({initData: initData, hash: hash, mark: mark})})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if (res.ok){ toast(T('marked'));
+            var card = btn.closest('.scard');
+            Array.prototype.forEach.call(card.querySelectorAll('.mk'), function(b){ b.classList.remove('on'); });
+            if (!wasOn) btn.classList.add('on');
+          } else toast(T('vote_tg'));
+        }).catch(function(){ toast(T('fail')); });
+    });
+  });
+}
 function loadSub(){
   var card = document.getElementById('subCard');
   if (!initData){
@@ -1531,12 +1968,20 @@ function loadSub(){
       if (d.error){ card.innerHTML = '<div class="t">' + T('sub_t') + '</div><div class="meta">' + T('sub_need') + '</div>'; return; }
       var isp = ISPN[d.isp] || T('isp_other');
       var cl = d.client === 'other' ? T('cl_other') : d.client;
-      card.innerHTML = '<div class="t">' + T('sub_t') + '</div>' +
+      var rotChip = '<span class="rot">' + T(d.rotation === 'run' ? 'rot_run' : 'rot_day') + '</span>';
+      var html = '<div class="t">' + T('sub_t') + ' ' + rotChip + '</div>' +
         '<div class="url">' + esc(d.url) + '</div>' +
         '<button class="btn" id="copySub">📋 ' + T('sub_copy') + '</button>' +
         '<div class="meta">' + T('sub_note') + '</div>' +
         '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + '</div>';
+      if (d.items && d.items.length){
+        html += '<div class="meta" style="margin-top:14px;font-weight:700;color:var(--gold)">📦 ' + T('my10') + ' · ' + d.items.length + '</div>';
+        for (var i = 0; i < d.items.length; i++){ html += subRow(d.items[i], i); }
+        html += '<div class="meta" style="margin-top:8px">✅ ' + T('mk_ok') + ' · ❌ ' + T('mk_fail') + '</div>';
+      }
+      card.innerHTML = html;
       document.getElementById('copySub').addEventListener('click', function(){ copyText(d.url); });
+      bindSubMarks();
     }).catch(function(){ card.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
 }
 applyTexts();
@@ -1638,10 +2083,11 @@ export default {
     if (url.pathname === '/app/api/stats') return appStats(env);
     if (url.pathname === '/app/api/gold') return appGold(env, url);
     if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
+    if (url.pathname === '/app/api/mark' && request.method === 'POST') return appMark(env, request);
     if (url.pathname === '/app/api/feedback' && request.method === 'POST') return appFeedback(env, request);
 
     /* CORS preflight for the public API */
-    if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg')) {
+    if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg' || url.pathname === '/card.png')) {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
@@ -1660,12 +2106,24 @@ export default {
       return apiConfigs(env, url);
     }
 
-    /* ── brand “card of the day” (D3) ── */
+    /* ── brand “card of the day” (D3/D4) ── */
     if (url.pathname === '/card.svg') {
       const s = await getStats(env);
       return new Response(cardSVG(s), {
         headers: { 'content-type': 'image/svg+xml; charset=utf-8', 'cache-control': 'public, max-age=600', ...CORS_HEADERS },
       });
+    }
+    if (url.pathname === '/card.png') { // D4 — same card rasterized; usable as a Telegram photo
+      const s = await getStats(env);
+      try {
+        const png = await renderCardPNG(s);
+        return new Response(png, {
+          headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=600', ...CORS_HEADERS },
+        });
+      } catch (e) {
+        console.error('card png render error', e && e.message);
+        return new Response('render failed', { status: 500 });
+      }
     }
 
     /* GET / — brand landing */
@@ -1679,9 +2137,12 @@ export default {
     return new Response('not found\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },
 
-  /* cron — Watchtower (new-run alerts) + daily channel card (D3) */
+  /* cron — Watchtower (new-run alerts) + daily channel card (D3/D4) */
   async scheduled(event, env, ctx) {
     ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
     ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
   },
 };
+
+/* test hooks — named exports are ignored by the Workers runtime */
+export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription };

@@ -30,6 +30,14 @@ def write_b64(path: Path, text: str) -> None:
     path.write_bytes(base64.b64encode(text.encode("utf-8")))
 
 
+def remark_uri(uri: str, ping_ms: float | None) -> str:
+    """Brand remark on every published URI: `Ariston-<ping>ms` (or `Ariston` when
+    no latency is known).  Anything taken from the GitHub page/repo carries it."""
+    base = uri.split("#", 1)[0]
+    remark = f"Ariston-{round(ping_ms)}ms" if ping_ms else "Ariston"
+    return f"{base}#{remark}"
+
+
 def write_stats(path: Path, stats: dict) -> None:
     path.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -70,7 +78,7 @@ def publish_tiers(dist: Path, rows: list[dict]) -> None:
         "silver": [r for r in alive if r["tier"] == "silver"],
     }
     for name, selected in buckets.items():
-        text = "\n".join(r["uri"] for r in selected) + "\n"
+        text = "\n".join(remark_uri(r["uri"], r.get("latency_ms")) for r in selected) + "\n"
         (dist / f"{name}.txt").write_text(text, encoding="utf-8")
         write_b64(dist / f"{name}.b64", text)
 
@@ -94,16 +102,19 @@ def _fmt_num(n: int) -> str:
     return f"{n:,}"
 
 
-def publish_operators(dist: Path, by_slug: dict) -> None:
+def publish_operators(dist: Path, by_slug: dict, lat_by_uri: dict | None = None) -> None:
     """Iranian-operator split (Phase 3).  Stable set of files, possibly empty:
     by-operator/<slug>.txt with every classified endpoint (all uniques,
-    mirroring by-protocol) — consumers cross-check aliveness themselves."""
+    mirroring by-protocol) — consumers cross-check aliveness themselves.
+    lat_by_uri: uri → measured ping (alive endpoints) for brand remarks."""
+    lat_by_uri = lat_by_uri or {}
     op_dir = dist / "by-operator"
     op_dir.mkdir(exist_ok=True)
     for slug in ["tci", "mci", "irancell", "rightel", "shatel", "mobinnet",
                  "asiatech", "parsonline", "pishgaman", "respina", "ir-other"]:
         entries = by_slug.get(slug, {}).get("uris", [])
-        text = "\n".join(entries) + "\n" if entries else ""
+        lines = [remark_uri(u, lat_by_uri.get(u)) for u in entries]
+        text = "\n".join(lines) + "\n" if lines else ""
         (op_dir / f"{slug}.txt").write_text(text, encoding="utf-8")
 
 

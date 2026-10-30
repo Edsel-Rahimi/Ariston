@@ -189,7 +189,8 @@ def cmd_run(skip_validation: bool = False) -> int:
     table = G.load_table()
     geo = G.classify(uniq, table)
     stats["operators"] = geo["stats"]
-    P.publish_operators(DIST, geo["by_slug"])          # all classified (like by-protocol)
+    lat_by_uri = {r["uri"]: r["latency_ms"] for r in rows if r.get("latency_ms") is not None}
+    P.publish_operators(DIST, geo["by_slug"], lat_by_uri)  # all classified (like by-protocol)
 
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)

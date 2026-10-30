@@ -58,6 +58,15 @@ def _name(scheme: str, host: str, port: int, seen: dict) -> str:
     return base if n == 1 else f"{base}-{n}"
 
 
+def _brand_name(ping_ms: float | None, seen: dict) -> str:
+    """D4: proxy names carry the brand + measured ping: `Ariston-812ms`,
+    duplicates disambiguated (`Ariston-812ms-2`)."""
+    base = f"Ariston-{round(ping_ms)}ms" if ping_ms else "Ariston"
+    n = seen.get(base, 0) + 1
+    seen[base] = n
+    return base if n == 1 else f"{base}-{n}"
+
+
 def _y(v) -> str:
     """YAML scalar: quote every string, keep ints/bools bare."""
     if isinstance(v, bool):
@@ -239,11 +248,12 @@ def _emit_yaml_block(p: dict, indent: str = "  ") -> str:
 
 
 def to_mihomo(rows: list[dict]) -> tuple[str, dict]:
-    """rows = [{'uri':..., 'alive': bool, 'score':...}] best-first."""
+    """rows = [{'uri':..., 'alive': bool, 'score':..., 'latency_ms':...}] best-first."""
     proxies, names, seen = [], [], {}
     skipped = 0
     for r in rows:
-        p = _mihomo_proxy(r["uri"], _name(_scheme(r["uri"]), (_hostport(r["uri"])[0]), _hostport(r["uri"])[1], seen))
+        name = _brand_name(r.get("latency_ms"), seen)
+        p = _mihomo_proxy(r["uri"], name)
         if p is None:
             skipped += 1
             continue
@@ -389,8 +399,7 @@ def to_singbox(rows: list[dict]) -> tuple[str, dict]:
     skipped = 0
     for r in rows:
         uri = r["uri"]
-        host, port = _hostport(uri)
-        tag = _name(_scheme(uri), host, port, seen)
+        tag = _brand_name(r.get("latency_ms"), seen)
         ob = _sb_outbound(uri, tag)
         if ob is None:
             skipped += 1
