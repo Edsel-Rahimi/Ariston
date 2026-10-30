@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آریستون — اتاق فرمان | Ariston Mission Control</title>
+<meta name="description" content="داشبورد زنده آریستون: کانفیگ‌های رایگان پروکسی با اعتبارسنجی دو-موتوره (xray-core + sing-box). Live mission control for the Ariston dual-engine proxy pipeline.">
+<meta property="og:title" content="Ariston — Mission Control">
+<meta property="og:description" content="Hourly dual-engine validated free proxy configs. Live funnel, node explorer, one-tap import.">
+<meta name="theme-color" content="#070C16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070C16'/%3E%3Cpath d='M9 22 16 9l7 13M12 17h8' stroke='%2300E5A0' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- ambient background -->
+<div class="bg-fx" aria-hidden="true">
+  <div class="bg-glow bg-glow--mint"></div>
+  <div class="bg-glow bg-glow--sky"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="top">
+  <div class="nav__inner">
+    <a class="brand" href="#top" aria-label="Ariston">
+      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0B1322" stroke="rgba(0,229,160,.35)"/><path d="M9 22 16 9l7 13M12 17h8" stroke="#00E5A0" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand__name">ARISTON</span>
+      <span class="brand__sub" data-i18n="brandSub">MISSION CONTROL</span>
+    </a>
+    <nav class="nav__links" aria-label="sections">
+      <a href="#pipeline" data-i18n="navPipeline">خط تولید</a>
+      <a href="#analytics" data-i18n="navAnalytics">تحلیل</a>
+      <a href="#iran" data-i18n="navIran">اپراتورها</a>
+      <a href="#import" data-i18n="navImport">اتصال سریع</a>
+      <a href="#explorer" data-i18n="navExplorer">مرورگر گره</a>
+      <a href="#sources" data-i18n="navSources">منابع</a>
+      <a href="#download" data-i18n="navDownload">دانلود</a>
+    </nav>
+    <div class="nav__tools">
+      <span class="live-pill" id="livePill" title="">
+        <span class="live-pill__dot" aria-hidden="true"></span>
+        <span data-i18n="live">LIVE</span><span class="live-pill__time mono" id="lastRunAgo">—</span>
+      </span>
+      <button class="lang-btn" id="langBtn" type="button" aria-label="toggle language">EN</button>
+      <a class="gh-btn" href="https://github.com/Edsel-Rahimi/Ariston" target="_blank" rel="noopener" aria-label="GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="hero__kicker mono" data-i18n="heroKicker">// FREE PROXY NETWORK — HOURLY DUAL-ENGINE VALIDATION</div>
+  <h1 class="hero__title" data-i18n-html="heroTitle">هر ساعت، <em>هزاران گره</em> تست می‌شوند؛<br>فقط بهترین‌ها اینجا می‌مانند.</h1>
+
+  <div class="hero__grid">
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi" data-kpi="alive">
+        <div class="kpi__label" data-i18n="kpiAlive">گره زنده</div>
+        <div class="kpi__value mono" id="kpiAlive">—</div>
+        <div class="kpi__foot mono" id="kpiAliveFoot">&nbsp;</div>
+      </div>
+      <div class="kpi kpi--gold" data-kpi="gold">
+        <div class="kpi__label" data-i18n="kpiGold">رده طلا</div>
+        <div class="kpi__value mono" id="kpiGold">—</div>
+        <div class="kpi__foot mono" id="kpiGoldFoot">&nbsp;</div>
+      </div>
+      <div class="kpi" data-kpi="unique">
+        <div class="kpi__label" data-i18n="kpiUnique">گره یکتا / اجرا</div>
+        <div class="kpi__value mono" id="kpiUnique">—</div>
+        <div class="kpi__foot mono" id="kpiUniqueFoot">&nbsp;</div>
+      </div>
+      <div class="kpi" data-kpi="sources">
+        <div class="kpi__label" data-i18n="kpiSources">منبع فعال</div>
+        <div class="kpi__value mono" id="kpiSources">—</div>
+        <div class="kpi__foot mono" id="kpiSourcesFoot">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="hero__countdown panel" aria-live="off">
+      <svg class="hc-ring" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="hc-ring__track" cx="60" cy="60" r="51"/>
+        <circle class="hc-ring__fill" id="hcRing" cx="60" cy="60" r="51"/>
+      </svg>
+      <div class="hc-body">
+        <div class="hc-label" data-i18n="hcLabel">اجرای بعدی</div>
+        <div class="hc-digits mono" id="hcDigits">--:--</div>
+        <div class="hc-sub mono">07:00 UTC</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__track mono" id="tickerTrack"><span>—</span></div>
+  </div>
+</section>
+
+<!-- ===================== PIPELINE ===================== -->
+<section class="section" id="pipeline">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="pipelineTitle">خط تولید <span class="mono accent">//THE PIPELINE</span></h2>
+    <p class="section__desc" data-i18n="pipelineDesc">مسیر داده از جمع‌آوری خام تا رده طلا. ذرات نور، گره‌های واقعی هستند که در هر مرحله پالایش می‌شوند — روی هر ایستگاه بایستید تا اعداد دقیق را ببینید.</p>
+  </div>
+  <div class="panel pipeline-panel">
+    <div class="pipeline" dir="ltr">
+      <canvas id="pipelineCanvas" aria-hidden="true"></canvas>
+      <div class="pipeline__stages" id="pipelineStages"></div>
+    </div>
+    <div class="pipeline__legend mono" id="pipelineLegend"></div>
+  </div>
+</section>
+
+<!-- ===================== ANALYTICS ===================== -->
+<section class="section" id="analytics">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="analyticsTitle">تحلیل شبکه <span class="mono accent">//ANALYTICS</span></h2>
+    <p class="section__desc" data-i18n="analyticsDesc">ترکیب پروتکل‌ها، سلامت موتورها و تأخیر واقعی اندازه‌گیری‌شده در آخرین اجرا.</p>
+  </div>
+  <div class="bento">
+    <div class="panel bento__donut">
+      <div class="panel__head"><span class="panel__title" data-i18n="donutTitle">پروتکل‌ها — خام</span><span class="mono panel__chip" id="donutTotal">—</span></div>
+      <div class="donut-wrap">
+        <svg id="donutSvg" viewBox="0 0 42 42" role="img" aria-label="protocol share"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+    <div class="panel bento__bars">
+      <div class="panel__head"><span class="panel__title" data-i18n="barsTitle">زنده بر اساس پروتکل</span><span class="mono panel__chip" id="barsTotal">—</span></div>
+      <div class="hbars" id="aliveBars"></div>
+    </div>
+    <div class="panel bento__latency">
+      <div class="panel__head"><span class="panel__title" data-i18n="latencyTitle">تأخیر (ms)</span><span class="mono panel__chip" id="enginesChip">—</span></div>
+      <div class="gauge-row">
+        <div class="gauge"><svg viewBox="0 0 100 62" id="gaugeP50"></svg><div class="gauge__val mono" id="gaugeP50Val">—</div><div class="gauge__label">p50</div></div>
+        <div class="gauge"><svg viewBox="0 0 100 62" id="gaugeP80"></svg><div class="gauge__val mono" id="gaugeP80Val">—</div><div class="gauge__label">p80</div></div>
+      </div>
+      <div class="mini-rows" id="latencyRows"></div>
+    </div>
+    <div class="panel bento__engines">
+      <div class="panel__head"><span class="panel__title" data-i18n="enginesTitle">خروجی کلاینت‌ها</span></div>
+      <div class="engine-rows" id="engineRows"></div>
+      <div class="engine-note" data-i18n="enginesNote">هر گره با هر دو موتور واقعی تست و مسیریابی می‌شود.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== IRAN ISPs ===================== -->
+<section class="section" id="iran">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="iranTitle">کاوشگر اپراتورهای ایران <span class="mono accent">//IR-ISP</span></h2>
+    <p class="section__desc" id="iranDesc">گره‌هایی که IP آن‌ها متعلق به اپراتورهای ایرانی شناسایی شد — <span class="mono" id="iranScanned">—</span> <span data-i18n="iranScannedSuffix">IP بررسی شد</span>.</p>
+  </div>
+  <div class="isp-grid" id="ispGrid"></div>
+</section>
+
+<!-- ===================== IMPORT ===================== -->
+<section class="section" id="import">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="importTitle">اتصال یک‌ضربه‌ای <span class="mono accent">//ONE-TAP</span></h2>
+    <p class="section__desc" data-i18n="importDesc">لایه هدف را انتخاب کنید و روی کلاینت بزنید — لینک ورود مستقیم باز می‌شود. روی دسکتاپ، دکمه کپی یا QR.</p>
+  </div>
+  <div class="panel import-panel">
+    <div class="tier-select" id="tierSelect" role="tablist" aria-label="subscription tier"></div>
+    <div class="target-line mono" id="targetUrl">—</div>
+    <div class="client-grid" id="clientGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== NODE EXPLORER ===================== -->
+<section class="section" id="explorer">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="explorerTitle">مرورگر گره <span class="mono accent">//NODES</span></h2>
+    <p class="section__desc" data-i18n="explorerDesc">لیست زنده گره‌های تأییدشده. جستجو، فیلتر پروتکل، کپــی تکی یا خروجی base64 از همه نتایج فیلترشده.</p>
+  </div>
+  <div class="panel explorer-panel">
+    <div class="explorer__bar">
+      <div class="explorer__filters" id="explorerFilters"></div>
+      <input type="search" class="explorer__search" id="explorerSearch" data-i18n-ph="explorerSearch" placeholder="جستجو در تگ، هاست، پروتکل…" aria-label="search nodes">
+    </div>
+    <div class="explorer__tools">
+      <button class="btn btn--mint" id="probeBatch" type="button" data-i18n="probeBatch">⚡ پروب زنده‌ی دسته‌ای</button>
+      <button class="btn btn--ghost" id="sortLat" type="button" data-i18n="sortLat">↑ مرتب‌سازی: تأخیر</button>
+      <button class="btn btn--ghost" id="aliveOnly" type="button" data-i18n="aliveOnly">فقط سالم‌ها</button>
+      <span class="explorer__probemeta mono" id="probeMeta"></span>
+    </div>
+    <div class="explorer__meta mono" id="explorerMeta">—</div>
+    <div class="explorer__list" id="explorerList" aria-live="polite">
+      <div class="explorer__loading" id="explorerLoading"><span class="spinner"></span><span data-i18n="explorerLoading">برای مشاهده، لیست گره‌ها بارگیری می‌شود…</span></div>
+    </div>
+    <div class="explorer__foot">
+      <button class="btn btn--ghost" id="explorerMore" hidden data-i18n="showMore">نمایش بیشتر</button>
+      <button class="btn btn--mint" id="explorerCopy" hidden data-i18n="copyFiltered">کپی فیلترشده به‌صورت base64</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SOURCES ===================== -->
+<section class="section" id="sources">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="sourcesTitle">ماتریس منابع <span class="mono accent">//SOURCES</span></h2>
+    <p class="section__desc" data-i18n="sourcesDesc">هر نقطه یک منبع است؛ اندازه‌اش حجم خام این اجراست. قرمز = خطا در آخرین اجرا.</p>
+  </div>
+  <div class="panel sources-panel">
+    <div class="sources__bar">
+      <input type="search" class="sources__search" id="sourcesSearch" data-i18n-ph="sourcesSearch" placeholder="جستجوی شناسه منبع…" aria-label="search sources">
+      <div class="sources__legend mono">
+        <span class="dot-legend"><i class="dot dot--ok"></i><span data-i18n="legendOk">فعال</span></span>
+        <span class="dot-legend"><i class="dot dot--fail"></i><span data-i18n="legendFail">خطا</span></span>
+      </div>
+    </div>
+    <div class="dot-matrix" id="dotMatrix"></div>
+    <div class="sources__meta mono" id="sourcesMeta">—</div>
+  </div>
+</section>
+
+<!-- ===================== DOWNLOAD ===================== -->
+<section class="section" id="download">
+  <div class="section__head">
+    <h2 class="section__title" data-i18n="downloadTitle">مرکز دانلود <span class="mono accent">//EXPORTS</span></h2>
+    <p class="section__desc" data-i18n="downloadDesc">همه خروجی‌های آخرین اجرا — فایل خام، base64، فرمت کلاینت و تفکیک پروتکل.</p>
+  </div>
+  <div class="dl-grid" id="dlGrid"></div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <span class="mono" id="footerStamp">—</span>
+    <span data-i18n="footerText">با خط تولید دو-موتوره‌ی ساعتی — جمع‌آوری، پالایش TCP، اعتبارسنجی واقعی، رده‌بندی.</span>
+    <a class="footer__link" href="https://github.com/Edsel-Rahimi/Ariston" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</footer>
+
+<!-- QR modal -->
+<dialog class="qr-modal" id="qrModal">
+  <div class="qr-modal__box">
+    <div class="qr-modal__head">
+      <span class="panel__title" data-i18n="qrTitle">اسکن برای ورود</span>
+      <button class="icon-btn" id="qrClose" aria-label="close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="qr-modal__target mono" id="qrTarget">—</div>
+    <div class="qr-modal__canvas" id="qrCanvas"></div>
+    <button class="btn btn--ghost" id="qrCopy" data-i18n="copyLink">کپی لینک</button>
+  </div>
+</dialog>
+
+<div class="toast mono" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

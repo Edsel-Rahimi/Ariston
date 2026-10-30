@@ -76,37 +76,18 @@ jobs:
           pip install -q qrcode
           python -m pipeline.assets_gen
 
-      # Live stats between the markers in all five READMEs (fa/en/tr/ru/zh).
-      # To keep main's history flat, the run amends the bot's own previous
-      # stats commit when it is HEAD (force-with-lease keeps this race-safe).
-      - name: Refresh README stats
+      # The README is now fully image-driven: every visual section is an
+      # animated SVG generated above from the run's own numbers.  Commit the
+      # whole assets/ folder to main — the numbers inside the artwork always
+      # match the latest run.  To keep main's history flat, the run amends
+      # the bot's own previous assets commit when it is HEAD (force-with-lease
+      # keeps this race-safe).
+      - name: Commit refreshed live assets
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          FILES = [
-              ("README.md",      "dist/readme-stats.md"),
-              ("README.en.md",   "dist/readme-stats-en.md"),
-              ("README.tr.md",   "dist/readme-stats-tr.md"),
-              ("README.ru.md",   "dist/readme-stats-ru.md"),
-              ("README.zh.md",   "dist/readme-stats-zh.md"),
-          ]
-          def inject(md_path, frag_path):
-              md = Path(md_path)
-              frag = Path(frag_path).read_text(encoding="utf-8").rstrip()
-              text = md.read_text(encoding="utf-8")
-              s = text.index("<!-- stats:start -->")
-              e = text.index("<!-- stats:end -->") + len("<!-- stats:end -->")
-              md.write_text(text[:s] + "<!-- stats:start -->\n" + frag + "\n<!-- stats:end -->" + text[e:], encoding="utf-8")
-          for md, frag in FILES:
-              inject(md, frag)
-          print("README stats injected (5 languages)")
-          PY
-          TRACKED="README.md README.en.md README.tr.md README.ru.md README.zh.md \
-                   assets/stats.svg assets/qr-gold.svg assets/qr-validated.svg assets/qr-nodes.svg"
-          if ! git diff --quiet -- $TRACKED; then
+          if ! git diff --quiet -- assets; then
             git config user.name  "ariston-bot"
             git config user.email "ariston-bot@users.noreply.github.com"
-            git add $TRACKED
+            git add assets
             if [ "$(git log -1 --pretty=%s)" = "chore: refresh live stats" ]; then
               git commit -q --amend --no-edit
               PUSH_OPTS="--force-with-lease"
@@ -119,10 +100,10 @@ jobs:
             git push -q $PUSH_OPTS origin main \
               || { git pull -q --rebase origin main \
                    && git push -q $PUSH_OPTS origin main; } \
-              || echo "::warning::stats push lost the race — next hourly run will retry"
-            echo "README stats: refreshed"
+              || echo "::warning::assets push lost the race — next hourly run will retry"
+            echo "live assets: refreshed"
           else
-            echo "README stats: no change"
+            echo "live assets: no change"
           fi
 
       # OPTIONAL: Telegram notification — activates only when the repo has

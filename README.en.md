@@ -10,45 +10,37 @@
 </p>
 
 <p align="center">
-  <a href="README.md">🇮🇷 فارسی</a> · <b>🇬🇧 English</b> · <a href="README.tr.md">🇹🇷 Türkçe</a> · <a href="README.zh.md">🇨🇳 中文</a> · <a href="README.ru.md">🇷🇺 Русский</a>
+  <a href="README.fa.md"><img src="assets/lang-fa.svg" height="46" alt="fa"></a>&nbsp;
+  <a href="README.md"><img src="assets/lang-en-on.svg" height="46" alt="en"></a>&nbsp;
+  <a href="README.tr.md"><img src="assets/lang-tr.svg" height="46" alt="tr"></a>&nbsp;
+  <a href="README.ru.md"><img src="assets/lang-ru.svg" height="46" alt="ru"></a>&nbsp;
+  <a href="README.zh.md"><img src="assets/lang-zh.svg" height="46" alt="zh"></a>
 </p>
 
----
-
-# 🏛️ Ariston
-
-> **A continuously-validated pool of healthy network endpoints — refined every hour.**
-> *In Ancient Greek, **Ariston** means "the best". That is the whole mission statement.*
+> **The healthy-node repository — filtered every hour.** In ancient Greek, **Ariston** means “the best”; that is the whole goal. The numbers in the card below come from the last real pipeline run — no marketing math.
 
 <p align="center">
-  <img src="assets/stats.svg" alt="Live statistics" width="760">
+  <img src="assets/run-card.svg" alt="last run — live stats" width="100%">
 </p>
 
-<!-- stats:start -->
-| | |
-|---|---|
-| 🕒 Last run | **2026-10-30 07:58 UTC** |
-| 🧹 Cleanup | **98,498 raw → 30,702 unique** |
-| 🧪 Live-tested | **13,675 nodes (dual-engine)** |
-| ✅ Healthy | **821 (6.0%)** |
-| 🏅 Gold / Silver / Bronze | **147 / 584 / 90** |
-| ⚡ Median latency | **589.0 ms** |
-<!-- stats:end -->
+## ⚡ Quick start
 
-## ⚡ Start here — copy one line
+<p align="center">
+  <img src="assets/quickstart.svg" alt="quick start" width="100%">
+</p>
 
-If you only have room for one line, import this — endpoints **proven alive by the latest live sweep**:
+If you only have room for one line, import this:
 
 ```text
-# 🥇 best quality — gold tier
+# best quality — gold tier
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt
-# ✅ balanced (recommended) — everything healthy this run
+# balanced (recommended) — everything healthy this run
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt
-# 🗂 everything — all unique endpoints
+# everything — the full unique pool
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 ```
 
-**📱 On your phone?** Scan one of these — the QR encodes the subscription URL itself, so your client fetches a fresh list every time:
+**On mobile?** Scan one of these codes:
 
 <p align="center">
   <img src="assets/qr-gold.svg" width="168" alt="QR gold">&nbsp;&nbsp;&nbsp;
@@ -56,143 +48,145 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
   <img src="assets/qr-nodes.svg" width="168" alt="QR all">
 </p>
 
-## 🎛️ Tiers — one pool, different amounts of evidence
+## 🎛️ Tiers — text & Base64, one click
 
-These files are not different sources. It is the **same deduplicated pool**, filtered by how much evidence of health each endpoint carries:
+These files are not different sources; it is **one deduplicated pool**, filtered by how much health evidence each node has. Click a card or a button:
 
-| Tier | What gets in | Plain | Base64 |
-|---|---|:---:|:---:|
-| 🥇 **gold** | score ≥ 80 — the fastest, most stable | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64) |
-| 🥈 **silver** | score ≥ 55 — good quality, more variety | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64) |
-| ✅ **validated** | passed the live sweep on this run | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64) |
-| 🗂 **all** | every unique endpoint — untested | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt"><img src="assets/tier-gold.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
 
-**Ready-made client configs** (built from live-tested endpoints, best first):
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt"><img src="assets/tier-silver.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
 
-| File | Good for |
-|---|---|
-| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | Mihomo · Clash.Meta · Clash Verge — auto-select group of the best |
-| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | sing-box · SFA · SFI — selector + automatic urltest |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt"><img src="assets/tier-validated.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.txt"><img src="assets/tier-all.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
+
+## 🖥️ Ready-made client configs
+
+Built from the live nodes of the latest run, best first — click a card to open the file:
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml"><img src="assets/client-mihomo.svg" width="400" alt="mihomo.yaml"></a>&nbsp;
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json"><img src="assets/client-singbox.svg" width="400" alt="singbox.json"></a>
+</p>
 
 <details>
-<summary>📎 Quick import guide per app</summary>
+<summary>📎 Import guide</summary>
 
-- **v2rayNG** → Subscriptions → add the URL of a `.b64` file
-- **Hiddify** → New Profile → URL of `validated.txt`
-- **NekoBox** → Groups → Add group → URL of `validated.txt`
-- **Streisand** → Configs → `+` → URL of `validated.txt`
-- **Clash Verge / Mihomo** → Import → URL of `mihomo.yaml`
-- **sing-box / SFI / SFA** → Profiles → New → URL of `singbox.json`
+- **v2rayNG** → Subscriptions → add the `.b64` URL
+- **Hiddify** → New Profile → `validated.txt` URL
+- **NekoBox** → Groups → Add group → `validated.txt` URL
+- **Streisand** → Configs → `+` → `validated.txt` URL
+- **Clash Verge / Mihomo** → Import → `mihomo.yaml` URL
+- **sing-box / SFA / SFI** → Profiles → New → `singbox.json` URL
 
 </details>
 
 ## 🧪 "Does it actually work?" — measured, not estimated
 
-Most repositories show you a big number and let you guess. Ariston does the opposite: **it measures the real number and shows it.** The uncomfortable truth of free endpoints is that at any given moment the majority of any pool is dead — we don't hide that; we measure it every hour and rank by it.
+<p align="center">
+  <img src="assets/proof.svg" alt="proof" width="100%">
+</p>
 
-| Stage | The question it asks | Cost |
-|---|---|---|
-| **L1 normalize** | Is it parsable? Is it unique? Is it routable? | no network |
-| **L2 spin-up** | Does the protocol handshake actually answer? | xray-core + sing-box cores |
-| **L3 real probe** | Does an HTTP request **through** the endpoint return `204`? | SOCKS5 + `/generate_204` |
-
-> 🧭 **Why two engines?** Because neither sees the whole map: xray-core is blind to QUIC protocols (Hysteria2 / TUIC), while sing-box misses some xray variants. Each engine covers the other's blind spot — a detail most similar projects ignore.
-
-The live numbers for this very moment are in the stats table above; the full history lives in [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json).
+Most repositories show one big number and leave you guessing. Ariston does the opposite: **it measures and shows the real number.** Full per-node history lives in [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json); the stat card above refreshes hourly.
 
 ## 🇮🇷 Iranian operator split
 
-Endpoints sitting on Iranian networks are published separately — useful for domestic traffic, which is often free and faster. The split is done via ASN ownership tables, not geo guesswork:
+Nodes whose IP belongs to Iranian networks are published separately — for domestic traffic that is often free and faster. The split uses the ASN table (who owns the network), not geo-guessing. **Click any card to open that network's file:**
 
-| Operator | File | | Operator | File |
-|---|---|---|---|---|
-| 📡 MCI (Hamrah-e Aval) | [mci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt) | | 🌐 Shatel | [shatel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt) |
-| 📡 Irancell | [irancell](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt) | | 🌐 MobinNet | [mobinnet](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt) |
-| 📡 TCI (Mokhaberat) | [tci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt) | | 🌐 Asiatech | [asiatech](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt) |
-| 📡 Rightel | [rightel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt) | | 🌐 ParsOnline | [parsonline](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt) |
-| 📡 Pishgaman | [pishgaman](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt) | | 🌐 Respina | [respina](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt) |
-| | | | 🌍 other IR networks | [ir-other](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt) |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt"><img src="assets/op-irancell.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt"><img src="assets/op-mci.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt"><img src="assets/op-tci.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt"><img src="assets/op-rightel.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt"><img src="assets/op-pishgaman.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt"><img src="assets/op-shatel.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt"><img src="assets/op-mobinnet.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt"><img src="assets/op-asiatech.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt"><img src="assets/op-parsonline.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt"><img src="assets/op-respina.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt"><img src="assets/op-ir-other.svg" width="262"></a>
+</p>
 
-> An empty file simply means the last run found no endpoint on that network — not a broken file.
+> An empty file means the last run found no node on that network — not a broken file.
 
 ## ⚙️ Supported protocols
 
-| Protocol | Collected | Tested |
-|---|:---:|:---:|
-| VLESS (incl. Reality / Vision / XHTTP) | ✅ | ✅ |
-| VMess | ✅ | ✅ |
-| Trojan | ✅ | ✅ |
-| Shadowsocks / SS2022 | ✅ | ✅ |
-| Hysteria2 | ✅ | ✅ |
-| TUIC v5 | ✅ | ✅ |
-| SSR | ✅ | — |
+<p align="center">
+  <img src="assets/protocols.svg" alt="protocols" width="100%">
+</p>
 
 ## 🏗 Architecture
 
-```mermaid
-flowchart LR
-    A["public sources<br/>GitHub · Telegram"] --> B["Collector"]
-    B --> C["Normalizer<br/>canonicalize + dedupe"]
-    C --> D["Validator<br/>xray-core + sing-box"]
-    D --> E["Scorer<br/>4-factor scoring"]
-    E --> F["Publisher<br/>multi-format outputs"]
-    F --> G[("data branch<br/>hourly · force-push")]
-```
+<p align="center">
+  <img src="assets/architecture.svg" alt="architecture" width="100%">
+</p>
 
-Full details: [`docs/architecture.md`](docs/architecture.md)
+Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 
 ## ➕ Adding a source
 
-Know a new source (a Telegram channel or a public file)? See [`CONTRIBUTING.md`](CONTRIBUTING.md) — a PR editing `pipeline/sources.json` is all it takes.
+Have a new source (a Telegram channel or a public file)? See [`CONTRIBUTING.md`](CONTRIBUTING.md) — one PR editing `pipeline/sources.json` is enough.
 
-> ⚠️ **Naming policy:** this project deliberately uses neutral wording ("node", "network endpoint") in file names, texts and code; experience shows repositories that brand themselves with direct names tend to have shorter lifetimes. Please follow the same style in PRs.
+> ⚠️ **Naming policy:** this project deliberately uses neutral words (“node”, “network endpoint”) in filenames, texts and code; experience shows repositories with explicit naming live shorter. Please keep PRs neutral too.
 
 ## 🗺 Roadmap
 
-- [x] **Phase 1 — MVP:** collect + normalize + dedupe
-- [x] **Phase 1b — dual-engine testing:** xray-core + sing-box on GitHub Actions
-- [x] **Phase 2 — scoring & clients:** gold/silver/bronze tiers, mihomo.yaml + singbox.json, live stats
-- [x] **Phase 3 — operators & notify:** Iranian ASN split, Telegram notification, mirroring
-- [ ] **Phase 4 — web dashboard:** a live page on GitHub Pages
-- [ ] **Phase 5 — Telegram bot:** fetch the files inside Telegram
-- [ ] **Phase 6 — scale:** more sources, multi-region testing
+- [x] **Phase 1 — MVP: collect + normalize + deduplicate**
+- [x] **Phase 1b — dual-engine testing: xray-core + sing-box on GitHub Actions**
+- [x] **Phase 2 — scoring & clients: gold/silver/bronze, mihomo.yaml, singbox.json**
+- [x] **Phase 3 — operators & notify: Iran ASN split, Telegram notify, mirrors**
+- [ ] **Phase 4 — web dashboard: live page on GitHub Pages**
+- [ ] **Phase 5 — Telegram bot: fetch files inside Telegram**
 
 ## ❓ FAQ
 
 <details>
-<summary><b>Why is only a fraction of the pool alive?</b></summary>
+<summary><b>Why are only this many nodes alive?</b></summary>
 
-That is the nature of free endpoints — they die or get crowded quickly. The difference is that we **measure and show** this reality instead of baiting you with a raw "tens of thousands of configs" number. The real number refreshes hourly in the stats table above.
-
-</details>
-
-<details>
-<summary><b>Which file should I use?</b></summary>
-
-- Beginner or in a hurry → `validated.txt` (balanced, smaller)
-- Only the best → `gold.txt`
-- Using a specific client → `mihomo.yaml` or `singbox.json`
-- Want to explore everything → `nodes.txt`
+That is the nature of free configs — nodes die or get crowded fast. The difference is that we **measure and show** this reality instead of dazzling you with a raw “tens of thousands of configs” number. The real number refreshes hourly in the stat card.
 
 </details>
 
 <details>
-<summary><b>How often is it updated?</b></summary>
+<summary><b>Which file is right for me?</b></summary>
 
-Automatically every hour at :07 UTC. The `data` branch always holds exactly one snapshot (force-push); repo history never bloats and links you copy today keep working forever.
+Beginner or in a hurry → `validated.txt` · only the best → `gold.txt` · a specific app → `mihomo.yaml` / `singbox.json` · want to dig yourself → `nodes.txt`
+
+</details>
+
+<details>
+<summary><b>How often does it update?</b></summary>
+
+Automatically every hour at :07 UTC. The `data` branch always holds exactly one snapshot; links you copy today stay valid.
 
 </details>
 
 <details>
 <summary><b>Why is the wording so neutral?</b></summary>
 
-Experience shows that using direct branding in titles and texts raises the risk of a repository being removed. Ariston merely indexes and refines publicly available data and deliberately describes itself exactly that way — for the project's long-term survival.
+Experience shows explicit naming raises takedown risk. Ariston only indexes and filters public data — built for the long run.
 
 </details>
 
 ## ⚖️ Disclaimer
 
-This project only **indexes and refines** publicly available data; it provides no service and owns no servers. All data is collected from public sources on the internet and any use is the user's own responsibility. The project is affiliated with no tool or vendor and is offered for research and educational purposes. If you own content and object to it being indexed, open an Issue and it will be removed immediately.
+This project only **indexes and filters** public data; it provides no service and owns no servers. Use at your own responsibility. Content owner? Open an issue and it will be removed immediately.
 
 ## 📄 License
 
@@ -201,5 +195,5 @@ MIT — see [`LICENSE`](LICENSE)
 ---
 
 <p align="center">
-  If this helped you, give it a ⭐ to keep the repository alive.
+  If this helped, give it a ⭐ to keep the repository alive.
 </p>

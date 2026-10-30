@@ -10,196 +10,190 @@
 </p>
 
 <p align="center">
-  <a href="README.md">🇮🇷 فارسی</a> · <a href="README.en.md">🇬🇧 English</a> · <b>🇹🇷 Türkçe</b> · <a href="README.zh.md">🇨🇳 中文</a> · <a href="README.ru.md">🇷🇺 Русский</a>
+  <a href="README.fa.md"><img src="assets/lang-fa.svg" height="46" alt="fa"></a>&nbsp;
+  <a href="README.md"><img src="assets/lang-en.svg" height="46" alt="en"></a>&nbsp;
+  <a href="README.tr.md"><img src="assets/lang-tr-on.svg" height="46" alt="tr"></a>&nbsp;
+  <a href="README.ru.md"><img src="assets/lang-ru.svg" height="46" alt="ru"></a>&nbsp;
+  <a href="README.zh.md"><img src="assets/lang-zh.svg" height="46" alt="zh"></a>
 </p>
 
----
-
-# 🏛️ Ariston
-
-> **Sağlıklı ağ düğümlerinin sürekli doğrulanan havuzu — her saat rafine edilir.**
-> *Antik Yunanca'da **Ariston** "en iyisi" demektir. Misyonumuz tek kelime: en iyisi.*
+> **Sağlam düğüm deposu — her saat filtrelenir.** Eski Yunanca'da **Ariston** “en iyi” demektir; amaç da tam olarak bu. Aşağıdaki karttaki sayılar son gerçek hattın çıktısından üretilir — pazarlama matematiği yok.
 
 <p align="center">
-  <img src="assets/stats.svg" alt="Canlı istatistikler" width="760">
+  <img src="assets/run-card.svg" alt="last run — live stats" width="100%">
 </p>
 
-<!-- stats:start -->
-| | |
-|---|---|
-| 🕒 Son çalıştırma | **2026-10-30 07:58 UTC** |
-| 🧹 Temizlik | **98,498 ham → 30,702 tekil** |
-| 🧪 Canlı test | **13,675 düğüm (çift motor)** |
-| ✅ Sağlıklı | **821 (6.0%)** |
-| 🏅 Altın / Gümüş / Bronz | **147 / 584 / 90** |
-| ⚡ Medyan gecikme | **589.0 ms** |
-<!-- stats:end -->
+## ⚡ Quick start
 
-## ⚡ Hemen başla — bir satırı kopyala
+<p align="center">
+  <img src="assets/quickstart.svg" alt="quick start" width="100%">
+</p>
 
-Yalnızca bir satırlık yeriniz varsa bunu içe aktarın — **son canlı taramada sağlam olduğu kanıtlanan** düğümler:
+Tek bir satırlık yeriniz varsa bunu içe aktarın:
 
 ```text
-# 🥇 en iyi kalite — altın seviye
+# best quality — gold tier
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt
-# ✅ dengeli (önerilen) — bu turda sağlıklı olanların tamamı
+# balanced (recommended) — everything healthy this run
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt
-# 🗂 her şey — tüm tekil düğümler
+# everything — the full unique pool
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 ```
 
-**📱 Telefonda mısınız?** Bunlardan birini taratın — QR'in kendisi abonelik URL'ini kodlar; istemciniz her seferinde güncel listeyi çeker:
+**Telefonda mısınız?** Bu kodlardan birini tarayın:
 
 <p align="center">
-  <img src="assets/qr-gold.svg" width="168" alt="QR altın">&nbsp;&nbsp;&nbsp;
+  <img src="assets/qr-gold.svg" width="168" alt="QR gold">&nbsp;&nbsp;&nbsp;
   <img src="assets/qr-validated.svg" width="168" alt="QR validated">&nbsp;&nbsp;&nbsp;
-  <img src="assets/qr-nodes.svg" width="168" alt="QR tümü">
+  <img src="assets/qr-nodes.svg" width="168" alt="QR all">
 </p>
 
-## 🎛️ Seviyeler — tek havuz, farklı kanıt miktarı
+## 🎛️ Tiers — text & Base64, one click
 
-Bu dosyalar farklı kaynaklar değildir; **aynı tekil havuzun**, her düğümün taşıdığı sağlık kanıtı miktarına göre filtrelenmiş halidir:
+Bu dosyalar farklı kaynaklar değil; **tek bir tekrarsız havuzun**, her düğümün sağlık kanıtına göre filtrelenmiş hâlleridir. Karta veya düğmeye tıklayın:
 
-| Seviye | Kimler girer | Metin | Base64 |
-|---|---|:---:|:---:|
-| 🥇 **gold** | puan ≥ 80 — en hızlı ve en kararlılar | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64) |
-| 🥈 **silver** | puan ≥ 55 — iyi kalite, daha fazla çeşit | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64) |
-| ✅ **validated** | bu turda canlı testi geçenler | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64) |
-| 🗂 **all** | tüm tekil düğümler — test edilmemiş | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt"><img src="assets/tier-gold.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
 
-**Hazır istemci yapılandırmaları** (canlı test edilmiş düğümlerden, en iyisi başta):
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt"><img src="assets/tier-silver.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
 
-| Dosya | Kimin için |
-|---|---|
-| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | Mihomo · Clash.Meta · Clash Verge — en iyilerin otomatik seçim grubu |
-| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | sing-box · SFA · SFI — seçici + otomatik urltest |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt"><img src="assets/tier-validated.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.txt"><img src="assets/tier-all.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
+
+## 🖥️ Ready-made client configs
+
+Son çalıştırmanın canlı düğümlerinden, en iyisi başta — dosyayı açmak için karta tıklayın:
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml"><img src="assets/client-mihomo.svg" width="400" alt="mihomo.yaml"></a>&nbsp;
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json"><img src="assets/client-singbox.svg" width="400" alt="singbox.json"></a>
+</p>
 
 <details>
-<summary>📎 Uygulamalara hızlı içe aktarma kılavuzu</summary>
+<summary>📎 Import guide</summary>
 
-- **v2rayNG** → Subscriptions → bir `.b64` dosyasının URL'sini ekleyin
-- **Hiddify** → New Profile → `validated.txt` URL'si
-- **NekoBox** → Groups → Add group → `validated.txt` URL'si
-- **Streisand** → Configs → `+` → `validated.txt` URL'si
-- **Clash Verge / Mihomo** → Import → `mihomo.yaml` URL'si
-- **sing-box / SFI / SFA** → Profiles → New → `singbox.json` URL'si
+- **v2rayNG** → Subscriptions → add the `.b64` URL
+- **Hiddify** → New Profile → `validated.txt` URL
+- **NekoBox** → Groups → Add group → `validated.txt` URL
+- **Streisand** → Configs → `+` → `validated.txt` URL
+- **Clash Verge / Mihomo** → Import → `mihomo.yaml` URL
+- **sing-box / SFA / SFI** → Profiles → New → `singbox.json` URL
 
 </details>
 
-## 🧪 "Gerçekten çalışıyor mu?" — tahmin değil, ölçüm
+## 🧪 "Does it actually work?" — measured, not estimated
 
-Çoğu depo size büyük bir sayı gösterir ve gerisini tahmininize bırakır. Ariston tersini yapar: **gerçek sayıyı ölçer ve gösterir.** Ücretsiz düğümlerin acı gerçeği şudur: herhangi bir anda havuzun çoğu ölüdür — bunu gizlemeyiz; her saat ölçer ve buna göre sıralarız.
+<p align="center">
+  <img src="assets/proof.svg" alt="proof" width="100%">
+</p>
 
-| Aşama | Sorduğu soru | Maliyet |
-|---|---|---|
-| **L1 normalleştirme** | Ayrıştırılabilir mi? Tekil mi? Yönlendirilebilir mi? | ağ yok |
-| **L2 başlatma** | Protokol el sıkışması gerçekten yanıt veriyor mu? | xray-core + sing-box çekirdekleri |
-| **L3 gerçek sondaj** | Düğümün **içinden** geçen HTTP isteği `204` döndürüyor mu? | SOCKS5 + `/generate_204` |
+Çoğu depo büyük bir sayı gösterir ve sizi tahminle baş başa bırakır. Ariston tersini yapar: **gerçek sayıyı ölçer ve gösterir.** Düğüm bazlı geçmiş [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json) içinde; yukarıdaki kart her saat yenilenir.
 
-> 🧭 **Neden iki motor?** Çünkü hiçbiri haritanın tamamını göremez: xray-core QUIC protokollerine (Hysteria2 / TUIC) kördür; sing-box ise bazı xray varyantlarını kaçırır. Her motor diğerinin kör noktasını kapatır — benzer projelerin çoğunun görmezden geldiği bir detay.
+## 🇮🇷 Iranian operator split
 
-Bu anın canlı sayıları yukarıdaki istatistik tablosunda; tüm geçmiş [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json) dosyasındadır.
+IP'si İran ağlarına ait düğümler ayrı yayımlanır — çoğu zaman ücretsiz ve hızlı olan yerel trafik için. Ayrım ASN tablosuna (ağın sahibine) dayanır, coğrafi tahmine değil. **Dosyayı açmak için karta tıklayın:**
 
-## 🇮🇷 İran operatör ayrımı
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt"><img src="assets/op-irancell.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt"><img src="assets/op-mci.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt"><img src="assets/op-tci.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt"><img src="assets/op-rightel.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt"><img src="assets/op-pishgaman.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt"><img src="assets/op-shatel.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt"><img src="assets/op-mobinnet.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt"><img src="assets/op-asiatech.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt"><img src="assets/op-parsonline.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt"><img src="assets/op-respina.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt"><img src="assets/op-ir-other.svg" width="262"></a>
+</p>
 
-İran şebekeleri üzerindeki düğümler ayrı yayınlanır — çoğunlukla ücretsiz ve daha hızlı olan yerel trafik için kullanışlıdır. Ayrım, coğrafi tahminle değil ASN sahiplik tablolarıyla yapılır:
+> Boş dosya, son çalıştırmada o ağda düğüm bulunmadığı anlamına gelir — dosya bozuk değil.
 
-| Operatör | Dosya | | Operatör | Dosya |
-|---|---|---|---|---|
-| 📡 MCI (Hamrah-e Aval) | [mci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt) | | 🌐 Shatel | [shatel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt) |
-| 📡 Irancell | [irancell](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt) | | 🌐 MobinNet | [mobinnet](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt) |
-| 📡 TCI (Mokhaberat) | [tci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt) | | 🌐 Asiatech | [asiatech](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt) |
-| 📡 Rightel | [rightel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt) | | 🌐 ParsOnline | [parsonline](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt) |
-| 📡 Pishgaman | [pishgaman](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt) | | 🌐 Respina | [respina](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt) |
-| | | | 🌍 diğer İR şebekeleri | [ir-other](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt) |
+## ⚙️ Supported protocols
 
-> Boş bir dosya, son turda o şebekede düğüm bulunamadığı anlamına gelir — dosyanın bozuk olduğu anlamına gelmez.
+<p align="center">
+  <img src="assets/protocols.svg" alt="protocols" width="100%">
+</p>
 
-## ⚙️ Desteklenen protokoller
+## 🏗 Architecture
 
-| Protokol | Toplama | Test |
-|---|:---:|:---:|
-| VLESS (Reality / Vision / XHTTP dahil) | ✅ | ✅ |
-| VMess | ✅ | ✅ |
-| Trojan | ✅ | ✅ |
-| Shadowsocks / SS2022 | ✅ | ✅ |
-| Hysteria2 | ✅ | ✅ |
-| TUIC v5 | ✅ | ✅ |
-| SSR | ✅ | — |
+<p align="center">
+  <img src="assets/architecture.svg" alt="architecture" width="100%">
+</p>
 
-## 🏗 Mimari
+Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 
-```mermaid
-flowchart LR
-    A["public sources<br/>GitHub · Telegram"] --> B["Collector<br/>Toplama"]
-    B --> C["Normalizer<br/>standartlaştırma + tekilleştirme"]
-    C --> D["Validator<br/>xray-core + sing-box"]
-    D --> E["Scorer<br/>4 faktörlü puanlama"]
-    E --> F["Publisher<br/>çok biçimli çıktılar"]
-    F --> G[("data branch<br/>saatlik · force-push")]
-```
+## ➕ Adding a source
 
-Tam ayrıntılar: [`docs/architecture.md`](docs/architecture.md)
+Yeni bir kaynağınız mı var (Telegram kanalı veya herkese açık dosya)? [`CONTRIBUTING.md`](CONTRIBUTING.md) — `pipeline/sources.json` düzenleyen tek bir PR yeter.
 
-## ➕ Kaynak ekleme
+> ⚠️ **Adlandırma politikası:** bu proje dosya adlarında, metinlerde ve kodda bilinçli olarak nötr kelimeler (“düğüm”, “ağ ucu”) kullanır; açık adlandırma kullanan depoların öne çıktı bilinir. Lütfen PR'lerde de aynı dili koruyun.
 
-Yeni bir kaynak biliyor musunuz (Telegram kanalı veya herkese açık dosya)? [`CONTRIBUTING.md`](CONTRIBUTING.md) dosyasına bakın — `pipeline/sources.json` dosyasını düzenleyen tek bir PR yeterlidir.
+## 🗺 Roadmap
 
-> ⚠️ **Adlandırma politikası:** Bu proje dosya adlarında, metinlerinde ve kodunda bilinçli olarak nötr ifadeler ("düğüm", "ağ uç noktası") kullanır; doğrudan marka adlarıyla yayına giren depoların ömrünün daha kısa olduğu görülmüştür. Lütfen PR'larda da aynı üslubu izleyin.
+- [x] **Faz 1 — MVP: toplama + normalleştirme + tekrarsızlaştırma**
+- [x] **Faz 1b — çift motor testi: GitHub Actions'ta xray-core + sing-box**
+- [x] **Faz 2 — puanlama ve istemciler: altın/gümüş/bronz, mihomo.yaml, singbox.json**
+- [x] **Faz 3 — operatörler ve bildirim: İran ASN ayrımı, Telegram bildirimi, aynalar**
+- [ ] **Faz 4 — web panosu: GitHub Pages'te canlı sayfa**
+- [ ] **Faz 5 — Telegram botu: dosyaları Telegram içinde almak**
 
-## 🗺 Yol haritası
-
-- [x] **Aşama 1 — MVP:** toplama + standartlaştırma + tekilleştirme
-- [x] **Aşama 1b — çift motor testi:** GitHub Actions üzerinde xray-core + sing-box
-- [x] **Aşama 2 — puanlama ve istemciler:** altın/gümüş/bronz seviyeleri, mihomo.yaml + singbox.json, canlı istatistik
-- [x] **Aşama 3 — operatörler ve bildirim:** İran ASN ayrımı, Telegram bildirimi, yansıtma
-- [ ] **Aşama 4 — web panosu:** GitHub Pages üzerinde canlı sayfa
-- [ ] **Aşama 5 — Telegram botu:** dosyaları Telegram içinde almak
-- [ ] **Aşama 6 — ölçek:** daha fazla kaynak, çok bölgeli test
-
-## ❓ SSS
+## ❓ FAQ
 
 <details>
-<summary><b>Havuzun yalnızca bir bölümü neden canlı?</b></summary>
+<summary><b>Bu kadar düğümden neden yalnızca bu kadarı canlı?</b></summary>
 
-Bu, ücretsiz düğümlerin doğasıdır — hızla ölürler veya kalabalışırlar. Fark şu: bu gerçeği ham "on binlerce config" sayısıyla sizi ayartmak yerine **ölçüp gösteriyoruz.** Gerçek sayı, yukarıdaki istatistik tablosunda her saat yenilenir.
-
-</details>
-
-<details>
-<summary><b>Hangi dosyayı kullanmalıyım?</b></summary>
-
-- Yeni başlayan veya acelesi olan → `validated.txt` (dengeli, daha küçük)
-- Yalnızca en iyisi → `gold.txt`
-- Belirli bir istemci kullanıyorsanız → `mihomo.yaml` veya `singbox.json`
-- Her şeyi keşfetmek isteyen → `nodes.txt`
+Ücretsiz konfigürasyonların doğası bu — düğümler hızla ölür veya kalabalıklaşır. Fark şu: gerçeği uydurmak yerine **ölçüp gösteriyoruz.** Gerçek sayı her saat kartta yenilenir.
 
 </details>
 
 <details>
-<summary><b>Ne sıklıkla güncelleniyor?</b></summary>
+<summary><b>Hangi dosya bana uygun?</b></summary>
 
-Her saat :07'de (UTC) otomatik olarak. `data` dalı her zaman tam olarak tek bir anlık görüntü tutar (force-push); depo geçmişi hiçbir zaman şişmez ve bugün kopyaladığınız bağlantılar sonsuza kadar çalışmaya devam eder.
+Yeni başlayan veya acelesi olan → `validated.txt` · sadece en iyiler → `gold.txt` · belirli uygulama → `mihomo.yaml` / `singbox.json` · kendim karışmak isterim → `nodes.txt`
 
 </details>
 
 <details>
-<summary><b>İfadeler neden bu kadar nötr?</b></summary>
+<summary><b>Ne sıklıkta güncellenir?</b></summary>
 
-Deneyim, başlıklarda ve metinlerde doğrudan marka kullanımının deponun kaldırılma riskini yükselttiğini gösteriyor. Ariston yalnızca herkese açık verileri indeksler ve rafine eder; kendini de bilinçli olarak böyle tanımlar — projenin uzun vadeli sürekliliği için.
+Her saat :07 UTC'de otomatik. `data` dalı her zaman tek bir anlık görüntü tutar; bugün kopyaladığınız bağlantılar geçerli kalır.
 
 </details>
 
-## ⚖️ Yasal uyarı
+<details>
+<summary><b>Dil neden bu kadar nötr?</b></summary>
 
-Bu proje yalnızca herkese açık verileri **indeksler ve rafine eder**; hizmet sunmaz ve hiçbir sunucuya sahip değildir. Tüm veriler internetteki herkese açık kaynaklardan derlenmiştir ve kullanım sorumluluğu kullanıcıya aittir. Proje hiçbir araca veya satıcıya bağlı değildir ve araştırma ile eğitim amaçlı sunulmaktadır. İçeriğin sahibiyseniz ve indekslenmesine itiraz ediyorsanız bir Issue açın; derhal kaldırılır.
+Açık adlandırmanın kaldırılma riskini artırdığı biliniyor. Ariston yalnızca herkese açık veriyi indeksler ve filtreler — uzun ömür için.
 
-## 📄 Lisans
+</details>
 
-MIT — ayrıntılar için [`LICENSE`](LICENSE)
+## ⚖️ Disclaimer
+
+Bu proje yalnızca herkese açık veriyi **indeksler ve filtreler**; hizmet sunmaz, sunucu işletmez. Sorumluluk kullanıcıya aittir. İçerik sahibiyseniz bir issue açın, anında kaldırılır.
+
+## 📄 License
+
+MIT — see [`LICENSE`](LICENSE)
 
 ---
 
 <p align="center">
-  İşinize yaradıysa, deponun ayakta kalması için bir ⭐ bırakın.
+  İşinize yaradıysa, depoyu ayakta tutmak için bir ⭐ bırakın.
 </p>

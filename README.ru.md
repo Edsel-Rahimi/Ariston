@@ -10,193 +10,187 @@
 </p>
 
 <p align="center">
-  <a href="README.md">🇮🇷 فارسی</a> · <a href="README.en.md">🇬🇧 English</a> · <a href="README.tr.md">🇹🇷 Türkçe</a> · <a href="README.zh.md">🇨🇳 中文</a> · <b>🇷🇺 Русский</b>
+  <a href="README.fa.md"><img src="assets/lang-fa.svg" height="46" alt="fa"></a>&nbsp;
+  <a href="README.md"><img src="assets/lang-en.svg" height="46" alt="en"></a>&nbsp;
+  <a href="README.tr.md"><img src="assets/lang-tr.svg" height="46" alt="tr"></a>&nbsp;
+  <a href="README.ru.md"><img src="assets/lang-ru-on.svg" height="46" alt="ru"></a>&nbsp;
+  <a href="README.zh.md"><img src="assets/lang-zh.svg" height="46" alt="zh"></a>
 </p>
 
----
-
-# 🏛️ Ariston
-
-> **Тонко очищаемый, непрерывно проверяемый пул исправных сетевых узлов — каждый час.**
-> *На древнегреческом **Ariston** означает «лучшее». В этом вся миссия проекта.*
+> **Репозиторий живых узлов — фильтруется каждый час.** В древнегреческом **Ariston** значит “лучшее”; в этом и есть вся цель. Числа на карточке ниже построены из последнего реального запуска — без рекламной арифметики.
 
 <p align="center">
-  <img src="assets/stats.svg" alt="Живая статистика" width="760">
+  <img src="assets/run-card.svg" alt="last run — live stats" width="100%">
 </p>
 
-<!-- stats:start -->
-| | |
-|---|---|
-| 🕒 Последний запуск | **2026-10-30 07:58 UTC** |
-| 🧹 Очистка | **98,498 сырых → 30,702 уникальных** |
-| 🧪 Живая проверка | **13,675 узлов (два движка)** |
-| ✅ Работают | **821 (6.0%)** |
-| 🏅 Золото / Серебро / Бронза | **147 / 584 / 90** |
-| ⚡ Медианная задержка | **589.0 ms** |
-<!-- stats:end -->
+## ⚡ Quick start
 
-## ⚡ Быстрый старт — скопируйте одну строку
+<p align="center">
+  <img src="assets/quickstart.svg" alt="quick start" width="100%">
+</p>
 
-Если есть место лишь для одной строки, импортируйте эту — узлы, **проверенные живым тестом последнего запуска**:
+Место только на одну строку? Импортируйте это:
 
 ```text
-# 🥇 лучшее качество — уровень золота
+# best quality — gold tier
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt
-# ✅ сбалансированный (рекомендуется) — все рабочие этого запуска
+# balanced (recommended) — everything healthy this run
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt
-# 🗂 всё — все уникальные узлы
+# everything — the full unique pool
 https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 ```
 
-**📱 С телефона?** Отсканируйте один из кодов — QR кодирует сам URL подписки, поэтому клиент каждый раз получает свежий список:
+**С телефона?** Отсканируйте один из кодов:
 
 <p align="center">
-  <img src="assets/qr-gold.svg" width="168" alt="QR золото">&nbsp;&nbsp;&nbsp;
+  <img src="assets/qr-gold.svg" width="168" alt="QR gold">&nbsp;&nbsp;&nbsp;
   <img src="assets/qr-validated.svg" width="168" alt="QR validated">&nbsp;&nbsp;&nbsp;
-  <img src="assets/qr-nodes.svg" width="168" alt="QR все">
+  <img src="assets/qr-nodes.svg" width="168" alt="QR all">
 </p>
 
-## 🎛️ Уровни — один пул, разное количество доказательств
+## 🎛️ Tiers — text & Base64, one click
 
-Эти файлы — не разные источники. Это **тот же дедуплицированный пул**, отфильтрованный по количеству доказательств работоспособности каждого узла:
+Это не разные источники; это **единый уникальный пул**, отфильтрованный по количеству свидетельств здоровья каждого узла. Нажмите на карточку или кнопку:
 
-| Уровень | Кто попадает | Текст | Base64 |
-|---|---|:---:|:---:|
-| 🥇 **gold** | балл ≥ 80 — самые быстрые и стабильные | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64) |
-| 🥈 **silver** | балл ≥ 55 — хорошее качество, больше разнообразия | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64) |
-| ✅ **validated** | прошли живую проверку в этом запуске | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64) |
-| 🗂 **all** | все уникальные узлы — без проверки | [txt](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt) | [b64](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.b64) |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt"><img src="assets/tier-gold.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/gold.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
 
-**Готовые конфиги для клиентов** (из живых узлов, лучшие — вперёд):
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt"><img src="assets/tier-silver.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/silver.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
 
-| Файл | Для чего |
-|---|---|
-| [`mihomo.yaml`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml) | Mihomo · Clash.Meta · Clash Verge — автогруппа лучших |
-| [`singbox.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json) | sing-box · SFA · SFI — селектор + автоматический urltest |
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt"><img src="assets/tier-validated.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/validated.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.txt"><img src="assets/tier-all.svg" width="398"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.txt"><img src="assets/btn-text.svg" width="158"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/all.b64"><img src="assets/btn-b64.svg" width="158"></a>
+</p>
+
+## 🖥️ Ready-made client configs
+
+Собраны из живых узлов последнего запуска, лучшие впереди — нажмите на карточку, чтобы открыть файл:
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/mihomo.yaml"><img src="assets/client-mihomo.svg" width="400" alt="mihomo.yaml"></a>&nbsp;
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/singbox.json"><img src="assets/client-singbox.svg" width="400" alt="singbox.json"></a>
+</p>
 
 <details>
-<summary>📎 Краткая инструкция импорта по приложениям</summary>
+<summary>📎 Import guide</summary>
 
-- **v2rayNG** → Subscriptions → добавьте URL файла `.b64`
-- **Hiddify** → New Profile → URL файла `validated.txt`
-- **NekoBox** → Groups → Add group → URL файла `validated.txt`
-- **Streisand** → Configs → `+` → URL файла `validated.txt`
-- **Clash Verge / Mihomo** → Import → URL файла `mihomo.yaml`
-- **sing-box / SFI / SFA** → Profiles → New → URL файла `singbox.json`
+- **v2rayNG** → Subscriptions → add the `.b64` URL
+- **Hiddify** → New Profile → `validated.txt` URL
+- **NekoBox** → Groups → Add group → `validated.txt` URL
+- **Streisand** → Configs → `+` → `validated.txt` URL
+- **Clash Verge / Mihomo** → Import → `mihomo.yaml` URL
+- **sing-box / SFA / SFI** → Profiles → New → `singbox.json` URL
 
 </details>
 
-## 🧪 «А оно вообще работает?» — измерено, а не оценено
+## 🧪 "Does it actually work?" — measured, not estimated
 
-Большинство репозиториев показывают большое число и оставляют догадки вам. Ariston поступает наоборот: **измеряет реальное число и показывает его.** Горькая правда бесплатных узлов: в любой момент времени большая часть пула мертва — мы это не прячем, мы меряем каждый час и ранжируем по этому.
+<p align="center">
+  <img src="assets/proof.svg" alt="proof" width="100%">
+</p>
 
-| Этап | Какой вопрос задаёт | Цена |
-|---|---|---|
-| **L1 нормализация** | Разбирается? Уникален? Имеет маршрут? | без сети |
-| **L2 запуск** | Рукопожатие протокола реально отвечает? | ядра xray-core + sing-box |
-| **L3 живой пробник** | HTTP-запрос **через** узел возвращает `204`? | SOCKS5 + `/generate_204` |
+Большинство репозиториев показывают большое число и оставляют вас с догадками. Ariston поступает наоборот: **измеряет и показывает реальное число.** История каждого узла — в [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json); карточка выше обновляется ежечасно.
 
-> 🧭 **Почему два движка?** Потому что ни один не видит всей карты: xray-core слеп к QUIC-протоколам (Hysteria2 / TUIC), а sing-box пропускает часть вариантов xray. Каждый движок закрывает слепую зону другого — деталь, которую большинство похожих проектов игнорирует.
+## 🇮🇷 Iranian operator split
 
-Живые числа на данный момент — в таблице статистики выше; полная история — в [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json).
+Узлы, чьи IP принадлежат иранским сетям, публикуются отдельно — для внутреннего трафика, который часто бесплатнее и быстрее. Разделение по таблице ASN (владелец сети), а не по гео-догадкам. **Нажмите на карточку, чтобы открыть файл сети:**
 
-## 🇮🇷 Разбивка по иранским операторам
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt"><img src="assets/op-irancell.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt"><img src="assets/op-mci.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt"><img src="assets/op-tci.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt"><img src="assets/op-rightel.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt"><img src="assets/op-pishgaman.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt"><img src="assets/op-shatel.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt"><img src="assets/op-mobinnet.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt"><img src="assets/op-asiatech.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt"><img src="assets/op-parsonline.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt"><img src="assets/op-respina.svg" width="262"></a>
+  <a href="https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt"><img src="assets/op-ir-other.svg" width="262"></a>
+</p>
 
-Узлы, находящиеся в иранских сетях, публикуются отдельно — полезно для внутреннего трафика, который часто бесплатен и быстрее. Разбивка делается по таблицам владельцев ASN, а не по геодогадкам:
+> Пустой файл означает, что в последнем запуске узлов этой сети не нашлось — файл не сломан.
 
-| Оператор | Файл | | Оператор | Файл |
-|---|---|---|---|---|
-| 📡 MCI (Hamrah-e Aval) | [mci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mci.txt) | | 🌐 Shatel | [shatel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/shatel.txt) |
-| 📡 Irancell | [irancell](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/irancell.txt) | | 🌐 MobinNet | [mobinnet](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/mobinnet.txt) |
-| 📡 TCI (Mokhaberat) | [tci](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/tci.txt) | | 🌐 Asiatech | [asiatech](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/asiatech.txt) |
-| 📡 Rightel | [rightel](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/rightel.txt) | | 🌐 ParsOnline | [parsonline](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/parsonline.txt) |
-| 📡 Pishgaman | [pishgaman](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/pishgaman.txt) | | 🌐 Respina | [respina](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/respina.txt) |
-| | | | 🌍 прочие сети Ирана | [ir-other](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/by-operator/ir-other.txt) |
+## ⚙️ Supported protocols
 
-> Пустой файл означает лишь, что в последнем запуске узлов этой сети не нашлось, — а не что файл сломан.
+<p align="center">
+  <img src="assets/protocols.svg" alt="protocols" width="100%">
+</p>
 
-## ⚙️ Поддерживаемые протоколы
+## 🏗 Architecture
 
-| Протокол | Сбор | Тест |
-|---|:---:|:---:|
-| VLESS (включая Reality / Vision / XHTTP) | ✅ | ✅ |
-| VMess | ✅ | ✅ |
-| Trojan | ✅ | ✅ |
-| Shadowsocks / SS2022 | ✅ | ✅ |
-| Hysteria2 | ✅ | ✅ |
-| TUIC v5 | ✅ | ✅ |
-| SSR | ✅ | — |
+<p align="center">
+  <img src="assets/architecture.svg" alt="architecture" width="100%">
+</p>
 
-## 🏗 Архитектура
+Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 
-```mermaid
-flowchart LR
-    A["public sources<br/>GitHub · Telegram"] --> B["Collector<br/>Сбор"]
-    B --> C["Normalizer<br/>нормализация + дедуп"]
-    C --> D["Validator<br/>xray-core + sing-box"]
-    D --> E["Scorer<br/>оценка по 4 факторам"]
-    E --> F["Publisher<br/>многоформатные выгрузки"]
-    F --> G[("data branch<br/>ежечасно · force-push")]
-```
+## ➕ Adding a source
 
-Подробности: [`docs/architecture.md`](docs/architecture.md)
+Есть новый источник (Telegram-канал или публичный файл)? Смотрите [`CONTRIBUTING.md`](CONTRIBUTING.md) — достаточно одного PR с правкой `pipeline/sources.json`.
 
-## ➕ Добавить источник
+> ⚠️ **Политика именования:** проект намеренно использует нейтральные слова (“узел”, “сетевая точка”) в именах файлов, текстах и коде; опыт показывает, что репозитории с прямыми названиями живут меньше. Пожалуйста, держите PR нейтральными.
 
-Знаете новый источник (Telegram-канал или публичный файл)? Смотрите [`CONTRIBUTING.md`](CONTRIBUTING.md) — достаточно одного PR с правкой `pipeline/sources.json`.
+## 🗺 Roadmap
 
-> ⚠️ **Политика именования:** проект сознательно использует нейтральные формулировки («узел», «сетевая точка») в именах файлов, текстах и коде; опыт показывает, что репозитории с прямым брендированием живут меньше. Пожалуйста, придерживайтесь того же стиля в PR.
-
-## 🗺 Дорожная карта
-
-- [x] **Этап 1 — MVP:** сбор + нормализация + дедупликация
-- [x] **Этап 1b — два движка:** xray-core + sing-box на GitHub Actions
-- [x] **Этап 2 — оценка и клиенты:** уровни золото/серебро/бронза, mihomo.yaml + singbox.json, живая статистика
-- [x] **Этап 3 — операторы и уведомления:** ASN-разбивка Ирана, Telegram-уведомления, зеркала
-- [ ] **Этап 4 — веб-панель:** живая страница на GitHub Pages
-- [ ] **Этап 5 — Telegram-бот:** получение файлов прямо в Telegram
-- [ ] **Этап 6 — масштаб:** больше источников, тесты из нескольких регионов
+- [x] **Фаза 1 — MVP: сбор + нормализация + дедупликация**
+- [x] **Фаза 1b — двух-двигательный тест: xray-core + sing-box в GitHub Actions**
+- [x] **Фаза 2 — скоринг и клиенты: золото/серебро/бронза, mihomo.yaml, singbox.json**
+- [x] **Фаза 3 — операторы и уведомления: ASN-разбивка Ирана, Telegram-уведомления, зеркала**
+- [ ] **Фаза 4 — веб-панель: живая страница на GitHub Pages**
+- [ ] **Фаза 5 — Telegram-бот: получение файлов внутри Telegram**
 
 ## ❓ FAQ
 
 <details>
-<summary><b>Почему жива лишь часть пула?</b></summary>
+<summary><b>Почему живых узлов так мало?</b></summary>
 
-Такова природа бесплатных узлов — они быстро умирают или перегружаются. Разница в том, что мы этот факт **измеряем и показываем**, а не соблазняем вас сырым числом «десятки тысяч конфигов». Реальное число обновляется ежечасно в таблице выше.
+Такова природа бесплатных конфигов — узлы быстро умирают или перегружаются. Разница в том, что мы это **измеряем и показываем**, а не ослепляем вас сырым числом “десятки тысяч конфигов”. Реальное число обновляется ежечасно на карточке.
 
 </details>
 
 <details>
-<summary><b>Какой файл мне выбрать?</b></summary>
+<summary><b>Какой файл мне подходит?</b></summary>
 
-- Новичок или спешите → `validated.txt` (сбалансированный, компактнее)
-- Только лучшее → `gold.txt`
-- Конкретный клиент → `mihomo.yaml` или `singbox.json`
-- Хочу исследовать всё → `nodes.txt`
+Новичок или некогда → `validated.txt` · только лучшее → `gold.txt` · конкретное приложение → `mihomo.yaml` / `singbox.json` · покопаться самому → `nodes.txt`
 
 </details>
 
 <details>
 <summary><b>Как часто обновляется?</b></summary>
 
-Автоматически каждый час в :07 UTC. Ветка `data` всегда содержит ровно один снимок (force-push); история репозитория никогда не раздувается, а скопированные сегодня ссылки работают всегда.
+Автоматически каждый час в :07 UTC. Ветка `data` всегда хранит ровно один снимок; ссылки, скопированные сегодня, остаются действительными.
 
 </details>
 
 <details>
 <summary><b>Почему формулировки такие нейтральные?</b></summary>
 
-Опыт показывает, что прямое брендирование в заголовках и текстах повышает риск удаления репозитория. Ariston лишь индексирует и очищает общедоступные данные — и именно так себя описывает, ради долгой жизни проекта.
+Известно, что прямые названия повышают риск удаления. Ariston лишь индексирует и фильтрует публичные данные — с расчётом на долгую жизнь.
 
 </details>
 
-## ⚖️ Отказ от ответственности
+## ⚖️ Disclaimer
 
-Проект только **индексирует и очищает** общедоступные данные; он не предоставляет услуг и не владеет серверами. Все данные собраны из открытых источников интернета, ответственность за использование несёт пользователь. Проект не связан ни с одним инструментом или вендором и предлагается в исследовательских и учебных целях. Если вы владелец контента и против его индексации — откройте Issue, и он будет немедленно удалён.
+Проект только **индексирует и фильтрует** публичные данные; услуг не оказывает, серверов не держит. Ответственность за использование — на пользователе. Владелец контента? Откройте issue — удалим немедленно.
 
-## 📄 Лицензия
+## 📄 License
 
-MIT — подробности в [`LICENSE`](LICENSE)
+MIT — see [`LICENSE`](LICENSE)
 
 ---
 
