@@ -45,6 +45,8 @@ def load_stats(demo: bool = False) -> dict:
         "duration_seconds": 10.2,
         "sources_total": 181, "sources_ok": 181, "sources_failed": {},
         "raw": 98498, "unique": 30702,
+        "prefilter": {"input": 30702, "tcp_closed": 17027, "output": 13675},
+        "by_protocol": {"vless": 41200, "vmess": 30110, "trojan": 14002, "ss": 8210, "hy2": 3310, "tuic": 1870},
         "validation": {"probed": 13675, "alive": 821,
                        "latency_ms": {"min": 66.3, "p50": 589.0, "p80": 1072.7, "avg": 837.1},
                        "engines": {"xray": "26.10.29", "sing_box": "1.14.4"}},
@@ -61,12 +63,18 @@ def brand_stats(s: dict) -> dict:
         updated = "—"
     v = s.get("validation") or {}
     sc = s.get("scoring") or {}
+    pf = s.get("prefilter") or {}
+    protos = [[str(k), int(n)] for k, n in (s.get("by_protocol") or {}).items()]
     return {
         "total": f"{int(s.get('unique') or 0):,}",
         "validated": f"{int(v.get('alive') or 0):,}",
         "silver": f"{int(sc.get('silver') or 0):,}",
         "gold": f"{int(sc.get('gold') or 0):,}",
         "updated": updated,
+        # numeric fields for the funnel / donut artwork
+        "raw": s.get("raw"), "unique": s.get("unique"), "tcp": pf.get("output"),
+        "probed": v.get("probed"), "alive": v.get("alive"),
+        "protos": protos,
     }
 
 

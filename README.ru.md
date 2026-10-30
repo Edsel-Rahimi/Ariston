@@ -17,7 +17,7 @@
   <a href="README.zh.md"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/lang-zh.svg"><img src="assets/light/lang-zh.svg" alt="zh"></picture></a>
 </p>
 
-> **Репозиторий живых узлов — фильтруется каждый час.** В древнегреческом **Ariston** значит “лучшее”; в этом и есть вся цель. Числа на карточке ниже построены из последнего реального запуска — без рекламной арифметики.
+> **Репозиторий живых узлов — фильтруется каждые 30 минут.** В древнегреческом **Ariston** значит “лучшее”; в этом и есть вся цель. Числа на карточке ниже построены из последнего реального запуска — без рекламной арифметики.
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/run-card.svg"><img src="assets/light/run-card.svg" width="100%" alt="last run — live stats"></picture>
@@ -105,6 +105,12 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 
 Большинство репозиториев показывают большое число и оставляют вас с догадками. Ariston поступает наоборот: **измеряет и показывает реальное число.** История каждого узла — в [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json); карточка выше обновляется ежечасно.
 
+И вот полный путь одного запуска — от собранного сырого объёма до золотого уровня. Столбцы в масштабе квадратного корня, чтобы воронка была видна; числа настоящие:
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/funnel.svg"><img src="assets/light/funnel.svg" width="100%" alt="Воронка запуска — от сырья до золота"></picture>
+</p>
+
 ## Iranian operator split
 
 Узлы, чьи IP принадлежат иранским сетям, публикуются отдельно — для внутреннего трафика, который часто бесплатнее и быстрее. Разделение по таблице ASN (владелец сети), а не по гео-догадкам. **Нажмите на карточку, чтобы открыть файл сети:**
@@ -126,6 +132,12 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 > Пустой файл означает, что в последнем запуске узлов этой сети не нашлось — файл не сломан.
 
 ## Supported protocols
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/donut.svg"><img src="assets/light/donut.svg" width="100%" alt="Протокольная смесь последнего запуска"></picture>
+</p>
+
+Реальная доля каждого протокола в последнем запуске — прямо из stats.json:
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/protocols.svg"><img src="assets/light/protocols.svg" width="100%" alt="protocols"></picture>
@@ -173,7 +185,7 @@ Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 <details>
 <summary><b>Как часто обновляется?</b></summary>
 
-Автоматически каждый час в :07 UTC. Ветка `data` всегда хранит ровно один снимок; ссылки, скопированные сегодня, остаются действительными.
+Автоматически каждые 30 минут, в :07 и :37 UTC. Ветка `data` всегда хранит ровно один снимок; ссылки, скопированные сегодня, остаются действительными.
 
 </details>
 

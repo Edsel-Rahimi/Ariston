@@ -92,7 +92,7 @@
       <div class="hc-body">
         <div class="hc-label" data-i18n="hcLabel">اجرای بعدی</div>
         <div class="hc-digits mono" id="hcDigits">--:--</div>
-        <div class="hc-sub mono">07:00 UTC</div>
+        <div class="hc-sub mono">:07 / :37 UTC</div>
       </div>
     </div>
   </div>
@@ -170,6 +170,17 @@
     <div class="tier-select" id="tierSelect" role="tablist" aria-label="subscription tier"></div>
     <div class="target-line mono" id="targetUrl">—</div>
     <div class="client-grid" id="clientGrid"></div>
+  </div>
+  <div class="panel wire-panel rv" id="wirePanel">
+    <div class="panel__head">
+      <span class="panel__title" data-i18n="wireTitle">تست تأخیر واقعی + کپی یک‌کلیکی</span>
+      <span class="wire-head-tools">
+        <span class="mono panel__chip" id="wireChip">—</span>
+        <button class="wire-row__btn" id="wireAll" type="button" data-i18n="wirePingAll">تست همه</button>
+      </span>
+    </div>
+    <div class="wire-rows" id="wireRows"></div>
+    <div class="wire-note" data-i18n="wireNote">تأخیر از مرورگر شما اندازه گرفته می‌شود — بسته به شبکه‌ی شما با عدد سرور متفاوت است.</div>
   </div>
 </section>
 

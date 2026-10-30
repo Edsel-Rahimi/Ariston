@@ -17,7 +17,7 @@
   <a href="README.zh.md"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/lang-zh.svg"><img src="assets/light/lang-zh.svg" alt="中文"></picture></a>
 </p>
 
-> **مخزنِ گره‌های سالم — هر ساعت پالایش می‌شود.**
+> **مخزنِ گره‌های سالم — هر ۳۰ دقیقه پالایش می‌شود.**
 > در یونان باستان **Ariston** یعنی «بهترین»؛ هدف ما هم همین یک کلمه است. اعداد کارت پایین از آخرین اجرای واقعی خط تولید ساخته می‌شوند — نه عدد تبلیغاتی.
 
 <p align="center">
@@ -104,7 +104,13 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/proof.svg"><img src="assets/light/proof.svg" width="100%" alt="اثبات سه‌لایه + دو موتور"></picture>
 </p>
 
-اکثر مخازن یک عدد بزرگ نشان می‌دهند و شما را حدس زدن رها می‌کنند. آریستون برعکس عمل می‌کند: **عدد واقعی را می‌سنجد و نشان می‌دهد.** تاریخچه‌ی کامل هر گره در [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json) و تصویر زنده‌ی هر ساعت در کارت آمار بالای همین صفحه.
+اکثر مخازن یک عدد بزرگ نشان می‌دهند و شما را حدس زدن رها می‌کنند. آریستون برعکس عمل می‌کند: **عدد واقعی را می‌سنجد و نشان می‌دهد.** تاریخچه‌ی کامل هر گره در [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json) و تصویر زنده‌ی هر ۳۰ دقیقه در کارت آمار بالای همین صفحه.
+
+و این مسیر کاملِ یک اجراست — از حجم خام جمع‌آوری تا رده‌ی طلا. میله‌ها با مقیاس جذری رسم می‌شوند تا قیف دیده شود؛ اعداد واقعی‌اند:
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/funnel.svg"><img src="assets/light/funnel.svg" width="100%" alt="قیف اجرا — از خام تا طلا"></picture>
+</p>
 
 ## تفکیک اپراتورهای ایران
 
@@ -127,6 +133,12 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 > فایل خالی یعنی در آخرین اجرا گره‌ای روی آن شبکه نبود — نه اینکه فایل خراب است.
 
 ## پروتکل‌های پشتیبانی‌شده
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/donut.svg"><img src="assets/light/donut.svg" width="100%" alt="ترکیب پروتکل‌های آخرین اجرا"></picture>
+</p>
+
+سهم واقعی هر پروتکل در آخرین اجرا — مستقیم از stats.json:
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/protocols.svg"><img src="assets/light/protocols.svg" width="100%" alt="پروتکل‌های پشتیبانی‌شده"></picture>
@@ -160,7 +172,7 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 <details>
 <summary><b>چرا از این همه گره، فقط این تعداد زنده است؟</b></summary>
 
-طبیعتِ کانفیگ رایگان همین است — گره‌ها به‌سرعت می‌میرند یا شلوغ می‌شوند. تفاوت ما این است که این واقعیت را **می‌سنجیم و نشان می‌دهیم** به‌جای اینکه با عدد خامِ «ده‌ها هزار کانفیگ» شما را گمراه کنیم. عدد واقعی هر ساعت در کارت آمار به‌روز می‌شود.
+طبیعتِ کانفیگ رایگان همین است — گره‌ها به‌سرعت می‌میرند یا شلوغ می‌شوند. تفاوت ما این است که این واقعیت را **می‌سنجیم و نشان می‌دهیم** به‌جای اینکه با عدد خامِ «ده‌ها هزار کانفیگ» شما را گمراه کنیم. عدد واقعی هر ۳۰ دقیقه در کارت آمار به‌روز می‌شود.
 
 </details>
 
@@ -177,7 +189,7 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 <details>
 <summary><b>هر چند وقت به‌روز می‌شود؟</b></summary>
 
-هر ساعت رأس 07:00 به‌وقت UTC به‌صورت خودکار. شاخه‌ی `data` همیشه دقیقاً یک snapshot دارد؛ لینک‌هایی که امروز کپی می‌کنید همیشه معتبر می‌مانند.
+هر ۳۰ دقیقه — رأس :07 و :37 به‌وقت UTC به‌صورت خودکار. شاخه‌ی `data` همیشه دقیقاً یک snapshot دارد؛ لینک‌هایی که امروز کپی می‌کنید همیشه معتبر می‌مانند.
 
 </details>
 

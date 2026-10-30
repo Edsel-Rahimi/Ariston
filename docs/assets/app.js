@@ -52,6 +52,10 @@ const I18N = {
     enginesNote: 'هر گره با دو موتور واقعی تست و بسته‌بندی می‌شود.',
     iranTitle: 'کاوشگر اپراتورهای ایران ', iranScannedSuffix: ' IP بررسی شد',
     importTitle: 'اتصال یک‌ضربه‌ای ', importDesc: 'لایه را انتخاب کن، روی کلاینت بزن — روی دسکتاپ: کپی.',
+    wireTitle: 'تست تأخیر واقعی + کپی یک‌کلیکی', wirePingAll: 'تست همه', wirePing: 'تست',
+    wireNote: 'تأخیر از مرورگر شما اندازه گرفته می‌شود — بسته به شبکه‌ی شما با عدد سرور متفاوت است.',
+    wireSubs: ['★ رده طلا', 'گره‌های زنده', 'کل استخر', 'clash · mihomo', 'sing-box'],
+    wireFail: 'بی‌پاسخ',
     qrTitle: 'اسکن برای ورود', copyLink: 'کپی لینک',
     explorerTitle: 'مرورگر گره ', explorerDesc: 'تأخیر واقعی هر گره از آخرین اجرا + پروب زنده. جستجو، فیلتر، کپی.',
     explorerSearch: 'جستجو در تگ، هاست، پروتکل…', explorerLoading: 'برای مشاهده، لیست گره‌ها بارگیری می‌شود…',
@@ -60,7 +64,7 @@ const I18N = {
     sourcesSearch: 'جستجوی شناسه منبع…', legendOk: 'فعال', legendFail: 'خطا',
     downloadTitle: 'مرکز دانلود ', downloadDesc: 'همه خروجی‌های آخرین اجرا — فایل خام، base64، فرمت کلاینت و تفکیک پروتکل.',
     faqTitle: 'شفافیت ',
-    footerText: 'خط تولید دو-موتوره — هر ساعت رأس :07 UTC.',
+    footerText: 'خط تولید دو-موتوره — هر ۳۰ دقیقه، رأس :07 و :37 UTC.',
     copied: 'کپی شد ✓', copyFail: 'کپی ناموفق — دستی کپی کنید', qrNoLib: 'QR در دسترس نیست — لینک کپی شد',
     tierGold: 'طلا', tierValidated: 'تأییدشده', tierAll: 'همه یکتاها',
     subGold: 'فقط رده طلا — بهترین سریع‌ترین‌ها', subValidated: 'همه گره‌های زنده', subAll: 'کل استخر یکتا',
@@ -89,6 +93,10 @@ const I18N = {
     enginesNote: 'Every node is tested and packaged by two real engines.',
     iranTitle: 'Iran ISP explorer ', iranScannedSuffix: ' IPs scanned',
     importTitle: 'One-tap import ', importDesc: 'Pick a tier, tap a client — desktop: copy.',
+    wireTitle: 'Browser ping + one-tap copy', wirePingAll: 'ping all', wirePing: 'ping',
+    wireNote: 'Latency is measured from your browser — it differs from server-side numbers depending on your network.',
+    wireSubs: ['gold tier', 'alive nodes', 'full pool', 'clash · mihomo', 'sing-box'],
+    wireFail: 'no reply',
     qrTitle: 'Scan to import', copyLink: 'Copy link',
     explorerTitle: 'Node explorer ', explorerDesc: 'Real per-node latency from the last run + live probing. Search, filter, copy.',
     explorerSearch: 'Search tag, host, protocol…', explorerLoading: 'Fetching node list…',
@@ -97,7 +105,7 @@ const I18N = {
     sourcesSearch: 'Search source id…', legendOk: 'healthy', legendFail: 'failed',
     downloadTitle: 'Download center ', downloadDesc: 'Every export of the latest run — raw lists, base64, client formats and per-protocol splits.',
     faqTitle: 'Transparency ',
-    footerText: 'Dual-engine pipeline — hourly at :07 UTC.',
+    footerText: 'Dual-engine pipeline — every 30 minutes at :07 and :37 UTC.',
     copied: 'Copied ✓', copyFail: 'Copy failed — copy manually', qrNoLib: 'QR unavailable — link copied instead',
     tierGold: 'Gold', tierValidated: 'Validated', tierAll: 'All unique',
     subGold: 'gold tier only — the fastest', subValidated: 'every alive node', subAll: 'the full unique pool',
@@ -196,7 +204,8 @@ function renderKPIs() {
   countUp($('#kpiGold'), sc.gold);
   countUp($('#kpiUnique'), S.unique);
   countUp($('#kpiSources'), S.sources_ok);
-  const failed = S.sources_failed && typeof S.sources_failed === 'object' ? Object.keys(S.sources_failed).length : 0;
+  const failedMap = S.sources_failed && typeof S.sources_failed === 'object' ? S.sources_failed : {};
+  const failed = Object.values(failedMap).filter(val => val && val !== 'skipped').length;   // reserve pool ≠ failure
   $('#kpiAliveFoot').textContent = `${fmt(v.probed)} probed · p50 ${(v.latency_ms && v.latency_ms.p50) || '—'}ms`;
   $('#kpiGoldFoot').textContent = `${fmt(sc.silver)} silver · ${fmt(sc.bronze)} bronze`;
   $('#kpiUniqueFoot').textContent = `${fmt(S.raw)} raw harvested`;
@@ -225,8 +234,10 @@ function renderTicker() {
 function tickCountdown() {
   const now = new Date();
   const next = new Date(now);
-  next.setMinutes(7, 0, 0);
-  if (next <= now) next.setHours(next.getHours() + 1);
+  next.setSeconds(0, 0);
+  const m = next.getMinutes();
+  if (m >= 37) { next.setHours(next.getHours() + 1); next.setMinutes(7, 0, 0); }
+  else next.setMinutes(m < 7 ? 7 : 37, 0, 0);
   const s = Math.floor((next - now) / 1000);
   const mm = String(Math.floor(s / 60)).padStart(2, '0');
   const ss = String(s % 60).padStart(2, '0');
@@ -235,7 +246,7 @@ function tickCountdown() {
   const ring = $('#hcRing');
   if (ring) {
     const C = 2 * Math.PI * 51;
-    ring.style.strokeDashoffset = (C * (1 - s / 3600)).toFixed(1);
+    ring.style.strokeDashoffset = (C * (1 - s / 1800)).toFixed(1);   // 30-minute wheel
   }
 }
 
@@ -251,6 +262,7 @@ function renderPipeline() {
       <div class="pstage__label">${st.label}</div><div class="pstage__tip">${st.tip}</div>`;
     wrap.appendChild(div);
   });
+  $$('#pipelineStages .pstage__val').forEach((el, i) => countUp(el, (pipelineStages[i] && pipelineStages[i].val) || 0));
   $('#pipelineLegend').innerHTML =
     `<span><b>1</b> collect → <b>2</b> normalize+dedup → <b>3</b> tcp prefilter → <b>4</b> dual-engine probe → <b>5</b> verify → <b>6</b> gold tier</span>`;
   PipelineFX.setStages(pipelineStages.map(s => s.val));
@@ -384,7 +396,7 @@ function renderDonut() {
   rings += `<text class="donut-hole" x="21" y="20.4" text-anchor="middle" fill="#F3ECDD" font-size="4.6" font-weight="600" font-family="Cinzel, Georgia, serif" transform="rotate(90 21 21)">${fmt(total)}</text>
     <text x="21" y="25.4" text-anchor="middle" fill="#83734F" font-size="2.4" transform="rotate(90 21 21)">RAW</text>`;
   svg.innerHTML = rings;
-  $('#donutTotal').textContent = fmt(total);
+  countUp($('#donutTotal'), total);
   $('#donutLegend').innerHTML = top.map((e, i) =>
     `<div class="donut-legend__item"><span class="donut-legend__sw" style="background:${e[0] === 'other' ? '#6E5F42' : (PROTO_COLORS[e[0]] || palette[i])}"></span>
      <span>${e[0]}</span><span class="donut-legend__v">${fmt(e[1])}</span></div>`).join('');
@@ -404,7 +416,7 @@ function renderBars() {
   const entries = Object.entries(ba).sort((a, b) => b[1] - a[1]);
   const max = Math.max(1, ...entries.map(e => e[1]));
   const total = entries.reduce((s, e) => s + e[1], 0);
-  $('#barsTotal').textContent = fmt(total);
+  countUp($('#barsTotal'), total);
   $('#aliveBars').innerHTML = entries.map(([k, v]) =>
     `<div class="hbar"><span class="hbar__label">${k}</span>
      <div class="hbar__track"><div class="hbar__fill" data-w="${(v / max * 100).toFixed(1)}" style="background:${PROTO_COLORS[k] || '#C0C6CC'}"></div></div>
@@ -488,6 +500,7 @@ function renderISP() {
       </div></div>`;
   }).join('');
   $('#iranScanned').textContent = fmt(S.operators && S.operators.ip_literal_hosts);
+  $$('#ispGrid .isp__val').forEach(el => countUp(el, +el.textContent.replace(/[^\d]/g, '') || 0));
   $$('[data-isp-copy]').forEach(b => b.addEventListener('click', async () => {
     const k = b.dataset.ispCopy;
     try { const txt = await fetchText(`${DATA_BASE}/by-operator/${k}.txt`); copyText(txt.trim()); }
@@ -562,6 +575,94 @@ function openQR(url) {
   else modal.setAttribute('open', '');
 }
 function closeQR() { const m = $('#qrModal'); m.close ? m.close() : m.removeAttribute('open'); }
+
+/* ---------------- wire test — browser ping + one-tap copy ---------------- */
+const WIRE_FILES = ['gold.txt', 'validated.txt', 'nodes.txt', 'mihomo.yaml', 'singbox.json'];
+const wireState = {};          // file → ms | null | 'run'
+
+async function pingFile(file) {
+  const t0 = performance.now();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(`${DATA_BASE}/${file}?t=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal });
+    return r.ok ? Math.round(performance.now() - t0) : null;
+  } catch (e) { return null; }
+  finally { clearTimeout(timer); }
+}
+
+function wireClass(ms) {
+  if (ms == null) return 'is-fail';
+  if (ms < 600) return 'is-fast';
+  if (ms < 1500) return 'is-ok';
+  return 'is-slow';
+}
+function wireMsText(ms) {
+  if (ms === 'run') return '…';
+  if (ms == null) return t('wireFail');
+  return ms + ' ms';
+}
+
+function renderWire() {
+  const subs = t('wireSubs');
+  $('#wireRows').innerHTML = WIRE_FILES.map((f, i) => {
+    const ms = wireState[f];
+    const cls = ms === 'run' || ms === undefined ? '' : wireClass(ms);
+    return `<div class="wire-row ${cls}" data-wire="${f}">
+      <span class="wire-row__dot" aria-hidden="true"></span>
+      <span class="wire-row__name mono">${f}</span>
+      <span class="wire-row__sub">${(subs && subs[i]) || ''}</span>
+      <span class="wire-row__ms mono">${wireMsText(ms)}</span>
+      <button class="wire-row__btn" data-act="ping" ${ms === 'run' ? 'disabled' : ''}>${t('wirePing')}</button>
+      <button class="wire-row__btn" data-act="copy">${t('copy')}</button>
+    </div>`;
+  }).join('');
+  updateWireChip();
+  $$('#wireRows [data-act="ping"]').forEach(b => b.addEventListener('click', () => runPing(b.closest('[data-wire]').dataset.wire)));
+  $$('#wireRows [data-act="copy"]').forEach(b => b.addEventListener('click', () => copyText(`${DATA_BASE}/${b.closest('[data-wire]').dataset.wire}`)));
+}
+
+function updateWireChip() {
+  const chip = $('#wireChip');
+  const done = WIRE_FILES.filter(f => wireState[f] !== undefined && wireState[f] !== 'run');
+  if (!done.length) { chip.textContent = '—'; return; }
+  const ok = done.filter(f => wireState[f] != null);
+  chip.textContent = lang === 'fa' ? `${ok.length} از ${done.length} سالم` : `${ok.length}/${done.length} ok`;
+}
+
+async function runPing(file) {
+  wireState[file] = 'run';
+  const row = document.querySelector(`[data-wire="${file}"]`);
+  if (row) {
+    row.className = 'wire-row';
+    row.querySelector('.wire-row__ms').textContent = '…';
+    const b = row.querySelector('[data-act="ping"]');
+    if (b) b.disabled = true;
+  }
+  const ms = await pingFile(file);
+  wireState[file] = ms;
+  if (row) {
+    row.classList.add(wireClass(ms));
+    row.querySelector('.wire-row__ms').textContent = wireMsText(ms);
+    const b = row.querySelector('[data-act="ping"]');
+    if (b) b.disabled = false;
+  }
+  updateWireChip();
+}
+
+async function pingAll(stagger = 220) {
+  for (const f of WIRE_FILES) { runPing(f); await new Promise(r => setTimeout(r, stagger)); }
+}
+
+function initWire() {
+  renderWire();
+  $('#wireAll').addEventListener('click', () => pingAll(120));
+  let auto = false;
+  const io = new IntersectionObserver(es => {
+    if (es[0].isIntersecting && !auto) { auto = true; pingAll(280); io.disconnect(); }
+  }, { threshold: 0.3 });
+  io.observe($('#wirePanel'));
+}
 
 /* ---------------- render: node explorer ---------------- */
 const Explorer = (() => {
@@ -855,7 +956,7 @@ function applyI18n() {
 }
 function renderDynamic() {
   renderKPIs(); renderTicker(); renderPipeline(); renderDonut(); renderBars();
-  renderLatency(); renderEngines(); renderISP(); renderImport(); renderSources();
+  renderLatency(); renderEngines(); renderISP(); renderImport(); renderWire(); renderSources();
   renderDownload(); observeReveals();
 }
 
@@ -884,6 +985,13 @@ function initChrome() {
   $('#qrClose').addEventListener('click', closeQR);
   $('#qrModal').addEventListener('click', e => { if (e.target.id === 'qrModal') closeQR(); });
   $('#qrCopy').addEventListener('click', () => copyText($('#qrTarget').textContent));
+  initWire();
+  // active-section highlight in the nav
+  const secIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) $$('.nav__links a').forEach(a =>
+      a.classList.toggle('is-active', a.getAttribute('href') === '#' + e.target.id));
+  }), { rootMargin: '-38% 0px -56% 0px' });
+  $$('main section[id]').forEach(s => secIO.observe(s));
   tickCountdown();
   setInterval(tickCountdown, 1000);
   setInterval(async () => { if (document.visibilityState === 'visible') { try { S = await fetchJSON(DATA_BASE + '/stats.json'); renderDynamic(); } catch (e) {} } }, 5 * 60 * 1000);

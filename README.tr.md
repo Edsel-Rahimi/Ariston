@@ -17,7 +17,7 @@
   <a href="README.zh.md"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/lang-zh.svg"><img src="assets/light/lang-zh.svg" alt="zh"></picture></a>
 </p>
 
-> **Sağlam düğüm deposu — her saat filtrelenir.** Eski Yunanca'da **Ariston** “en iyi” demektir; amaç da tam olarak bu. Aşağıdaki karttaki sayılar son gerçek hattın çıktısından üretilir — pazarlama matematiği yok.
+> **Sağlam düğüm deposu — her 30 dakikada filtrelenir.** Eski Yunanca'da **Ariston** “en iyi” demektir; amaç da tam olarak bu. Aşağıdaki karttaki sayılar son gerçek hattın çıktısından üretilir — pazarlama matematiği yok.
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/run-card.svg"><img src="assets/light/run-card.svg" width="100%" alt="last run — live stats"></picture>
@@ -103,7 +103,13 @@ Son çalıştırmanın canlı düğümlerinden, en iyisi başta — dosyayı aç
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/proof.svg"><img src="assets/light/proof.svg" width="100%" alt="proof"></picture>
 </p>
 
-Çoğu depo büyük bir sayı gösterir ve sizi tahminle baş başa bırakır. Ariston tersini yapar: **gerçek sayıyı ölçer ve gösterir.** Düğüm bazlı geçmiş [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json) içinde; yukarıdaki kart her saat yenilenir.
+Çoğu depo büyük bir sayı gösterir ve sizi tahminle baş başa bırakır. Ariston tersini yapar: **gerçek sayıyı ölçer ve gösterir.** Düğüm bazlı geçmiş [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json) içinde; yukarıdaki kart her 30 dakikada yenilenir.
+
+Ve işte bir çalışanın baştan sona yolculuğu — toplanan ham hacimden altın rübeye. Çubuklar karekök ölçekte çizilidir; sayılar gerçektir:
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/funnel.svg"><img src="assets/light/funnel.svg" width="100%" alt="Çalışan hunisi — hamdan altına"></picture>
+</p>
 
 ## Iranian operator split
 
@@ -126,6 +132,12 @@ IP'si İran ağlarına ait düğümler ayrı yayımlanır — çoğu zaman ücre
 > Boş dosya, son çalıştırmada o ağda düğüm bulunmadığı anlamına gelir — dosya bozuk değil.
 
 ## Supported protocols
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/donut.svg"><img src="assets/light/donut.svg" width="100%" alt="Son çalışanın protokol dağılımı"></picture>
+</p>
+
+Son çalışandaki her protokolün gerçek payı — doğrudan stats.json'dan:
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/protocols.svg"><img src="assets/light/protocols.svg" width="100%" alt="protocols"></picture>
@@ -159,7 +171,7 @@ Yeni bir kaynağınız mı var (Telegram kanalı veya herkese açık dosya)? [`C
 <details>
 <summary><b>Bu kadar düğümden neden yalnızca bu kadarı canlı?</b></summary>
 
-Ücretsiz konfigürasyonların doğası bu — düğümler hızla ölür veya kalabalıklaşır. Fark şu: gerçeği uydurmak yerine **ölçüp gösteriyoruz.** Gerçek sayı her saat kartta yenilenir.
+Ücretsiz konfigürasyonların doğası bu — düğümler hızla ölür veya kalabalıklaşır. Fark şu: gerçeği uydurmak yerine **ölçüp gösteriyoruz.** Gerçek sayı her 30 dakikada kartta yenilenir.
 
 </details>
 
@@ -173,7 +185,7 @@ Yeni başlayan veya acelesi olan → `validated.txt` · sadece en iyiler → `go
 <details>
 <summary><b>Ne sıklıkta güncellenir?</b></summary>
 
-Her saat :07 UTC'de otomatik. `data` dalı her zaman tek bir anlık görüntü tutar; bugün kopyaladığınız bağlantılar geçerli kalır.
+Her 30 dakikada bir, :07 ve :37 UTC'de otomatik. `data` dalı her zaman tek bir anlık görüntü tutar; bugün kopyaladığınız bağlantılar geçerli kalır.
 
 </details>
 

@@ -17,7 +17,7 @@
   <a href="README.zh.md"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/lang-zh.svg"><img src="assets/light/lang-zh.svg" alt="zh"></picture></a>
 </p>
 
-> **The healthy-node repository — filtered every hour.** In ancient Greek, **Ariston** means “the best”; that is the whole goal. The numbers in the card below come from the last real pipeline run — no marketing math.
+> **The healthy-node repository — filtered twice an hour.** In ancient Greek, **Ariston** means “the best”; that is the whole goal. The numbers in the card below come from the last real pipeline run — no marketing math.
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/run-card.svg"><img src="assets/light/run-card.svg" width="100%" alt="last run — live stats"></picture>
@@ -103,7 +103,13 @@ Built from the live nodes of the latest run, best first — click a card to open
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/proof.svg"><img src="assets/light/proof.svg" width="100%" alt="proof"></picture>
 </p>
 
-Most repositories show one big number and leave you guessing. Ariston does the opposite: **it measures and shows the real number.** Full per-node history lives in [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json); the stat card above refreshes hourly.
+Most repositories show one big number and leave you guessing. Ariston does the opposite: **it measures and shows the real number.** Full per-node history lives in [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json); the stat card above refreshes every 30 minutes.
+
+And here is one full run end-to-end — from harvested raw volume down to the gold tier. Bars use a square-root scale so the funnel stays readable; the numbers are real:
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/funnel.svg"><img src="assets/light/funnel.svg" width="100%" alt="Run funnel — raw to gold"></picture>
+</p>
 
 ## Iranian operator split
 
@@ -126,6 +132,12 @@ Nodes whose IP belongs to Iranian networks are published separately — for dome
 > An empty file means the last run found no node on that network — not a broken file.
 
 ## Supported protocols
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/donut.svg"><img src="assets/light/donut.svg" width="100%" alt="Protocol mix of the latest run"></picture>
+</p>
+
+Each protocol's real share of the latest run — straight from stats.json:
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/protocols.svg"><img src="assets/light/protocols.svg" width="100%" alt="protocols"></picture>
@@ -159,7 +171,7 @@ Have a new source (a Telegram channel or a public file)? See [`CONTRIBUTING.md`]
 <details>
 <summary><b>Why are only this many nodes alive?</b></summary>
 
-That is the nature of free configs — nodes die or get crowded fast. The difference is that we **measure and show** this reality instead of dazzling you with a raw “tens of thousands of configs” number. The real number refreshes hourly in the stat card.
+That is the nature of free configs — nodes die or get crowded fast. The difference is that we **measure and show** this reality instead of dazzling you with a raw “tens of thousands of configs” number. The real number refreshes every 30 minutes in the stat card.
 
 </details>
 
@@ -173,7 +185,7 @@ Beginner or in a hurry → `validated.txt` · only the best → `gold.txt` · a 
 <details>
 <summary><b>How often does it update?</b></summary>
 
-Automatically every hour at :07 UTC. The `data` branch always holds exactly one snapshot; links you copy today stay valid.
+Automatically every 30 minutes, at :07 and :37 UTC. The `data` branch always holds exactly one snapshot; links you copy today stay valid.
 
 </details>
 

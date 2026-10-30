@@ -17,7 +17,7 @@
   <a href="README.zh.md"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/lang-zh-on.svg"><img src="assets/light/lang-zh-on.svg" alt="zh"></picture></a>
 </p>
 
-> **健康节点仓库 — 每小时过滤一次。** 在古希腊语中，**Ariston** 意为“最好”，这正是我们的目标。下方卡片中的数字来自上一次真实流水线运行——不是营销数字。
+> **健康节点仓库 — 每 30 分钟过滤一次。** 在古希腊语中，**Ariston** 意为“最好”，这正是我们的目标。下方卡片中的数字来自上一次真实流水线运行——不是营销数字。
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/run-card.svg"><img src="assets/light/run-card.svg" width="100%" alt="last run — live stats"></picture>
@@ -103,7 +103,13 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/proof.svg"><img src="assets/light/proof.svg" width="100%" alt="proof"></picture>
 </p>
 
-大多数仓库只显示一个大数字，让你自己去猜。Ariston 反其道而行：**实测并展示真实数字。**每个节点的完整历史在 [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json)；上方卡片每小时刷新。
+大多数仓库只显示一个大数字，让你自己去猜。Ariston 反其道而行：**实测并展示真实数字。**每个节点的完整历史在 [`results.json`](https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/results.json)；上方卡片每 30 分钟刷新。
+
+这是一次完整运行的全过程——从采集到的原始体量到黄金层级。柱条采用平方根比例以便看清漏斗，数字是真实值：
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/funnel.svg"><img src="assets/light/funnel.svg" width="100%" alt="运行漏斗 — 从原始到黄金"></picture>
+</p>
 
 ## Iranian operator split
 
@@ -126,6 +132,12 @@ IP 属于伊朗网络的节点单独发布——国内流量通常更免费、�
 > 文件为空表示上一次运行在该网络上没有发现节点——不是文件损坏。
 
 ## Supported protocols
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/donut.svg"><img src="assets/light/donut.svg" width="100%" alt="上一次运行的协议构成"></picture>
+</p>
+
+上一次运行中每个协议的真实占比——直接来自 stats.json：
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/protocols.svg"><img src="assets/light/protocols.svg" width="100%" alt="protocols"></picture>
@@ -159,7 +171,7 @@ Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 <details>
 <summary><b>这么多节点，为什么存活的只有这些？</b></summary>
 
-免费配置的本质如此——节点很快死亡或拥挤。区别在于我们**实测并展示**这一现实，而不是用“数万配置”的原始数字迷惑你。真实数字每小时在卡片上更新。
+免费配置的本质如此——节点很快死亡或拥挤。区别在于我们**实测并展示**这一现实，而不是用“数万配置”的原始数字迷惑你。真实数字每 30 分钟在卡片上更新。
 
 </details>
 
@@ -173,7 +185,7 @@ Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 <details>
 <summary><b>多久更新一次？</b></summary>
 
-每小时 :07 UTC 自动运行。`data` 分支始终只保留一个快照；今天复制的链接始终有效。
+每 30 分钟自动运行一次（:07 和 :37 UTC）。`data` 分支始终只保留一个快照；今天复制的链接始终有效。
 
 </details>
 
