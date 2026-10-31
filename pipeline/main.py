@@ -12,9 +12,11 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
+from . import bank as BK
 from . import collect as C
 from . import geo as G
 from . import normalize as N
@@ -39,6 +41,18 @@ def _hours_since(iso: str | None) -> float | None:
         return max(0.0, delta.total_seconds() / 3600.0)
     except Exception:
         return None
+
+
+# D6/C — the Saturday full scan (checklist #2): «شنبه ۲۴:۰۰ تهران» —
+# Tehran is UTC+3:30 year-round (no DST), so Saturday 24:00 = Sunday 00:00
+# Tehran = Saturday 20:30 UTC (workflow cron "30 20 * * 6").  The window
+# tolerates up to ~2h of Actions-queue delay.
+TEHRAN_TZ = dt.timezone(dt.timedelta(hours=3, minutes=30), name="Asia/Tehran")
+
+
+def _is_full_scan_window() -> bool:
+    t = dt.datetime.now(TEHRAN_TZ)
+    return t.weekday() == 6 and t.hour in (0, 1)   # Sunday 00–01 Tehran
 
 
 # ------------------------------------------------------------- stage 1+2 --
@@ -153,19 +167,51 @@ def cmd_collect() -> int:
     return 0
 
 
-def cmd_run(skip_validation: bool = False) -> int:
-    sources = load_sources()
+def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
+    full = full or os.environ.get("ARISTON_FULL") == "1" or _is_full_scan_window()
+
+    # D6/C — the config bank: yesterday's memory for today's run.
+    bank = BK.load_bank(dist_path=DIST / "bank.json")
+    print(f"[0/4] config bank: {len(bank.get('entries') or {})} entries, "
+          f"{len(bank.get('sources') or {})} source records"
+          f"{' · FULL SCAN (شنبه ۲۴:۰۰ تهران)' if full else ''}")
+
+    src_all = load_sources()
+    sources, quarantined_skipped = BK.filter_sources(src_all, bank, full)
+    if quarantined_skipped:
+        print(f"      source health: {len(quarantined_skipped)} quarantined "
+              f"sources sit this one out (full scan re-invites them)")
+
     uniq, stats = collect_phase(sources)
+    stats["sources_skipped_quarantine"] = len(quarantined_skipped)
+
+    # D6/C — fold this run's source health into the ledger.
+    failed_ids = list((stats.get("sources_failed") or {}).keys())
+    ok_ids = [s["id"] for s in sources if s["id"] not in set(failed_ids)]
+    bank = BK.merge_sources(bank, ok_ids, stats.get("sources_failed") or {})
 
     # Cheap TCP sweep first: closed ports can never pass an engine test.
     # UDP-family (Hysteria2/TUIC) and SSR pass through untouched.
+    # The Saturday full scan skips this shortcut on purpose (checklist #2).
     probe_list = uniq
     if not skip_validation and V.engines_available():
-        print(f"[2b/4] TCP prefilter on {len(uniq)} endpoints ...")
-        probe_list, pre = V.tcp_prefilter(uniq)
-        stats["prefilter"] = pre
-        print(f"       tcp_open {pre['tcp_open']:,} · pass-through {pre['pass_through']:,}"
-              f" · tcp_closed {pre['tcp_closed']:,} → {pre['output']:,} to engines")
+        if full:
+            print("[2b/4] full scan — TCP prefilter skipped (شنبه ۲۴:۰۰)")
+            stats["prefilter"] = {"skipped_full_scan": True, "output": len(uniq)}
+        else:
+            print(f"[2b/4] TCP prefilter on {len(uniq)} endpoints ...")
+            probe_list, pre = V.tcp_prefilter(uniq)
+            stats["prefilter"] = pre
+            print(f"       tcp_open {pre['tcp_open']:,} · pass-through {pre['pass_through']:,}"
+                  f" · tcp_closed {pre['tcp_closed']:,} → {pre['output']:,} to engines")
+
+    # D6/C — smart prioritization: banked-good endpoints are probed first.
+    if not skip_validation and V.engines_available():
+        before = len(probe_list)
+        probe_list = BK.prioritized(probe_list, bank)
+        print(f"[2c/4] bank prioritization: "
+              f"{len(BK.bank_good_hashes(bank))} banked-good → front of the queue "
+              f"({before} endpoints kept)")
 
     history, vsummary, per_node = validate_phase(probe_list, skip=skip_validation)
     stats["validation"] = vsummary
@@ -175,6 +221,28 @@ def cmd_run(skip_validation: bool = False) -> int:
              "silver": sum(1 for r in rows if r["alive"] and r["tier"] == "silver"),
              "bronze": sum(1 for r in rows if r["alive"] and r["tier"] == "bronze")}
     stats["scoring"] = tiers
+
+    # D6/C — fold the run into the bank and publish it for the next one.
+    # When validation was skipped (--no-validate / missing engines) the bank
+    # is left untouched — a run that tested nothing must not punish anyone.
+    alive_hashes = {info["hash"] for info in per_node.values() if info.get("alive")}
+    alive_now = vsummary.get("alive") if isinstance(vsummary, dict) else None
+    bank_hits = len(alive_hashes & set(BK.bank_good_hashes(bank).keys()))
+    if isinstance(vsummary, dict) and not vsummary.get("skipped"):
+        bank = BK.merge_run(bank, history, alive_hashes, alive_now)
+    src_sum = BK.source_summary(bank)
+    bank["meta"]["last_run_duration_s"] = stats.get("duration_seconds")
+    stats["bank"] = {
+        "size": len(bank.get("entries") or {}),
+        "banked_alive_hits": bank_hits,
+        "pass2": (vsummary or {}).get("pass2") if isinstance(vsummary, dict) else None,
+        "sources": {**src_sum["counts"], "skipped_this_run": len(src_sum["skipped"])},
+        "full_scan": full,
+        "alive_delta": (alive_now - (bank["meta"].get("prev_alive") or 0))
+                       if alive_now is not None else None,
+    }
+    print(f"[3c/4] bank: {stats['bank']['size']} entries · hits {bank_hits} · "
+          f"pass2 {stats['bank']['pass2']} · sources {stats['bank']['sources']}")
 
     print("[4/4] writing outputs ...")
     P.publish_master(DIST, uniq)
@@ -194,6 +262,13 @@ def cmd_run(skip_validation: bool = False) -> int:
 
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)
+    # D6/C — the bank rides to the data branch with the rest of dist/
+    (DIST / "bank.json").write_text(
+        json.dumps(bank, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    (DIST / "sources-health.json").write_text(
+        json.dumps({"generated_at": stats.get("generated_at"),
+                    "sources": bank.get("sources") or {}},
+                   ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     _print_summary(stats)
     return 0
 
@@ -206,8 +281,11 @@ def _print_summary(stats: dict) -> None:
           f"same-node {stats['dupes']['same_node_dupes']})")
     pre = stats.get("prefilter")
     if pre:
-        print(f"  tcp prefilter: open {pre['tcp_open']} · pass-through {pre['pass_through']}"
-              f" · closed {pre['tcp_closed']} → {pre['output']} probed by engines")
+        if pre.get("skipped_full_scan"):
+            print("  tcp prefilter: skipped (Saturday full scan)")
+        else:
+            print(f"  tcp prefilter: open {pre['tcp_open']} · pass-through {pre['pass_through']}"
+                  f" · closed {pre['tcp_closed']} → {pre['output']} probed by engines")
     print(f"  protocols: {stats['by_protocol']}")
     if v and not v.get("skipped"):
         lat = v.get("latency_ms") or {}
@@ -250,11 +328,14 @@ def main() -> int:
     run_p = sub.add_parser("run", help="full pipeline: collect + validate + score")
     run_p.add_argument("--no-validate", action="store_true",
                        help="skip the health sweep even if engines exist")
+    run_p.add_argument("--full", action="store_true",
+                       help="Saturday-style full scan: no TCP prefilter, quarantined "
+                            "sources re-invited (also auto-on for Sat 24:00 Tehran)")
     args = ap.parse_args()
     if args.cmd == "collect":
         return cmd_collect()
     if args.cmd == "run":
-        return cmd_run(skip_validation=args.no_validate)
+        return cmd_run(skip_validation=args.no_validate, full=args.full)
     return 1
 
 

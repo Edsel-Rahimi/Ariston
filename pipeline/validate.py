@@ -36,12 +36,17 @@ from queue import Queue
 from urllib.parse import parse_qsl, unquote, urlsplit
 
 # ------------------------------------------------------------------ knobs --
+from .bank import PASS2_REASONS, PASS2_TIMEOUT_FACTOR  # D6/C second pass
+
 ENV_XRAY = os.environ.get("ARISTON_XRAY", "bin/xray")
 ENV_SINGBOX = os.environ.get("ARISTON_SINGBOX", "bin/sing-box")
 ENV_CONCURRENCY = int(os.environ.get("ARISTON_CONCURRENCY", "24"))
 ENV_TIMEOUT = float(os.environ.get("ARISTON_TIMEOUT", "4.5"))   # seconds / node
 ENV_PORT_BASE = int(os.environ.get("ARISTON_PORT_BASE", "21000"))
 ENV_MAX_NODES = int(os.environ.get("ARISTON_MAX_NODES", "0"))   # 0 = no cap
+# D6/C second pass (one doubled-timeout retry for borderline failures);
+# ARISTON_PASS2=0 turns it off (kill-switch — see CONTINUITY.md playbook)
+ENV_PASS2 = os.environ.get("ARISTON_PASS2", "1") != "0"
 # TCP prefilter (cheap connect sweep BEFORE the expensive engine spins)
 ENV_TCP_CONCURRENCY = int(os.environ.get("ARISTON_TCP_CONCURRENCY", "256"))
 ENV_TCP_TIMEOUT = float(os.environ.get("ARISTON_TCP_TIMEOUT", "2.0"))
@@ -445,8 +450,10 @@ class _Slot:
         self.path = os.path.join(tmpdir, f"cfg{idx}.json")
 
 
-def test_one(uri: str, engine: str, slot: _Slot, target: tuple[str, str]) -> dict:
-    """Boot engine for one endpoint, probe through it, tear down. ~4-6 s."""
+def test_one(uri: str, engine: str, slot: _Slot, target: tuple[str, str],
+             timeout: float | None = None) -> dict:
+    """Boot engine for one endpoint, probe through it, tear down. ~4-6 s.
+    ``timeout`` overrides ENV_TIMEOUT (the D6/C second pass uses a doubled one)."""
     scheme = _scheme(uri)
     try:
         if engine == "xray":
@@ -470,7 +477,7 @@ def test_one(uri: str, engine: str, slot: _Slot, target: tuple[str, str]) -> dic
             if not _wait_socks(slot.port, proc):
                 return {"uri": uri, "alive": False, "latency_ms": None,
                         "reason": "engine-boot" if proc.poll() is not None else "no-socks"}
-            ok, ms, reason = socks5_probe(slot.port, target, ENV_TIMEOUT)
+            ok, ms, reason = socks5_probe(slot.port, target, timeout if timeout else ENV_TIMEOUT)
             return {"uri": uri, "alive": ok, "latency_ms": round(ms, 1) if ok else None,
                     "reason": reason if not ok else "ok"}
         finally:
@@ -535,6 +542,47 @@ def validate_all(uris: list[str], prev: dict | None = None) -> tuple[dict, dict,
         if routable:
             with ThreadPoolExecutor(max_workers=concurrency) as pool:
                 list(pool.map(work, routable))
+
+        # ------- D6/C: the second pass — one doubled-timeout retry for every
+        # borderline failure (timeout / probe-error / engine-boot / no-socks).
+        # The proposal measured ~55% of these as actually alive.  Rescued
+        # endpoints overwrite their first outcome before the history merge.
+        pass2 = {"attempted": 0, "rescued": 0, "timeout_s": None}
+        p2_jobs: list[tuple[int, str, str]] = []
+        if ENV_PASS2:
+            p2_timeout = round(ENV_TIMEOUT * PASS2_TIMEOUT_FACTOR, 2)
+            pass2["timeout_s"] = p2_timeout
+            for i, (u, eng) in enumerate(routing):
+                res = outcomes[i]
+                if res is not None and eng and not res["alive"] \
+                        and res.get("reason") in PASS2_REASONS:
+                    p2_jobs.append((i, u, eng))
+            pass2["attempted"] = len(p2_jobs)
+            if p2_jobs:
+                print(f"      pass2: retrying {len(p2_jobs)} borderline "
+                      f"endpoints @ {p2_timeout}s timeout ...")
+                p2_done = 0
+
+                def work2(job: tuple[int, str, str]) -> None:
+                    nonlocal p2_done
+                    idx, uri, eng = job
+                    slot = slots.get()
+                    try:
+                        target = PROBE_TARGETS[idx % len(PROBE_TARGETS)]
+                        res = test_one(uri, eng, slot, target, timeout=p2_timeout)
+                        if res["alive"]:
+                            res["reason"] = "ok-pass2"
+                            outcomes[idx] = res
+                        with _lock:
+                            p2_done += 1
+                    finally:
+                        slots.put(slot)
+
+                with ThreadPoolExecutor(max_workers=concurrency) as pool:
+                    list(pool.map(work2, p2_jobs))
+                pass2["rescued"] = sum(
+                    1 for i, _, _ in p2_jobs
+                    if outcomes[i] is not None and outcomes[i]["alive"])
 
     # ------- merge into history ------------------------------------------
     results: dict = {}
@@ -612,6 +660,7 @@ def validate_all(uris: list[str], prev: dict | None = None) -> tuple[dict, dict,
                        "p50": pct(0.5), "p80": pct(0.8),
                        "avg": round(sum(latencies) / len(latencies), 1) if latencies else None},
         "concurrency": concurrency,
+        "pass2": pass2,
         "duration_seconds": round(time.monotonic() - started, 1),
         "history_pruned": pruned,
     }

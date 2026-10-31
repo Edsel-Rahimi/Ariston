@@ -3,6 +3,7 @@ name: pipeline
 on:
   schedule:
     - cron: "7,37 * * * *"     # every 30 minutes, at :07 and :37
+    - cron: "30 20 * * 6"      # D6/C: Saturday 20:30 UTC = شنبه ۲۴:۰۰ تهران — full scan
   workflow_dispatch: {}        # manual trigger button
 
 permissions:
@@ -34,6 +35,17 @@ jobs:
           mkdir -p dist
           curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/results.json" \
             -o dist/results.json || echo "no history yet — first run"
+
+      # D6/C — the config bank rides on the data branch; fetched fresh
+      # (cache-busted) before the run so the pipeline remembers known-good
+      # endpoints and quarantined sources.
+      - name: Fetch config bank
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/bank.json?t=$(date +%s)" \
+            -o dist/bank.json || echo "no bank yet — first run"
+          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/sources-health.json?t=$(date +%s)" \
+            -o dist/sources-health.json || true
+          ls -la dist/ | sed 's/^/      /'
 
       - name: Restore engines
         id: engines
