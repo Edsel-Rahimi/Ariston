@@ -22,6 +22,10 @@
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/run-card.svg"><img src="assets/light/run-card.svg" width="100%" alt="آخرین اجرا — آمار زنده"></picture>
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/bank-card.svg"><img src="assets/light/bank-card.svg" width="100%" alt="بانک کانفیگ — حافظه‌ی خط تولید"></picture>
+</p>
 </p>
 
 ## شروع سریع

@@ -200,6 +200,32 @@ def run_card(c, s=None):
     return svg(w, h, b, c, "Latest pipeline run statistics")
 
 
+def bank_card(c, s=None):
+    """D7 — Config Bank status card: size · hit-rate · streaks · pass-2 · sources."""
+    s = s or {}
+    g = lambda k: str(s.get(k, "—"))
+    b = rect(1280, 230, c.bg, c.line, 16) + meander(40, 18, 1200, c)
+    b += f'<circle class="b" cx="56" cy="62" r="5" fill="{c.gold}"/>'
+    b += t("CONFIG BANK · TTL 28H", INT, 14, 72, 67, c.mute, track=3)
+    b += t("بانک کانفیگ — حافظه‌ی خط تولید بین اجراها", VAZ, 20, 1240, 67, c.mute, "end", rtl=True)
+    tiles = [("size", "خوش‌سابقه", "KNOWN-GOOD", "gold"),
+             ("hit", "نرخ بازگشت", "HIT RATE", "olive"),
+             ("streak", "میانگین سابقه", "AVG STREAK", "silver"),
+             ("pass2", "نجات دور دوم", "PASS-2 RESCUED", "bronze"),
+             ("src", "منابع سالم / مشکوک", "HEALTHY / SUSPECT", "text")]
+    tw, gap = 227, 16
+    for i, (k, fa, en, col) in enumerate(tiles):
+        x = 40 + i * (tw + gap)
+        b += rect(tw, 112, c.surf, c.line, 12, x, 88)
+        val = g(k)
+        size = 44 if k == "src" else 50
+        vp, _ = T(val, CIN, size, x + tw / 2, 144, tier_color(c, col), "middle")
+        b += f'<g class="r" style="animation-delay:{i * .14:.2f}s">{vp}</g>'
+        b += t(fa, VAZM, 20, x + tw / 2, 174, c.text, "middle", rtl=True)
+        b += t(en, INT, 11, x + tw / 2, 192, c.mute, "middle", track=2.5)
+    return svg(1280, 230, b, c, "Config bank status")
+
+
 def quickstart(c):
     w, h = 1280, 270
     steps = [("لینک را کپی کنید", "gold.txt · validated.txt · nodes.txt", "gold"),
@@ -426,7 +452,8 @@ def donut(c, s=None):
 
 
 def all_assets(stats=None):
-    A = {"banner": banner, "run-card": lambda c: run_card(c, stats), "quickstart": quickstart, "proof": proof,
+    A = {"banner": banner, "run-card": lambda c: run_card(c, stats), "bank-card": lambda c: bank_card(c, stats),
+         "quickstart": quickstart, "proof": proof,
          "protocols": protocols, "architecture": architecture, "btn-text": lambda c: btn(c, "text"),
          "btn-b64": lambda c: btn(c, "b64"), "client-mihomo": lambda c: client(c, "mihomo"),
          "client-singbox": lambda c: client(c, "singbox"),

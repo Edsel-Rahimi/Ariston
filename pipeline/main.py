@@ -232,14 +232,27 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
         bank = BK.merge_run(bank, history, alive_hashes, alive_now)
     src_sum = BK.source_summary(bank)
     bank["meta"]["last_run_duration_s"] = stats.get("duration_seconds")
+    # D7 — engineer-readable bank telemetry (surfaced in stats.json → bot /
+    # mini app / channel / README bank-card): streaks + hit-rate + latency.
+    ent = bank.get("entries") or {}
+    streaks = [int(e.get("streak", 0) or 0) for e in ent.values()]
+    ms_vals = [e["ms"] for e in ent.values() if isinstance(e.get("ms"), (int, float))]
+    bank_avg_ms = round(sum(ms_vals) / len(ms_vals)) if ms_vals else None
+    bank["meta"]["avg_streak"] = round(sum(streaks) / len(streaks), 1) if streaks else 0.0
+    bank["meta"]["best_streak"] = max(streaks) if streaks else 0
     stats["bank"] = {
-        "size": len(bank.get("entries") or {}),
+        "size": len(ent),
         "banked_alive_hits": bank_hits,
         "pass2": (vsummary or {}).get("pass2") if isinstance(vsummary, dict) else None,
         "sources": {**src_sum["counts"], "skipped_this_run": len(src_sum["skipped"])},
         "full_scan": full,
         "alive_delta": (alive_now - (bank["meta"].get("prev_alive") or 0))
                        if alive_now is not None else None,
+        "avg_streak": bank["meta"]["avg_streak"],
+        "best_streak": bank["meta"]["best_streak"],
+        "hit_rate": (round(100.0 * bank_hits / alive_now, 1)
+                     if alive_now and isinstance(alive_now, (int, float)) else None),
+        "avg_ms": bank_avg_ms,
     }
     print(f"[3c/4] bank: {stats['bank']['size']} entries · hits {bank_hits} · "
           f"pass2 {stats['bank']['pass2']} · sources {stats['bank']['sources']}")

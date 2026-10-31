@@ -21,6 +21,10 @@
 
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/run-card.svg"><img src="assets/light/run-card.svg" width="100%" alt="last run — live stats"></picture>
+
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/bank-card.svg"><img src="assets/light/bank-card.svg" width="100%" alt="config bank — pipeline memory"></picture>
+</p>
 </p>
 
 ## Quick start

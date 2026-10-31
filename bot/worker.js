@@ -1,6 +1,7 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  ARISTON — Telegram Bot · Phase D4 — inline · API · photo card · 10-pick subs
+ *  ARISTON — Telegram Bot · D7.0 — stitch mini-app redesign · bank everywhere ·
+ *             rich admin panel (broadcast/admins/purge/scoped commands)
  *  Cloudflare Worker (single file, dashboard-deployable) · webhook + KV
  *
  *  Golden rules (from BOT-RESEARCH.md):
@@ -180,6 +181,9 @@ const T = {
     freq_bad: '⚠️ یه عدد بین ۱ تا ۲۴ بفرست، مثلاً: <code>/freq 4</code>',
     freq_denied: '⛔ این دستور فقط برای صاحب رباته.',
     btn_panel: '🛠 پنل مدیریت', panel_denied: '⛔ پنل مدیریت فقط برای مدیرهای ربات باز می‌شه.',
+    bank_line: '🏦 بانک کانفیگ: {n} خوش‌سابقه · بازگشت {hit}٪ · سابقهٔ میانگین {streak} دور',
+    bank_p2: '🛟 دور دوم: {r} نجات از {a} تلاش',
+    bank_src: '🩺 منابع: سالم {h} · مشکوک {s} · قرنطینه {q}',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -241,6 +245,9 @@ const T = {
     freq_bad: '⚠️ Send a number between 1 and 24, like: <code>/freq 4</code>',
     freq_denied: '⛔ This command is for the bot owner only.',
     btn_panel: '🛠 Admin panel', panel_denied: '⛔ The admin panel is open to bot admins only.',
+    bank_line: '🏦 Config bank: {n} known-good · hit {hit}% · avg streak {streak}',
+    bank_p2: '🛟 Pass-2: {r} rescued of {a} attempts',
+    bank_src: '🩺 Sources: healthy {h} · suspect {s} · quarantined {q}',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -302,6 +309,9 @@ const T = {
     freq_bad: '⚠️ Пришлите число от 1 до 24, например: <code>/freq 4</code>',
     freq_denied: '⛔ Команда только для владельца бота.',
     btn_panel: '🛠 Панель админа', panel_denied: '⛔ Панель доступна только админам бота.',
+    bank_line: '🏦 Банк конфигов: {n} надёжных · попаданий {hit}% · ср. серия {streak}',
+    bank_p2: '🛟 Второй проход: {r} спасено из {a}',
+    bank_src: '🩺 Источники: здоровых {h} · подозрительных {s} · карантин {q}',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -363,6 +373,9 @@ const T = {
     freq_bad: '⚠️ 1 ile 24 arasında bir sayı gönder, örn.: <code>/freq 4</code>',
     freq_denied: '⛔ Bu komut yalnızca bot sahibine ait.',
     btn_panel: '🛠 Yönetim paneli', panel_denied: '⛔ Yönetim paneli yalnızca bot yöneticilerine açık.',
+    bank_line: '🏦 Yapılandırma bankası: {n} güvenilir · isabet {hit}% · ort. seri {streak}',
+    bank_p2: '🛟 İkinci tur: {a} denemede {r} kurtarıldı',
+    bank_src: '🩺 Kaynaklar: sağlıklı {h} · şüpheli {s} · karantina {q}',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -424,6 +437,9 @@ const T = {
     freq_bad: '⚠️ 请发送 1–24 之间的数字，例如：<code>/freq 4</code>',
     freq_denied: '⛔ 该命令仅限机器人所有者使用。',
     btn_panel: '🛠 管理面板', panel_denied: '⛔ 管理面板仅限机器人管理员使用。',
+    bank_line: '🏦 配置银行：{n} 个优等 · 命中 {hit}% · 平均连击 {streak} 轮',
+    bank_p2: '🛟 第二轮：{a} 次尝试救回 {r} 个',
+    bank_src: '🩺 源：健康 {h} · 可疑 {s} · 隔离 {q}',
   },
 };
 
@@ -894,6 +910,10 @@ async function dailyChannelCard(env, force = false) {
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     '📈 ' + (Object.entries(v.by_protocol_alive || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => esc(k) + ' ' + fmt(n)).join(' · ') || '—'),
+    /* D7 — config bank line (matches the bank-card artwork on GitHub) */
+    ...(s.bank && s.bank.size != null ? [
+      t(lang, 'bank_line', { n: fmt(s.bank.size), hit: s.bank.hit_rate != null ? s.bank.hit_rate : '—', streak: s.bank.avg_streak != null ? s.bank.avg_streak : '—' }),
+    ] : []),
     bestLine,
   ].join('\n');
 
@@ -940,6 +960,11 @@ async function channelDigest(env) {
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     t(lang, 'last_run', { t: relTime(s.generated_at, lang) }),
+    /* D7 — config bank line */
+    ...(s.bank && s.bank.size != null ? [
+      t(lang, 'bank_line', { n: fmt(s.bank.size), hit: s.bank.hit_rate != null ? s.bank.hit_rate : '—', streak: s.bank.avg_streak != null ? s.bank.avg_streak : '—' }),
+      t(lang, 'bank_src', { h: fmt((s.bank.sources && s.bank.sources.healthy) || 0), s: fmt((s.bank.sources && s.bank.sources.suspect) || 0), q: fmt((s.bank.sources && s.bank.sources.quarantined) || 0) }),
+    ] : []),
   ].join('\n');
   const origin = await kvGet(env, 'meta:origin');
   const bot = (await kvGet(env, 'meta:bot_username')) || null;
@@ -1126,7 +1151,7 @@ function clientKb(lang) {
   return { inline_keyboard: rows };
 }
 
-const menuKb = (lang, origin) => {
+const menuKb = (lang, origin, chatId) => {
   const rows = [
     [{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold', style: 'primary' }, { text: t(lang, 'btn_best'), callback_data: 'menu:best', style: 'primary' }],
     [{ text: t(lang, 'btn_stats'), callback_data: 'menu:stats' }, { text: t(lang, 'btn_sub'), callback_data: 'menu:sub', style: 'success' }],
@@ -1134,8 +1159,20 @@ const menuKb = (lang, origin) => {
     [{ text: t(lang, 'btn_help'), callback_data: 'menu:help' }, { text: t(lang, 'btn_lang'), callback_data: 'menu:lang' }],
   ];
   if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+  /* D7: the admin-panel button is rendered ONLY for registered admins —
+     never for regular users (chatId → async isAdmin check by the caller). */
+  if (chatId === true || (chatId != null && chatId !== false && chatId._adm)) {
+    rows.push([{ text: '🛠 ' + t(lang, 'btn_panel'), callback_data: 'menu:panel', style: 'primary' }]);
+  }
   return { inline_keyboard: rows };
 };
+
+/* resolves admin status once and builds the menu with the admin row included */
+async function menuKbFor(env, chatId, lang, origin) {
+  const adm = await isAdmin(env, chatId);
+  const kb = menuKb(lang, origin, { _adm: adm });
+  return kb.inline_keyboard;
+}
 
 const settingsKb = (lang, user) => {
   const rotMode = t(lang, (user && user.rotation === 'run' ? 'rot_run' : 'rot_day'));
@@ -1163,7 +1200,8 @@ async function askName(env, chatId, lang, hint) {
 /* ─────────────────────────────── bot actions ──────────────────────────────── */
 
 async function sendMenu(env, chatId, lang, text, origin) {
-  return sendMessage(env, chatId, text || t(lang, 'menu_title'), { reply_markup: menuKb(lang, origin) });
+  const kb = await menuKbFor(env, chatId, lang, origin);
+  return sendMessage(env, chatId, text || t(lang, 'menu_title'), { reply_markup: { inline_keyboard: kb } });
 }
 
 async function askLang(env, chatId) {
@@ -1250,9 +1288,17 @@ async function cmdStats(env, chatId, lang, origin) {
     t(lang, 'latency', { p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0) }),
     '📈 ' + (proto || '—'), '',
     '🥇 ' + fmt(sc.gold) + '   🥈 ' + fmt(sc.silver) + '   🥉 ' + fmt(sc.bronze), '',
+    /* D7 — config bank telemetry (engine-tested memory between runs) */
+    ...(s.bank && s.bank.size != null ? [
+      '—',
+      t(lang, 'bank_line', { n: fmt(s.bank.size), hit: s.bank.hit_rate != null ? s.bank.hit_rate : '—', streak: s.bank.avg_streak != null ? s.bank.avg_streak : '—' }),
+      t(lang, 'bank_p2', { r: fmt((s.bank.pass2 && s.bank.pass2.rescued) || 0), a: fmt((s.bank.pass2 && s.bank.pass2.attempted) || 0) }),
+      t(lang, 'bank_src', { h: fmt((s.bank.sources && s.bank.sources.healthy) || 0), s: fmt((s.bank.sources && s.bank.sources.suspect) || 0), q: fmt((s.bank.sources && s.bank.sources.quarantined) || 0) }),
+      '',
+    ] : []),
     '🌐 ' + PAGES,
   ].join('\n');
-  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
+  return sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: await menuKbFor(env, chatId, lang, origin) } });
 }
 
 async function cmdSub(env, chatId, lang, origin) {
@@ -1314,7 +1360,7 @@ async function cmdHelp(env, chatId, lang, origin) {
   let msg = t(lang, 'help_text');
   if (bot) msg += '\n\n🔎 ' + t(lang, 'help_inline', { bot: '@' + bot });
   if (origin) msg += '\n🛠 API: ' + origin + '/api';
-  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
+  return sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: await menuKbFor(env, chatId, lang, origin) } });
 }
 
 /* D4 — /freq [hours]: owner-only knob for the periodic channel digest */
@@ -1361,7 +1407,7 @@ async function cmdBest(env, chatId, lang, origin) {
     '<code>' + esc(best.uri) + '</code>', '',
     '✅ ' + ema + '  ·  ⚡ ' + lat + '  ·  ✔ ' + (best.ok || 0) + ' / ✘ ' + (best.fail || 0),
   ].join('\n');
-  return sendMessage(env, chatId, msg, { reply_markup: menuKb(lang, origin) });
+  return sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: await menuKbFor(env, chatId, lang, origin) } });
 }
 
 /* ─────────────────────────── update router (webhook) ──────────────────────── */
@@ -1606,6 +1652,15 @@ async function appStats(env) {
     unique: s.unique || 0, probed: v.probed || 0, alive: v.alive || 0,
     p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0),
     gold: s.scoring.gold || 0, silver: s.scoring.silver || 0, bronze: s.scoring.bronze || 0,
+    /* D7 — config bank telemetry for the mini-app bank strip */
+    bank: s.bank && s.bank.size != null ? {
+      size: s.bank.size || 0,
+      hit_rate: s.bank.hit_rate != null ? s.bank.hit_rate : null,
+      avg_streak: s.bank.avg_streak != null ? s.bank.avg_streak : null,
+      pass2: s.bank.pass2 || null,
+      sources: s.bank.sources || null,
+      full_scan: Boolean(s.bank.full_scan),
+    } : null,
     bot: (await kvGet(env, 'meta:bot_username')) || null,
     stale,
   });
@@ -1750,11 +1805,36 @@ async function adminState(env) {
   const cfg = await getCfg(env);
   const s = await getStats(env);
   const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  const owner = await kvGet(env, 'meta:owner');
+  const admins = [];
+  if (owner) admins.push({ id: Number(owner), owner: true });
+  for (const a of (cfg.admin_ids || []).map(String)) if (a !== String(owner)) admins.push({ id: Number(a), owner: false });
+  const bc = {
+    total: parseInt((await kvGet(env, 'bc:total')) || '0', 10),
+    cursor: parseInt((await kvGet(env, 'bc:cursor')) || '0', 10),
+    fails: parseInt((await kvGet(env, 'bc:fails')) || '0', 10),
+    active: (await kvGet(env, 'bc:active')) === '1',
+  };
   return Response.json({
     cfg,
     every_hours: Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6)),
     channel: await resolveChannel(env, cfg),
     users_total: Array.isArray(idx) ? idx.length : 0,
+    owner: owner || null,
+    admins,
+    bc,
+    /* D7 — the config bank, straight from the latest stats.json */
+    bank: s && s.bank ? {
+      size: s.bank.size || 0,
+      hit_rate: s.bank.hit_rate != null ? s.bank.hit_rate : null,
+      avg_streak: s.bank.avg_streak != null ? s.bank.avg_streak : null,
+      best_streak: s.bank.best_streak != null ? s.bank.best_streak : null,
+      avg_ms: s.bank.avg_ms != null ? s.bank.avg_ms : null,
+      alive_delta: s.bank.alive_delta != null ? s.bank.alive_delta : null,
+      pass2: s.bank.pass2 || null,
+      sources: s.bank.sources || null,
+      full_scan: Boolean(s.bank.full_scan),
+    } : null,
     stats: s && s.validation && s.scoring ? {
       generated_at: s.generated_at,
       gold: s.scoring.gold || 0, alive: s.validation.alive || 0,
@@ -1818,6 +1898,130 @@ async function adminUsers(env, body) {
     });
   }
   return Response.json({ total, offset: off, items });
+}
+
+/* ─── D7 — admin ops: admins · broadcast · purge · scoped commands ───────── */
+
+/* D7 — scoped command lists: /panel and /freq are registered ONLY inside the
+   admin chats' scope, so the regular user's bot menu never shows them. */
+const USER_COMMANDS = [
+  { command: 'start', description: 'Start / main menu' },
+  { command: 'gold', description: 'Top gold configs' },
+  { command: 'best', description: 'Gold ticket — fastest alive' },
+  { command: 'stats', description: 'Live run stats' },
+  { command: 'sub', description: 'Personal subscription link' },
+  { command: 'ref', description: 'Invite friends — quota up to 20' },
+  { command: 'settings', description: 'ISP / client / name / rotation' },
+  { command: 'lang', description: 'Change language' },
+];
+const ADMIN_COMMANDS = [
+  ...USER_COMMANDS,
+  { command: 'panel', description: 'Admin settings panel' },
+  { command: 'freq', description: 'Channel digest interval (owner)' },
+];
+async function syncAdminCommands(env) {
+  const cfg = await getCfg(env);
+  const owner = await kvGet(env, 'meta:owner');
+  const ids = [...new Set([...(cfg.admin_ids || []).map(String), owner].filter(Boolean).map(String))];
+  const glob = await api(env, 'setMyCommands', { commands: USER_COMMANDS }); // default scope — no /panel
+  let scopes = 0;
+  for (const id of ids) {
+    const r = await api(env, 'setMyCommands', { commands: ADMIN_COMMANDS, scope: { type: 'chat', chat_id: Number(id) } });
+    if (r && r.ok) scopes++;
+  }
+  return { global: Boolean(glob && glob.ok), admins: scopes };
+}
+
+async function adminAdmins(env, body) {
+  const cfg = await getCfg(env);
+  const owner = await kvGet(env, 'meta:owner');
+  const id = String(body.id || '').trim();
+  if (body.op === 'remove') {
+    if (id === String(owner)) return Response.json({ error: 'owner' }, { status: 400 });
+    cfg.admin_ids = (cfg.admin_ids || []).filter((x) => String(x) !== id);
+    await putCfg(env, cfg);
+  } else {
+    if (!/^\d{3,20}$/.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 });
+    cfg.admin_ids = cfg.admin_ids || [];
+    if (!cfg.admin_ids.map(String).includes(id)) { cfg.admin_ids.push(Number(id)); await putCfg(env, cfg); }
+  }
+  await syncAdminCommands(env); // the menu updates right away
+  const admins = [];
+  if (owner) admins.push({ id: Number(owner), owner: true });
+  for (const a of (cfg.admin_ids || []).map(String)) if (a !== String(owner)) admins.push({ id: Number(a), owner: false });
+  return Response.json({ ok: true, admins });
+}
+
+/* D7 — chunked broadcast: sends BC_CHUNK messages per call, the panel loops
+   until remaining === 0.  Progress lives in KV, so it survives reloads. */
+const BC_CHUNK = 25;
+async function adminBroadcast(env, body) {
+  const op = body.op === 'start' ? 'start' : body.op === 'cancel' ? 'cancel' : body.op === 'status' ? 'status' : 'step';
+  if (op === 'cancel') {
+    await kvDel(env, 'bc:active');
+    await kvDel(env, 'bc:text');
+    const total = parseInt((await kvGet(env, 'bc:total')) || '0', 10);
+    const cursor = parseInt((await kvGet(env, 'bc:cursor')) || '0', 10);
+    const fails = parseInt((await kvGet(env, 'bc:fails')) || '0', 10);
+    return Response.json({ ok: true, total, cursor, fails, remaining: Math.max(0, total - cursor), active: false });
+  }
+  if (op === 'start') {
+    const text = String(body.text || '').trim();
+    if (!text) return Response.json({ error: 'empty' }, { status: 400 });
+    if (text.length > 2000) return Response.json({ error: 'big' }, { status: 400 });
+    const idx = (await kvGet(env, 'users:index', 'json')) || [];
+    await kvPut(env, 'bc:text', text);
+    await kvPut(env, 'bc:total', String(idx.length), 86400);
+    await kvPut(env, 'bc:cursor', '0', 86400);
+    await kvPut(env, 'bc:fails', '0', 86400);
+    await kvPut(env, 'bc:active', '1', 86400);
+  }
+  if (op === 'status') {
+    const total = parseInt((await kvGet(env, 'bc:total')) || '0', 10);
+    const cursor = parseInt((await kvGet(env, 'bc:cursor')) || '0', 10);
+    const fails = parseInt((await kvGet(env, 'bc:fails')) || '0', 10);
+    return Response.json({ ok: true, total, cursor, fails, remaining: Math.max(0, total - cursor), active: (await kvGet(env, 'bc:active')) === '1' });
+  }
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  const text = await kvGet(env, 'bc:text');
+  let cursor = parseInt((await kvGet(env, 'bc:cursor')) || '0', 10);
+  let fails = parseInt((await kvGet(env, 'bc:fails')) || '0', 10);
+  if (!text || cursor >= idx.length) {
+    await kvDel(env, 'bc:active');
+    return Response.json({ ok: true, total: idx.length, cursor, fails, remaining: Math.max(0, idx.length - cursor), active: false });
+  }
+  const end = Math.min(idx.length, cursor + BC_CHUNK);
+  for (let i = cursor; i < end; i++) {
+    const r = await sendMessage(env, idx[i], text).catch(() => null);
+    if (!r || !r.ok) fails++;
+  }
+  cursor = end;
+  await kvPut(env, 'bc:cursor', String(cursor), 86400);
+  await kvPut(env, 'bc:fails', String(fails), 86400);
+  const active = cursor < idx.length;
+  if (!active) await kvDel(env, 'bc:active');
+  return Response.json({ ok: true, total: idx.length, cursor, fails, remaining: Math.max(0, idx.length - cursor), active });
+}
+
+/* D7 — drop the data-branch caches so everything re-fetches fresh */
+async function adminPurge(env) {
+  let purged = 0;
+  try {
+    for (const prefix of ['file:', 'rich:']) {
+      let cursor;
+      do {
+        const page = await env.KV.list({ prefix, cursor, limit: 100 });
+        for (const k of (page.keys || [])) { await kvDel(env, k.name); purged++; }
+        cursor = page.list_complete ? undefined : page.cursor;
+      } while (cursor && purged < 500);
+    }
+  } catch (_) { /* KV hiccup → whatever we collected */ }
+  return Response.json({ ok: true, purged });
+}
+
+async function adminSyncCmds(env) {
+  const r = await syncAdminCommands(env);
+  return Response.json({ ok: true, ...r });
 }
 
 /* D6 — aggregated crowd votes (👍/👎), ranked by (up − down); raw → full list for export */
@@ -2155,96 +2359,169 @@ const MINI_APP_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON ⚡</title>
-<!-- app build: D6.0 — personal history first · 10 gold cards · silent anon votes · admin chip -->
+<!-- app build: D7.0 — stitch redesign · motion engine · bank strip · smart sort · 10 gold cards -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Vazirmatn:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Vazirmatn:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
-:root{--bg:#14110C;--card:rgba(232,200,114,.055);--card2:rgba(232,200,114,.11);
---line:rgba(232,200,114,.16);--line2:rgba(232,200,114,.34);
---gold:#E8C872;--deep:#C9A24A;--silver:#C0C6CC;--bronze:#B87333;
---txt:#F3ECDD;--dim:#8d8262;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace}
+:root{--bg:#0C0A07;--bg2:#14110C;--card:rgba(232,200,114,.055);--card2:rgba(232,200,114,.12);
+--line:rgba(232,200,114,.16);--line2:rgba(232,200,114,.38);
+--gold:#E8C872;--gold2:#F5DFA0;--deep:#C9A24A;--silver:#C0C6CC;--bronze:#B87333;
+--ok:#7ec97e;--bad:#e06c5a;--txt:#F3ECDD;--dim:#8d8262;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+--cin:'Cinzel',serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Vazirmatn',system-ui,sans-serif;font-size:15px;line-height:1.65}
-body{min-height:100vh;background-image:radial-gradient(560px 280px at 50% -70px,rgba(232,200,114,.14),transparent 72%)}
-.wrap{max-width:520px;margin:0 auto;padding:14px 16px calc(30px + env(safe-area-inset-bottom))}
-header{display:flex;align-items:center;gap:10px;padding:8px 2px 14px}
-.emblem{width:36px;height:30px;flex:0 0 auto}
-.brand{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.32em;font-size:15px;text-indent:.32em}
-.hlive{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
-.livewrap{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.14em}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pulse 2.2s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,200,114,.5)}70%{box-shadow:0 0 0 7px rgba(232,200,114,0)}100%{box-shadow:0 0 0 0 rgba(232,200,114,0)}}
-.refresh{background:none;border:1px solid var(--line);color:var(--gold);width:30px;height:30px;border-radius:50%;font-size:13px;cursor:pointer;line-height:1}
-.refresh:active{transform:rotate(30deg)}
+body{min-height:100vh;background:
+radial-gradient(700px 340px at 50% -90px,rgba(232,200,114,.17),transparent 70%),
+radial-gradient(420px 260px at 8% 22%,rgba(201,162,74,.05),transparent 70%),
+radial-gradient(420px 260px at 92% 60%,rgba(201,162,74,.045),transparent 70%);overflow-x:hidden}
+.wrap{max-width:540px;margin:0 auto;padding:12px 16px calc(34px + env(safe-area-inset-bottom))}
+/* ───── header ───── */
+header{display:flex;align-items:center;gap:10px;padding:10px 2px 16px;animation:up .55s ease both}
+.emblem{width:40px;height:34px;flex:0 0 auto;filter:drop-shadow(0 0 10px rgba(232,200,114,.35))}
+.brandbox{display:flex;flex-direction:column;gap:1px}
+.brand{font-family:var(--cin);font-weight:900;letter-spacing:.3em;font-size:16.5px;text-indent:.3em;
+background:linear-gradient(180deg,#F7E5AF,#E8C872 55%,#B98F3E);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.brandsub{font-family:var(--mono);font-size:8.5px;letter-spacing:.3em;color:var(--dim);direction:ltr;text-align:left}
+.hlive{margin-inline-start:auto;display:flex;align-items:center;gap:9px}
+.livewrap{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;color:var(--gold);letter-spacing:.2em;
+border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:rgba(232,200,114,.05)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,200,114,.55)}70%{box-shadow:0 0 0 7px rgba(232,200,114,0)}100%{box-shadow:0 0 0 0 rgba(232,200,114,0)}}
+.admchip{display:none;align-items:center;background:rgba(232,200,114,.1);border:1px solid var(--line2);color:var(--gold);
+border-radius:999px;font-size:12px;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700}
+.admchip:active{transform:scale(.93)}
+.refresh{background:rgba(232,200,114,.05);border:1px solid var(--line);color:var(--gold);width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;line-height:1;transition:transform .5s ease}
+.refresh:active{transform:rotate(180deg)}
+/* ───── hero ───── */
+.hero{position:relative;border:1px solid var(--line2);border-radius:24px;padding:24px 20px 16px;overflow:hidden;text-align:center;
+background:linear-gradient(168deg,rgba(232,200,114,.16),rgba(232,200,114,.035) 46%,rgba(232,200,114,.08));
+box-shadow:0 18px 50px -22px rgba(232,200,114,.28);animation:up .55s .05s ease both}
+.hero::before{content:'';position:absolute;inset:-40% -30% auto;height:200%;
+background:conic-gradient(from 0deg,transparent 0 84%,rgba(232,200,114,.10) 91%,transparent 97%);
+animation:orbit 9s linear infinite;pointer-events:none}
+@keyframes orbit{to{transform:rotate(360deg)}}
+.hero .kbar{position:absolute;top:0;inset-inline:0;height:2px;overflow:hidden}
+.hero .kbar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+animation:kbar 2.8s ease-in-out infinite}
+@keyframes kbar{0%{transform:translateX(-100%)}55%{transform:translateX(100%)}100%{transform:translateX(100%)}}
+.hbadge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);color:var(--gold);border-radius:999px;
+padding:4px 14px;font-size:11.5px;font-weight:700;background:rgba(20,17,12,.55);animation:up .5s .12s ease both}
+.hnum{font-family:var(--cin);font-weight:900;font-size:74px;line-height:1.02;margin-top:10px;color:var(--gold);direction:ltr;
+text-shadow:0 0 34px rgba(232,200,114,.4);animation:up .5s .18s ease both}
+.hlbl{font-weight:800;font-size:16px;margin-top:2px;animation:up .5s .24s ease both}
+.hlbl .fire{display:inline-block;animation:flick 1.6s ease-in-out infinite}
+@keyframes flick{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.14) rotate(4deg)}}
+.hpill{display:flex;align-items:center;gap:0;margin:15px auto 4px;border:1px dashed var(--line2);border-radius:14px;overflow:hidden;
+background:rgba(20,17,12,.5);max-width:420px;animation:up .5s .3s ease both}
+.hpill>div{flex:1;padding:8px 10px;font-size:11px;color:var(--txt);min-width:0}
+.hpill b{color:var(--gold);font-family:var(--mono);font-weight:700;direction:ltr;unicode-bidi:embed}
+.hpill .sep{flex:0 0 1px;background:var(--line2);padding:0}
 .heroerr{width:100%;margin-top:12px;background:rgba(232,200,114,.06);border:1px dashed rgba(232,200,114,.35);color:var(--dim);border-radius:12px;padding:9px 12px;font-size:12px;cursor:pointer;font-family:inherit}
 .retrybtn{margin-top:10px;background:none;border:1px solid var(--line);color:var(--gold);border-radius:10px;padding:6px 16px;cursor:pointer;font-family:inherit;font-size:13px}
-.hero{position:relative;border:1px solid var(--line2);border-radius:20px;padding:22px 20px 18px;overflow:hidden;
-background:linear-gradient(165deg,rgba(232,200,114,.13),rgba(232,200,114,.03) 55%,rgba(232,200,114,.07));animation:up .5s ease both}
-.hero .num{font-family:'Cinzel',serif;font-weight:700;font-size:56px;line-height:1.05;color:var(--gold)}
-.hero .lbl{margin-top:6px;font-weight:700;font-size:14.5px}
-.hero .sub{margin-top:3px;color:var(--dim);font-size:12.5px}
-.hero .kbar{position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.7}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;animation:up .5s .07s ease both}
-.stat{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 14px}
-.stat .v{font-family:var(--mono);font-weight:600;font-size:18px;direction:ltr;text-align:end}
+/* ───── stat grid ───── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{position:relative;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,rgba(232,200,114,.07),rgba(232,200,114,.02));
+padding:13px 14px 11px;overflow:hidden;animation:up .5s ease both;transition:transform .15s ease,border-color .25s ease}
+.stat:nth-child(1){animation-delay:.36s}.stat:nth-child(2){animation-delay:.42s}
+.stat:nth-child(3){animation-delay:.48s}.stat:nth-child(4){animation-delay:.54s}
+.stat:active{transform:scale(.97);border-color:var(--line2)}
+.stat .ic{position:absolute;top:11px;inset-inline-end:11px;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;
+font-size:15px;background:rgba(232,200,114,.09);border:1px solid var(--line)}
+.stat .badge{position:absolute;top:12px;inset-inline-start:12px;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--bg);
+background:var(--gold);border-radius:6px;padding:2.5px 7px;font-weight:700}
+.stat .badge.alt{background:var(--silver)}.stat .badge.warm{background:var(--bronze);color:#14110C}
+.stat .v{margin-top:34px;font-family:var(--mono);font-weight:700;font-size:22px;direction:ltr;text-align:start;color:var(--txt)}
 .stat .v small{font-size:11px;color:var(--dim);font-weight:400}
-.stat .k{font-size:11.5px;color:var(--dim);margin-top:1px}
-.sec{display:flex;align-items:center;gap:10px;margin:24px 2px 10px;animation:up .5s .12s ease both}
-.sec h2{font-size:13.5px;font-weight:700;margin:0;color:var(--gold);white-space:nowrap}
+.stat .k{font-size:11.5px;color:var(--dim);margin-top:1px;font-weight:500}
+/* ───── bank strip ───── */
+.bank{display:none;align-items:center;gap:10px;margin-top:10px;border:1px solid var(--line);border-radius:16px;
+background:linear-gradient(120deg,rgba(232,200,114,.09),rgba(201,162,74,.03));padding:11px 14px;animation:up .5s .6s ease both}
+.bank .bic{width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;font-size:16px;border-radius:11px;background:rgba(232,200,114,.1);border:1px solid var(--line)}
+.bank .bt{flex:1;min-width:0}
+.bank .bt .b1{font-size:12.5px;font-weight:700}
+.bank .bt .b2{font-size:10.5px;color:var(--dim);font-family:var(--mono);direction:ltr;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bank .bdots{display:flex;gap:5px;flex:0 0 auto}
+.bdot{width:9px;height:9px;border-radius:50%}
+.bdot.h{background:var(--ok);box-shadow:0 0 7px rgba(126,201,126,.7);animation:pulse2 2.6s infinite}
+.bdot.s{background:var(--bronze)}
+.bdot.q{background:var(--bad)}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.45}}
+/* ───── sections ───── */
+.sec{display:flex;align-items:center;gap:10px;margin:26px 2px 4px;animation:up .5s .14s ease both}
+.sec h2{font-size:14px;font-weight:800;margin:0;color:var(--gold);white-space:nowrap}
 .sec .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
-.hint{font-size:11px;color:var(--dim);margin:-4px 2px 10px}
-.gcard{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 14px;margin-bottom:8px;cursor:pointer;
-transition:transform .12s ease,border-color .2s ease}
-.gcard:active{transform:scale(.98);border-color:var(--line2)}
+.sec .stitle{font-size:10.5px;color:var(--dim);font-weight:400;white-space:nowrap}
+.hint{font-size:11px;color:var(--dim);margin:5px 2px 10px}
+/* ───── sort chips ───── */
+.chips{display:flex;gap:7px;margin:10px 0 12px;animation:up .5s .1s ease both}
+.schip{flex:1;border:1px solid var(--line);background:rgba(232,200,114,.04);color:var(--dim);border-radius:999px;
+padding:7px 6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .22s ease;white-space:nowrap}
+.schip.on{background:var(--gold);color:#14110C;border-color:var(--gold);box-shadow:0 4px 18px -6px rgba(232,200,114,.55)}
+.schip:active{transform:scale(.95)}
+/* ───── gold cards ───── */
+.gcard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(150deg,rgba(232,200,114,.07),rgba(232,200,114,.025));
+padding:12px 14px;margin-bottom:9px;cursor:pointer;position:relative;transition:transform .13s ease,border-color .2s ease}
+.gcard:active{transform:scale(.975);border-color:var(--line2)}
 .gtop{display:flex;align-items:center;gap:9px}
-.rank{font-size:15px;width:26px;text-align:center;flex:0 0 auto}
-.chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;border:1px solid;border-radius:6px;padding:2px 7px;flex:0 0 auto}
-.chip.vless{color:var(--gold);border-color:rgba(232,200,114,.45)}
+.rank{font-size:16px;width:28px;text-align:center;flex:0 0 auto}
+.rank.num{font-family:var(--mono);font-size:12px;color:var(--dim);font-weight:700}
+.chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;border:1px solid;border-radius:7px;padding:2.5px 8px;flex:0 0 auto;font-weight:700}
+.chip.vless{color:var(--gold);border-color:rgba(232,200,114,.45);background:rgba(232,200,114,.06)}
 .chip.trojan{color:var(--silver);border-color:rgba(192,198,204,.45)}
 .chip.hysteria2,.chip.hy2,.chip.tuic{color:var(--bronze);border-color:rgba(184,115,51,.5)}
 .chip.vmess,.chip.ss,.chip.other{color:var(--txt);border-color:rgba(243,236,221,.35)}
-.host{font-family:var(--mono);font-size:11.5px;color:var(--txt);opacity:.82;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;flex:1;text-align:left}
+.host{font-family:var(--mono);font-size:11.5px;color:var(--txt);opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;flex:1;text-align:left}
+.livedot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:0 0 auto;box-shadow:0 0 8px rgba(126,201,126,.75);animation:pulse2 2.4s infinite}
 .metrics{display:flex;gap:6px;align-items:center;flex:0 0 auto;margin-inline-start:auto}
-.ema{font-family:var(--mono);font-size:11.5px;font-weight:600}
+.ema{font-family:var(--mono);font-size:11.5px;font-weight:700}
 .ema.g{color:var(--gold)}.ema.s{color:var(--silver)}.ema.b{color:var(--bronze)}
-.lat{font-family:var(--mono);font-size:10.5px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.lat{font-family:var(--mono);font-size:10.5px;color:var(--dim);border:1px solid var(--line);border-radius:7px;padding:1.5px 7px}
 .gfoot{display:flex;align-items:center;gap:12px;margin-top:9px;padding-top:9px;border-top:1px dashed rgba(232,200,114,.13)}
-.fb{background:none;border:none;color:var(--dim);font-size:12.5px;cursor:pointer;padding:0 2px;font-family:inherit}
+.fb{background:none;border:none;color:var(--dim);font-size:12.5px;cursor:pointer;padding:0 2px;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:color .2s}
 .fb.on{color:var(--gold)}
-.fb:disabled{opacity:.5;cursor:default}
-.admchip{display:none;background:none;border:1px solid var(--line2);color:var(--gold);border-radius:8px;font-size:12.5px;padding:3px 8px;cursor:pointer;font-family:inherit}
-.admchip:active{transform:scale(.95)}
-.hclear{display:none;background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:11px;padding:2px 8px;cursor:pointer;font-family:inherit}
-.hclear:active{transform:scale(.95)}
+.fb:disabled{opacity:.45;cursor:default}
+.fb.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
 .gfoot .ok{font-family:var(--mono);font-size:10px;color:var(--dim);margin-inline-start:auto;direction:ltr}
-.sub{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:15px 16px;animation:up .5s .18s ease both}
-.sub .t{font-weight:700;font-size:13.5px}
-.sub .url{font-family:var(--mono);font-size:10.5px;color:var(--dim);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:9px 0 11px;border:1px dashed var(--line);border-radius:10px;padding:9px 11px}
-.sub .meta{font-size:11.5px;color:var(--dim);margin-top:10px}
-.scard{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:9px 11px;margin-top:8px;cursor:pointer;transition:transform .12s ease,border-color .2s ease}
+/* ───── history + sub cards ───── */
+.scard{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;background:rgba(232,200,114,.04);
+padding:10px 12px;margin-top:8px;cursor:pointer;transition:transform .13s ease,border-color .2s ease;animation:up .4s ease both}
 .scard:active{transform:scale(.98);border-color:var(--line2)}
-.scard .host{font-family:var(--mono);font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;flex:1;text-align:left}
-.scard .ping{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:1px 6px;flex:0 0 auto}
-.mk{background:none;border:1px solid var(--line);border-radius:8px;font-size:12px;width:30px;height:26px;cursor:pointer;line-height:1;flex:0 0 auto;padding:0}
-.mk.ok.on{border-color:rgba(232,200,114,.6);background:rgba(232,200,114,.14)}
-.mk.bad.on{border-color:rgba(192,101,74,.55);background:rgba(192,101,74,.14)}
-.rot{font-family:var(--mono);font-size:10px;color:var(--gold);border:1px dashed var(--line2);border-radius:8px;padding:2px 8px;flex:0 0 auto}
-.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);color:var(--gold);background:rgba(232,200,114,.07);
-border-radius:999px;padding:8px 18px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:700}
-.btn:active{transform:scale(.97)}
-.more{width:100%;border:1px dashed var(--line2);background:none;color:var(--gold);border-radius:12px;padding:11px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:600}
-footer{margin-top:28px;display:flex;justify-content:center;gap:16px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em}
+.scard .host{font-family:var(--mono);font-size:11px;opacity:.85}
+.scard .ping{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:7px;padding:1.5px 7px;flex:0 0 auto}
+.mk{background:none;border:1px solid var(--line);border-radius:9px;font-size:12px;width:31px;height:27px;cursor:pointer;line-height:1;flex:0 0 auto;padding:0;transition:all .2s}
+.mk.ok.on{border-color:rgba(232,200,114,.6);background:rgba(232,200,114,.16)}
+.mk.bad.on{border-color:rgba(224,108,90,.55);background:rgba(224,108,90,.16)}
+.rot{font-family:var(--mono);font-size:10px;color:var(--gold);border:1px dashed var(--line2);border-radius:8px;padding:2px 8px;flex:0 0 auto;font-weight:700}
+.hclear{display:none;background:none;border:1px solid var(--line);border-radius:9px;color:var(--dim);font-size:11px;padding:3px 9px;cursor:pointer;font-family:inherit}
+.hclear:active{transform:scale(.94)}
+/* ───── subscription CTA ───── */
+.sub{border:1px solid var(--line2);border-radius:20px;padding:18px 16px;overflow:hidden;position:relative;
+background:linear-gradient(165deg,rgba(232,200,114,.2),rgba(232,200,114,.05) 55%,rgba(232,200,114,.1));
+animation:up .5s .2s ease both;box-shadow:0 16px 44px -22px rgba(232,200,114,.35)}
+.sub .t{font-weight:800;font-size:15px;color:var(--gold2)}
+.sub .url{font-family:var(--mono);font-size:10.5px;color:var(--dim);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:10px 0 12px;border:1px dashed var(--line2);border-radius:11px;padding:10px 12px;background:rgba(12,10,7,.5)}
+.sub .meta{font-size:11.5px;color:var(--dim);margin-top:9px}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--gold);color:#14110C;background:linear-gradient(180deg,#F5DFA0,#E8C872);
+border-radius:999px;padding:9px 20px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:800;
+box-shadow:0 8px 22px -8px rgba(232,200,114,.6);transition:transform .15s ease}
+.btn:active{transform:scale(.96)}
+.more{width:100%;border:1px dashed var(--line2);background:none;color:var(--gold);border-radius:13px;padding:11px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:700}
+footer{margin-top:30px;display:flex;justify-content:center;gap:16px;font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.12em;animation:up .5s ease both}
 footer a{color:var(--dim);text-decoration:none}
+footer a:hover{color:var(--gold)}
+/* ───── fx ───── */
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(18px);opacity:0;transition:.25s ease;
-background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);border-radius:999px;padding:9px 18px;font-size:12.5px;pointer-events:none;z-index:9}
+background:rgba(30,26,19,.95);border:1px solid var(--line2);color:var(--txt);border-radius:999px;padding:9px 18px;font-size:12.5px;pointer-events:none;z-index:9}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.sk{height:54px;border-radius:14px;border:1px solid var(--line);margin-bottom:8px;background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:sh 1.3s infinite}
+.sk{height:58px;border-radius:16px;border:1px solid var(--line);margin-bottom:9px;background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:sh 1.3s infinite}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
-@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.err{border:1px dashed rgba(192,101,74,.5);color:#d8a18c;border-radius:14px;padding:14px;font-size:12.5px;text-align:center}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.err{border:1px dashed rgba(224,108,90,.5);color:#d8a18c;border-radius:14px;padding:14px;font-size:12.5px;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 </style>
 </head>
 <body>
@@ -2259,9 +2536,12 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
       <path fill="#E8C872" d="M624 644 H630 V675 H624 Z"/>
       <circle cx="627" cy="693" r="19" fill="#E8C872"/>
     </svg>
-    <div class="brand">ARISTON</div>
+    <div class="brandbox">
+      <div class="brand">ARISTON</div>
+      <div class="brandsub">TELEGRAM PROTOCOL · v4.2</div>
+    </div>
     <div class="hlive">
-      <button class="admchip" id="admChip" style="display:none" aria-label="admin">🛠</button>
+      <button class="admchip" id="admChip" style="display:none" aria-label="admin">🛠 پنل</button>
       <div class="livewrap"><span class="dot"></span><span>LIVE</span></div>
       <button class="refresh" id="refresh" aria-label="refresh">⟳</button>
     </div>
@@ -2269,17 +2549,31 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
 
   <section class="hero">
     <div class="kbar"></div>
-    <div class="num" id="heroNum">—</div>
-    <div class="lbl" id="heroLbl">…</div>
-    <div class="sub" id="heroSub">…</div>
+    <div class="hbadge">✨ <span id="heroBadge">…</span></div>
+    <div class="hnum" id="heroNum">—</div>
+    <div class="hlbl"><span id="heroLbl">…</span> <span class="fire">🔥</span></div>
+    <div class="hpill">
+      <div><span id="heroSubA">…</span></div>
+      <div class="sep"></div>
+      <div><b id="heroSubB">…</b></div>
+    </div>
     <button class="heroerr" id="heroErr" style="display:none">⚠ <span id="heroErrTx"></span></button>
   </section>
 
   <div class="grid">
-    <div class="stat"><div class="v" id="stAlive">—</div><div class="k" id="stAliveK">…</div></div>
-    <div class="stat"><div class="v" id="stP50">—</div><div class="k" id="stP50K">…</div></div>
-    <div class="stat"><div class="v" id="stSrc">—</div><div class="k" id="stSrcK">…</div></div>
-    <div class="stat"><div class="v" id="stRun">—</div><div class="k" id="stRunK">…</div></div>
+    <div class="stat"><span class="badge" id="stAliveB">ONLINE</span><div class="ic">✔️</div><div class="v" id="stAlive">—</div><div class="k" id="stAliveK">…</div></div>
+    <div class="stat"><span class="badge alt" id="stP50B">FAST</span><div class="ic">⚡</div><div class="v" id="stP50">—</div><div class="k" id="stP50K">…</div></div>
+    <div class="stat"><span class="badge warm" id="stSrcB">—</span><div class="ic">📡</div><div class="v" id="stSrc">—</div><div class="k" id="stSrcK">…</div></div>
+    <div class="stat"><span class="badge" id="stRunB">—</span><div class="ic">⏱️</div><div class="v" id="stRun">—</div><div class="k" id="stRunK">…</div></div>
+  </div>
+
+  <div class="bank" id="bankStrip">
+    <div class="bic">🏦</div>
+    <div class="bt">
+      <div class="b1" id="bankT1">…</div>
+      <div class="b2" id="bankT2">—</div>
+    </div>
+    <div class="bdots"><span class="bdot h"></span><span class="bdot s"></span><span class="bdot q"></span></div>
   </div>
 
   <div class="sec" id="histSec" style="display:none"><h2 id="histTitle">…</h2><div class="rule"></div><button class="hclear" id="histClear">🗑</button></div>
@@ -2288,6 +2582,11 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
 
   <div class="sec"><h2 id="goldTitle">…</h2><div class="rule"></div></div>
   <div class="hint" id="goldHint">…</div>
+  <div class="chips" id="sortChips">
+    <button class="schip on" data-sort="ping" id="chipPing">…</button>
+    <button class="schip" data-sort="ok" id="chipOk">…</button>
+    <button class="schip" data-sort="vote" id="chipVote">…</button>
+  </div>
   <div id="goldList">
     <div class="sk"></div><div class="sk"></div><div class="sk"></div>
   </div>
@@ -2299,60 +2598,80 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D6.0 · v4.2</span>
+    <span>D7.0 · V4.2</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
 var I18N = {
-  fa: {hero_lbl:'کانفیگ طلایی', hero_sub:'برگزیده از بین {alive} کانفیگ سالم · دور {run}',
-    st_alive:'کانفیگ سالم', st_p50:'پینگ p50', st_src:'منابع فعال', st_run:'آخرین تست',
+  fa: {hero_badge:'انتخاب هوشمند لحظه‌ای', hero_lbl:'کانفیگ طلایی',
+    hero_a:'برگزیده از بین {alive} کانفیگ سالم', hero_b:'دور {run}',
+    st_online:'ONLINE', st_fast:'FAST', st_alive:'کانفیگ سالم تایید شده', st_p50:'میانگین پینگ شبکه',
+    st_src:'منابع فعال و اسکن‌شده', st_run:'آخرین پایش و تست',
+    bank_t1:'بانک کانفیگ: {n} خوش‌سابقه', bank_t2:'HIT {hit}% · PASS2 +{p2} · سابقه {streak}x',
+    sort_fast:'⚡ سریع‌ترین پینگ', sort_ok:'✅ بهترین نرخ', sort_vote:'👍 محبوب‌ترین',
     rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
-    gold_t:'کانفیگ‌های طلایی', gold_hint:'روی کارت بزن تا کپی بشه · 👍 یعنی برات کار کرد',
+    gold_t:'کانفیگ‌های طلایی', gold_st:'برترین‌ها بر اساس پینگ و تست‌ها', gold_hint:'روی کارت بزن تا کپی بشه · 👍 یعنی برات کار کرد',
     more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ممنون! ثبت شد 🙏',
     hist_t:'تاریخچه من', hist_hint:'آخرین کانفیگ‌هایی که کپی کردی — تا ۲۰ مورد، همیشه همین‌جان', hist_empty:'هنوز چیزی کپی نکردی — از «کانفیگ‌های طلایی» شروع کن', hist_cleared:'تاریخچه پاک شد',
-    sub_t:'اشتراک شخصی من', sub_note:'هر بار اپت رو آپدیت کنی، ۱۰ تا کانفیگ مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_copy:'کپی لینک',
-    sub_meta:'اپراتور: {o} · اپ: {c}', sub_need:'اول توی ربات /start رو بزن', open_tg:'برای دیدن اشتراک شخصی، این صفحه رو توی تلگرام باز کن',
+    sub_t:'اشتراک شخصی و اختصاصی', sub_note:'هر بار اپت رو آپدیت کنی، کانفیگ‌های مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_copy:'کپی لینک',
+    sub_meta:'اپراتور: {o} · اپ: {c}', sub_need:'اول توی ربات /start رو بزن', open_tg:'جهت دریافت اشتراک شخصی، این صفحه رو داخل تلگرام باز کن',
     mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های مخصوص من', rot_day:'تعویض: روزانه', rot_run:'تعویض: هر دور تست',
     marked:'ثبت شد', fail:'نتونستم اطلاعات رو بگیرم — دوباره امتحان کن', isp_other:'همه', cl_other:'سایر'},
-  en: {hero_lbl:'gold configs', hero_sub:'refined from {alive} alive · run {run}',
-    st_alive:'Alive configs', st_p50:'p50 latency', st_src:'Healthy sources', st_run:'Last run',
+  en: {hero_badge:'Smart live selection', hero_lbl:'gold configs',
+    hero_a:'refined from {alive} alive configs', hero_b:'run {run}',
+    st_online:'ONLINE', st_fast:'FAST', st_alive:'Alive configs verified', st_p50:'Network avg ping',
+    st_src:'Active scanned sources', st_run:'Last scan & test',
+    bank_t1:'Config bank: {n} known-good', bank_t2:'HIT {hit}% · PASS2 +{p2} · streak {streak}x',
+    sort_fast:'⚡ Fastest ping', sort_ok:'✅ Best rate', sort_vote:'👍 Most voted',
     rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
-    gold_t:'Gold configs', gold_hint:'tap a card to copy · 👍 = it worked for you',
+    gold_t:'Gold configs', gold_st:'ranked by ping & test results', gold_hint:'tap a card to copy · 👍 = it worked for you',
     more:'Show more', copied:'Copied ✅', voted:'Recorded 🙏',
     hist_t:'My history', hist_hint:'the configs you copied — last 20, always here', hist_empty:'nothing copied yet — start from the gold list', hist_cleared:'history cleared',
-    sub_t:'My personal subscription', sub_note:'every client refresh delivers your personal 10-pick (daily or per-run rotation)', sub_copy:'Copy link',
+    sub_t:'My personal subscription', sub_note:'every client refresh delivers your personal picks (daily or per-run rotation)', sub_copy:'Copy link',
     sub_meta:'ISP: {o} · Client: {c}', sub_need:'press /start in the bot first', open_tg:'open this page inside Telegram for your personal sub',
     mk_ok:'connected', mk_fail:'failed', my10:'My personal picks', rot_day:'rotation: daily', rot_run:'rotation: per run',
     marked:'Recorded', fail:'failed to load — try again', isp_other:'All', cl_other:'Other'},
-  ru: {hero_lbl:'золотых конфигов', hero_sub:'отобрано из {alive} живых · прогон {run}',
-    st_alive:'Живых конфигов', st_p50:'Задержка p50', st_src:'Рабочих источников', st_run:'Последний прогон',
+  ru: {hero_badge:'Умный выбор в реальном времени', hero_lbl:'золотых конфигов',
+    hero_a:'отобрано из {alive} живых конфигов', hero_b:'прогон {run}',
+    st_online:'ONLINE', st_fast:'FAST', st_alive:'Проверенных конфигов', st_p50:'Средний пинг сети',
+    st_src:'Активных источников', st_run:'Последняя проверка',
+    bank_t1:'Банк конфигов: {n} надёжных', bank_t2:'HIT {hit}% · PASS2 +{p2} · серия {streak}x',
+    sort_fast:'⚡ Быстрейший пинг', sort_ok:'✅ Лучший рейтинг', sort_vote:'👍 Популярные',
     rel_min:'{n} мин назад', rel_hour:'{n} ч назад', rel_day:'{n} дн назад',
-    gold_t:'Золотые конфиги', gold_hint:'нажми на карточку — копировать · 👍 = работает',
+    gold_t:'Золотые конфиги', gold_st:'рейтинг по пингу и тестам', gold_hint:'нажми на карточку — копировать · 👍 = работает',
     more:'Показать ещё', copied:'Скопировано ✅', voted:'Записано 🙏',
     hist_t:'Моя история', hist_hint:'конфиги, которые ты копировал — последние 20, всегда здесь', hist_empty:'пока ничего — начни с золотого списка', hist_cleared:'история очищена',
-    sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — твоя персональная десятка (день или прогон)', sub_copy:'Копировать ссылку',
+    sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — твоя персональная подборка (день или прогон)', sub_copy:'Копировать ссылку',
     sub_meta:'Оператор: {o} · Клиент: {c}', sub_need:'сначала /start в боте', open_tg:'открой эту страницу в Telegram для личной подписки',
     mk_ok:'подключилось', mk_fail:'не вышло', my10:'Мои личные конфиги', rot_day:'ротация: день', rot_run:'ротация: прогон',
     marked:'Записано', fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое'},
-  tr: {hero_lbl:'altın yapılandırma', hero_sub:'{alive} çalışan içinden seçildi · çalışma {run}',
-    st_alive:'Çalışan yapılandırma', st_p50:'p50 gecikme', st_src:'Sağlıklı kaynak', st_run:'Son çalışma',
+  tr: {hero_badge:'Akıllı anlık seçki', hero_lbl:'altın yapılandırma',
+    hero_a:'{alive} çalışan içinden seçildi', hero_b:'tur {run}',
+    st_online:'ONLINE', st_fast:'FAST', st_alive:'Onaylanan çalışan yapılandırma', st_p50:'Ağ ortalama ping',
+    st_src:'Aktif taranan kaynak', st_run:'Son tarama ve test',
+    bank_t1:'Yapılandırma bankası: {n} güvenilir', bank_t2:'HIT {hit}% · PASS2 +{p2} · seri {streak}x',
+    sort_fast:'⚡ En hızlı ping', sort_ok:'✅ En iyi oran', sort_vote:'👍 En popüler',
     rel_min:'{n} dk önce', rel_hour:'{n} sa önce', rel_day:'{n} gün önce',
-    gold_t:'Altın yapılandırmalar', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
+    gold_t:'Altın yapılandırmalar', gold_st:'ping ve test sonuçlarına göre', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
     more:'Daha fazla', copied:'Kopyalandı ✅', voted:'Kaydedildi 🙏',
     hist_t:'Geçmişim', hist_hint:'kopyaladığın yapılandırmalar — son 20, hep burada', hist_empty:'henüz bir şey kopyalanmadı — altın listeden başla', hist_cleared:'geçmiş temizlendi',
-    sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede kişisel 10’luk seçkin (günlük veya her çalışma)', sub_copy:'Bağlantıyı kopyala',
+    sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede kişisel seçkinlerin gelir (günlük veya her tur)', sub_copy:'Bağlantıyı kopyala',
     sub_meta:'Sağlayıcı: {o} · İstemci: {c}', sub_need:'önce botta /start gönder', open_tg:'kişisel abonelik için bu sayfayı Telegram içinde aç',
-    mk_ok:'bağlandı', mk_fail:'olmadı', my10:'Kişisel seçkilerim', rot_day:'rotasyon: günlük', rot_run:'rotasyon: çalışma',
+    mk_ok:'bağlandı', mk_fail:'olmadı', my10:'Kişisel seçkilerim', rot_day:'rotasyon: günlük', rot_run:'rotasyon: her tur',
     marked:'Kaydedildi', fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer'},
-  zh: {hero_lbl:'金牌配置', hero_sub:'从 {alive} 个可用中精选 · 第 {run} 轮',
-    st_alive:'可用配置', st_p50:'p50 延迟', st_src:'可用源', st_run:'最近一轮',
+  zh: {hero_badge:'实时智能精选', hero_lbl:'金牌配置',
+    hero_a:'从 {alive} 个可用配置中精选', hero_b:'第 {run} 轮',
+    st_online:'ONLINE', st_fast:'FAST', st_alive:'已验证可用配置', st_p50:'网络平均延迟',
+    st_src:'活跃扫描源', st_run:'最近扫描测试',
+    bank_t1:'配置银行：{n} 个优等', bank_t2:'HIT {hit}% · PASS2 +{p2} · 连击 {streak}x',
+    sort_fast:'⚡ 最快延迟', sort_ok:'✅ 最佳成功率', sort_vote:'👍 最多好评',
     rel_min:'{n} 分钟前', rel_hour:'{n} 小时前', rel_day:'{n} 天前',
-    gold_t:'金牌配置', gold_hint:'点卡片即复制 · 👍 = 对我有用',
+    gold_t:'金牌配置', gold_st:'按延迟与测试结果排名', gold_hint:'点卡片即复制 · 👍 = 对我有用',
     more:'显示更多', copied:'已复制 ✅', voted:'已记录 🙏',
     hist_t:'我的历史', hist_hint:'你复制过的配置 — 最近 20 条，一直都在', hist_empty:'还没有复制过 — 从金牌列表开始', hist_cleared:'历史已清除',
-    sub_t:'我的个人订阅', sub_note:'客户端每次刷新拿到你的专属 10 个（按天或每轮轮换）', sub_copy:'复制链接',
+    sub_t:'我的个人订阅', sub_note:'客户端每次刷新拿到你的专属配置（按天或每轮轮换）', sub_copy:'复制链接',
     sub_meta:'运营商：{o} · 客户端：{c}', sub_need:'请先在机器人里 /start', open_tg:'在 Telegram 内打开此页面以获取个人订阅',
     mk_ok:'连上了', mk_fail:'连不上', my10:'我的专属配置', rot_day:'轮换：每天', rot_run:'轮换：每轮',
     marked:'已记录', fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他'}
@@ -2392,12 +2711,17 @@ function rel(iso){ var ms = Date.now() - new Date(iso).getTime();
   var h = Math.round(m / 60);
   if (h < 24) return T('rel_hour', {n:h});
   return T('rel_day', {n: Math.round(h / 24)}); }
-function countUp(el, to){ var t0 = null, dur = 900;
+function countUp(el, to, dur){ dur = dur || 1100; var t0 = null;
   function step(ts){ if (!t0) t0 = ts; var k = Math.min(1, (ts - t0) / dur); k = 1 - Math.pow(1 - k, 3);
     el.textContent = fmtN(Math.round(to * k)); if (k < 1) requestAnimationFrame(step); }
   requestAnimationFrame(step); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function hostOf(uri){
+  var hp = String(uri).split('://')[1] || '';
+  return hp.split(/[\\/?#]/)[0] || String(uri).replace(/^[a-z0-9+.-]+:\\/\\//i, '').slice(0, 26) || '—';
+}
 function applyTexts(){
+  document.getElementById('heroBadge').textContent = T('hero_badge');
   document.getElementById('heroLbl').textContent = T('hero_lbl');
   document.getElementById('heroErrTx').textContent = T('fail');
   document.getElementById('stAliveK').textContent = T('st_alive');
@@ -2405,25 +2729,41 @@ function applyTexts(){
   document.getElementById('stSrcK').textContent = T('st_src');
   document.getElementById('stRunK').textContent = T('st_run');
   document.getElementById('goldTitle').textContent = '🏆 ' + T('gold_t');
-  document.getElementById('goldHint').textContent = T('gold_hint');
+  document.getElementById('goldHint').textContent = T('gold_st') + ' · ' + T('gold_hint');
   document.getElementById('histTitle').textContent = '🕘 ' + T('hist_t');
   document.getElementById('subTitle').textContent = '🔗 ' + T('sub_t');
+  document.getElementById('chipPing').textContent = T('sort_fast');
+  document.getElementById('chipOk').textContent = T('sort_ok');
+  document.getElementById('chipVote').textContent = T('sort_vote');
   var mb = document.getElementById('moreBtn'); mb.textContent = T('more');
 }
-var lastStats = null, goldOffset = 0, statRetry = 0;
+var lastStats = null, goldOffset = 0, statRetry = 0, goldItems = [], goldSort = 'ping';
 function loadStats(){
   fetch('/app/api/stats').then(function(r){ return r.json(); }).then(function(s){
-    /* D5.1: a silent bail left the app on «—» forever — every failure is now visible and retried */
+    /* D5.1: every failure is visible and retried — never a silent «—» */
     if (s.error || !s.generated_at){ throw new Error('no_data'); }
     statRetry = 0;
     var he = document.getElementById('heroErr'); if (he) he.style.display = 'none';
     lastStats = s;
     countUp(document.getElementById('heroNum'), s.gold);
-    document.getElementById('heroSub').textContent = T('hero_sub', {alive: fmtN(s.alive), run: rel(s.generated_at)});
+    document.getElementById('heroSubA').textContent = T('hero_a', {alive: fmtN(s.alive)});
+    document.getElementById('heroSubB').textContent = T('hero_b', {run: rel(s.generated_at)});
     document.getElementById('stAlive').textContent = fmtN(s.alive);
     document.getElementById('stP50').innerHTML = fmtN(s.p50) + '<small> ms</small>';
     document.getElementById('stSrc').innerHTML = fmtN(s.sources_ok) + '<small> / ' + fmtN(s.sources_total) + '</small>';
     document.getElementById('stRun').textContent = rel(s.generated_at);
+    var pct = s.sources_total ? Math.round(100 * s.sources_ok / s.sources_total * 10) / 10 : 0;
+    document.getElementById('stSrcB').textContent = pct + '%';
+    document.getElementById('stRunB').textContent = rel(s.generated_at);
+    var bank = document.getElementById('bankStrip');
+    if (s.bank && s.bank.size != null){
+      bank.style.display = 'flex';
+      document.getElementById('bankT1').textContent = T('bank_t1', {n: fmtN(s.bank.size)});
+      var p2 = (s.bank.pass2 && s.bank.pass2.rescued) || 0;
+      document.getElementById('bankT2').textContent = T('bank_t2', {
+        hit: (s.bank.hit_rate != null ? s.bank.hit_rate : '—'),
+        p2: fmtN(p2), streak: (s.bank.avg_streak != null ? s.bank.avg_streak : '—')});
+    } else { bank.style.display = 'none'; }
   }).catch(function(){
     var he = document.getElementById('heroErr'); if (he) he.style.display = 'block';
     toast(T('fail'));
@@ -2431,18 +2771,38 @@ function loadStats(){
     setTimeout(loadStats, [5000, 15000, 40000, 90000, 180000, 300000][statRetry - 1]);
   });
 }
+function sortItems(items){
+  var a = items.slice();
+  if (goldSort === 'ok'){
+    a.sort(function(x, y){ var ex = x.ema === null ? -1 : x.ema, ey = y.ema === null ? -1 : y.ema;
+      return (ey - ex) || ((x.latency_ms === null ? 9e9 : x.latency_ms) - (y.latency_ms === null ? 9e9 : y.latency_ms)); });
+  } else if (goldSort === 'vote'){
+    a.sort(function(x, y){ return ((y.up || 0) - (y.down || 0)) - ((x.up || 0) - (x.down || 0)); });
+  } else {
+    a.sort(function(x, y){ return (x.latency_ms === null ? 9e9 : x.latency_ms) - (y.latency_ms === null ? 9e9 : y.latency_ms); });
+  }
+  return a;
+}
+function renderGold(){
+  var list = document.getElementById('goldList');
+  if (!goldItems.length){ list.innerHTML = '<div class="err">⏳</div>'; return; }
+  var items = sortItems(goldItems);
+  var html = '';
+  for (var i = 0; i < items.length; i++){ html += goldCard(items[i], i); }
+  list.innerHTML = html;
+  bindCards();
+}
 function goldCard(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
-  var hostPart = it.uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\\/\\//i, '').slice(0, 26) || '—';
-  var rank = (goldOffset + idx < 3) ? MEDALS[goldOffset + idx] : ('#' + (goldOffset + idx + 1));
+  var rank = (idx < 3) ? MEDALS[idx] : '<span class="num">#' + (idx + 1) + '</span>';
   var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
   var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
   var latTx = it.latency_ms !== null ? Math.round(it.latency_ms) + 'ms' : '—';
   return '<div class="gcard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '" style="animation:up .4s ' + (idx * 0.05) + 's ease both">' +
     '<div class="gtop"><div class="rank">' + rank + '</div>' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
-    '<div class="host">' + esc(hostPart) + '</div>' +
+    '<div class="host">' + esc(hostOf(it.uri)) + '</div>' +
+    '<span class="livedot"></span>' +
     '<div class="metrics"><span class="ema ' + emaCls + '">' + emaTx + '</span>' +
     '<span class="lat">' + latTx + '</span></div></div>' +
     '<div class="gfoot">' +
@@ -2464,7 +2824,7 @@ function bindCards(){
     if (btn._bound) return; btn._bound = true;
     btn.addEventListener('click', function(ev){
       ev.stopPropagation();
-      if (!initData) return; /* D6: anonymous visitors see counts only — buttons render disabled */
+      if (!initData) return; /* anonymous visitors see counts only */
       var vote = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
       haptic('medium');
       fetch('/app/api/feedback', {method:'POST', headers:{'content-type':'application/json'},
@@ -2472,15 +2832,31 @@ function bindCards(){
         .then(function(r){ return r.json(); })
         .then(function(res){
           if (res.ok){ toast(T('voted'));
+            btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
             var card = btn.closest('.gcard');
             Array.prototype.forEach.call(card.querySelectorAll('.fb'), function(b){ b.classList.remove('on'); });
             btn.classList.add('on');
             var cnt = btn.querySelector('span'); if (cnt) cnt.textContent = (vote === 'up') ? res.up : res.down;
-          } /* D6: server refused (expired session) — stay silent */
+            for (var i = 0; i < goldItems.length; i++){
+              if (goldItems[i].hash === hash){
+                if (vote === 'up'){ goldItems[i].up = res.up; } else { goldItems[i].down = res.down; }
+              }
+            }
+          } /* server refused (expired session) — stay silent */
         }).catch(function(){ toast(T('fail')); });
     });
   });
 }
+Array.prototype.forEach.call(document.querySelectorAll('.schip'), function(chip){
+  chip.addEventListener('click', function(){
+    if (chip.classList.contains('on')) return;
+    haptic('light');
+    Array.prototype.forEach.call(document.querySelectorAll('.schip'), function(c){ c.classList.remove('on'); });
+    chip.classList.add('on');
+    goldSort = chip.getAttribute('data-sort');
+    renderGold();
+  });
+});
 var goldAutoRetried = false;
 function showGoldFail(list){
   list.innerHTML = '<div class="err">' + T('fail') + '</div>';
@@ -2497,7 +2873,7 @@ function goldAutoRetry(){
 function loadGold(append){
   var list = document.getElementById('goldList');
   if (!append){ list.innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>'; goldOffset = 0; }
-  /* D5: POST + initData → the server stamps the user's own name on the copied configs */
+  /* POST + initData → the server stamps the user's own name on the copied configs */
   var req = initData
     ? fetch('/app/api/gold', { method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 10 }) })
@@ -2506,25 +2882,20 @@ function loadGold(append){
     if (d.error || !d.items){ showGoldFail(list); goldAutoRetry(); return; }
     if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
     goldAutoRetried = false;
-    var html = append ? '' : '';
-    for (var i = 0; i < d.items.length; i++){ html += goldCard(d.items[i], i); }
-    if (append){ list.insertAdjacentHTML('beforeend', html); } else { list.innerHTML = html; }
+    goldItems = append ? goldItems.concat(d.items) : d.items;
     goldOffset += d.items.length;
-    var mb = document.getElementById('moreBtn');
+    renderGold();
     /* D6: exactly 10 gold cards — the rest lives in the bot (/gold) */
-    mb.style.display = 'none';
-    bindCards();
+    document.getElementById('moreBtn').style.display = 'none';
   }).catch(function(){ showGoldFail(list); goldAutoRetry(); });
 }
 function subRow(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
-  var hostPart = it.uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\\/\\//i, '').slice(0, 26) || '—';
   var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
   var okOn = it.mark === 1 ? ' on' : '', badOn = it.mark === 2 ? ' on' : '';
-  return '<div class="scard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '">' +
+  return '<div class="scard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '" style="animation-delay:' + (idx * 0.04) + 's">' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
-    '<div class="host">' + esc(hostPart) + '</div>' +
+    '<div class="host">' + esc(hostOf(it.uri)) + '</div>' +
     '<span class="ping">' + esc(pingTx) + '</span>' +
     '<button class="mk ok' + okOn + '" data-hash="' + esc(it.hash) + '" data-v="ok" title="' + T('mk_ok') + '">✅</button>' +
     '<button class="mk bad' + badOn + '" data-hash="' + esc(it.hash) + '" data-v="fail" title="' + T('mk_fail') + '">❌</button>' +
@@ -2543,7 +2914,7 @@ function bindSubMarks(){
     if (btn._bound) return; btn._bound = true;
     btn.addEventListener('click', function(ev){
       ev.stopPropagation();
-      if (!initData) return; /* D6: silent for anonymous users */
+      if (!initData) return; /* silent for anonymous users */
       var v = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
       var wasOn = btn.classList.contains('on');
       var mark = wasOn ? 'clear' : v;
@@ -2556,7 +2927,7 @@ function bindSubMarks(){
             var card = btn.closest('.scard');
             Array.prototype.forEach.call(card.querySelectorAll('.mk'), function(b){ b.classList.remove('on'); });
             if (!wasOn) btn.classList.add('on');
-          } /* D6: server refused — stay silent */
+          } /* server refused — stay silent */
         }).catch(function(){ toast(T('fail')); });
     });
   });
@@ -2581,7 +2952,7 @@ function loadSub(){
         '<div class="meta">' + T('sub_note') + '</div>' +
         '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + nameTag + '</div>';
       if (d.items && d.items.length){
-        html += '<div class="meta" style="margin-top:14px;font-weight:700;color:var(--gold)">📦 ' + T('my10') + ' · ' + d.items.length + '</div>';
+        html += '<div class="meta" style="margin-top:14px;font-weight:800;color:var(--gold)">📦 ' + T('my10') + ' · ' + d.items.length + '</div>';
         for (var i = 0; i < d.items.length; i++){ html += subRow(d.items[i], i); }
         html += '<div class="meta" style="margin-top:8px">✅ ' + T('mk_ok') + ' · ❌ ' + T('mk_fail') + '</div>';
       }
@@ -2592,17 +2963,15 @@ function loadSub(){
 }
 /* D6 — personal history: persistent ≤20, rendered BEFORE the global gold list */
 var histLoaded = false;
-function histCard(it){
+function histCard(it, idx){
   var uri = it.u || '';
   var proto = (uri.split('://')[0] || 'other').toLowerCase();
-  var hostPart = uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0] || '—';
   var latTx = (it.l != null && isFinite(it.l)) ? Math.round(it.l) + 'ms' : '—';
   var ago = '—';
   try { ago = rel(new Date(it.ts || Date.now()).toISOString()); } catch (e){}
-  return '<div class="scard" data-uri="' + esc(uri) + '">' +
+  return '<div class="scard" data-uri="' + esc(uri) + '" style="animation-delay:' + (idx * 0.04) + 's">' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
-    '<div class="host">' + esc(hostPart) + '</div>' +
+    '<div class="host">' + esc(hostOf(uri)) + '</div>' +
     '<span class="ping">' + esc(latTx) + '</span>' +
     '<span class="ping">' + esc(ago) + '</span></div>';
 }
@@ -2617,7 +2986,7 @@ function histRender(items){
   hint.textContent = has ? T('hist_hint') : T('hist_empty');
   clr.style.display = has ? 'inline-flex' : 'none';
   var html = '';
-  for (var i = 0; i < (items || []).length; i++) html += histCard(items[i]);
+  for (var i = 0; i < (items || []).length; i++) html += histCard(items[i], i);
   list.innerHTML = html;
   Array.prototype.forEach.call(list.querySelectorAll('.scard'), function(card){
     if (card._bound) return; card._bound = true;
@@ -2679,13 +3048,12 @@ document.getElementById('refresh').addEventListener('click', function(){ haptic(
 document.getElementById('heroErr').addEventListener('click', loadStats);
 setInterval(loadStats, 5 * 60 * 1000);
 /* D5.2 hotfix — the Telegram script is async now: first paint never waits for
-   telegram.org (filtered/slow networks kept the page blank until timeout).
-   Attach TG features whenever it arrives (poll ≤ 4s), then refresh personal parts. */
+   telegram.org. Attach TG features whenever it arrives (poll ≤ 4s), then refresh personal parts. */
 function tgAttach(){
   tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (!tg) return false;
   initData = tg.initData || '';
-  try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){}
+  try { tg.ready(); tg.expand(); tg.setHeaderColor('#0C0A07'); tg.setBackgroundColor('#0C0A07'); } catch (e){}
   if (initData){ loadSub(); loadGold(false); loadHist(); loadMe(); }
   return true;
 }
@@ -2707,60 +3075,98 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D6.0 — votes overview + JSON export -->
+<!-- panel build: D7.0 — bank telemetry · broadcast · admins · maintenance · motion -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Vazirmatn:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Vazirmatn:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
-:root{--bg:#14110C;--card:rgba(232,200,114,.06);--line:rgba(232,200,114,.18);
---gold:#E8C872;--deep:#C9A24A;--txt:#F3ECDD;--dim:#8d8262;--bad:#e06c5a;--ok:#7ec97e;
---mono:'JetBrains Mono',ui-monospace,Menlo,monospace}
+:root{--bg:#0C0A07;--card:rgba(232,200,114,.06);--line:rgba(232,200,114,.18);
+--gold:#E8C872;--gold2:#F5DFA0;--deep:#C9A24A;--txt:#F3ECDD;--dim:#8d8262;--bad:#e06c5a;--ok:#7ec97e;
+--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--cin:'Cinzel',serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Vazirmatn',system-ui,sans-serif;font-size:15px;line-height:1.7}
-body{min-height:100vh;background-image:radial-gradient(560px 280px at 50% -70px,rgba(232,200,114,.14),transparent 72%)}
-.wrap{max-width:520px;margin:0 auto;padding:14px 16px calc(30px + env(safe-area-inset-bottom))}
-header{display:flex;align-items:baseline;gap:10px;padding:8px 2px 14px}
-.brand{font-family:'Cinzel',Georgia,serif;font-weight:700;letter-spacing:.32em;font-size:15px;color:var(--gold)}
+body{min-height:100vh;background:
+radial-gradient(700px 340px at 50% -90px,rgba(232,200,114,.15),transparent 70%),
+radial-gradient(420px 240px at 90% 30%,rgba(201,162,74,.05),transparent 70%)}
+.wrap{max-width:540px;margin:0 auto;padding:14px 16px calc(34px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:10px;padding:8px 2px 14px;animation:up .5s ease both}
+.brand{font-family:var(--cin);font-weight:900;letter-spacing:.3em;font-size:15px;text-indent:.3em;
+background:linear-gradient(180deg,#F7E5AF,#E8C872 55%,#B98F3E);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .sub{color:var(--dim);font-size:12px}
-h2{font-size:13.5px;color:var(--deep);margin:22px 2px 8px;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
-h2::after{content:'';flex:1;height:1px;background:var(--line)}
-h2 .n{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 14px;margin-bottom:10px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(232,200,114,.1)}
+.h2{font-size:13.5px;color:var(--deep);margin:24px 2px 8px;letter-spacing:.04em;display:flex;align-items:center;gap:8px;font-weight:800;animation:up .5s ease both}
+.h2::after{content:'';flex:1;height:1px;background:var(--line)}
+.h2 .n{font-family:var(--mono);font-size:10.5px;color:var(--dim);font-weight:400}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 14px;margin-bottom:10px;animation:up .5s ease both}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed rgba(232,200,114,.1)}
 .row:last-child{border-bottom:none}
-.k{font-size:13.5px;font-weight:500}
+.k{font-size:13.5px;font-weight:600}
 .hint{color:var(--dim);font-size:11.5px;margin-top:2px}
 .tg{font-family:var(--mono);direction:ltr}
 .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
-.chip{border:1px solid var(--line);background:none;color:var(--txt);border-radius:999px;padding:6px 13px;font-family:var(--mono);font-size:12.5px;cursor:pointer}
+.chip{border:1px solid var(--line);background:none;color:var(--txt);border-radius:999px;padding:6px 13px;font-family:var(--mono);font-size:12.5px;cursor:pointer;transition:all .2s ease}
 .chip.on{background:var(--gold);color:#14110C;border-color:var(--gold);font-weight:700}
-.tgl{border:1px solid var(--line);background:none;color:var(--txt);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;flex:0 0 auto}
+.chip:active{transform:scale(.94)}
+.tgl{border:1px solid var(--line);background:none;color:var(--txt);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;flex:0 0 auto;transition:all .2s ease}
 .tgl.on{background:rgba(126,201,126,.14);color:var(--ok);border-color:rgba(126,201,126,.5)}
 .tgl.off{background:rgba(224,108,90,.1);color:var(--bad);border-color:rgba(224,108,90,.45)}
-.btn{flex:1;border:1px solid var(--gold);background:var(--gold);color:#14110C;font-weight:700;font-family:inherit;font-size:13.5px;border-radius:12px;padding:11px;cursor:pointer}
+.tgl:active{transform:scale(.94)}
+.btn{flex:1;border:1px solid var(--gold);background:linear-gradient(180deg,#F5DFA0,#E8C872);color:#14110C;font-weight:800;font-family:inherit;font-size:13px;border-radius:12px;padding:11px;cursor:pointer;transition:transform .15s ease}
+.btn:active{transform:scale(.96)}
 .btn.ghost{background:none;color:var(--gold)}
-input{width:92px;background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:7px 10px;font-family:var(--mono);font-size:13px;direction:ltr;text-align:center}
-.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 0}
-.stat div{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:11px;padding:8px 4px;text-align:center}
+.btn.warn{background:rgba(224,108,90,.12);color:var(--bad);border-color:rgba(224,108,90,.45)}
+input,textarea{background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:8px 10px;font-family:var(--mono);font-size:13px;direction:ltr;text-align:center}
+input{width:92px}
+textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'Vazirmatn',sans-serif;resize:vertical;line-height:1.6}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 0}
+.stat div{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center;transition:border-color .2s}
+.stat div:hover{border-color:rgba(232,200,114,.4)}
 .stat b{display:block;font-family:var(--mono);font-size:15px;color:var(--gold);direction:ltr}
-.stat span{font-size:10.5px;color:var(--dim)}
-#users .u{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;border-bottom:1px dashed rgba(232,200,114,.08)}
-#users .u:last-child{border-bottom:none}
-.toast{position:fixed;inset-inline:0;bottom:18px;margin:auto;width:max-content;max-width:88vw;background:var(--gold);color:#14110C;font-weight:700;font-size:13px;border-radius:999px;padding:9px 18px;opacity:0;pointer-events:none;transition:.25s;z-index:9}
+.stat span{font-size:10px;color:var(--dim)}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 0}
+.bgrid div{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center}
+.bgrid b{display:block;font-family:var(--mono);font-size:14px;color:var(--gold2);direction:ltr}
+.bgrid span{font-size:9.5px;color:var(--dim)}
+.srcdots{display:flex;flex-wrap:wrap;gap:7px;padding:2px 0 10px}
+.sdot{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-family:var(--mono);font-size:11px;direction:ltr}
+.sdot i{width:7px;height:7px;border-radius:50%}
+.sdot.h i{background:var(--ok);box-shadow:0 0 7px rgba(126,201,126,.7)}
+.sdot.s i{background:var(--deep)}
+.sdot.q i{background:var(--bad)}
+#users .u,#votes .u,#admins .u{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:7px 0;border-bottom:1px dashed rgba(232,200,114,.08)}
+#users .u:last-child,#votes .u:last-child,#admins .u:last-child{border-bottom:none}
+.pager{display:flex;gap:8px;padding:10px 0 8px}
+.mono{font-family:var(--mono);direction:ltr}
+.mini{border:1px solid var(--line);background:none;color:var(--gold);border-radius:9px;font-size:11px;padding:3px 10px;cursor:pointer;font-family:inherit}
+.mini:active{transform:scale(.94)}
+.toast{position:fixed;inset-inline:0;bottom:18px;margin:auto;width:max-content;max-width:88vw;background:var(--gold);color:#14110C;font-weight:800;font-size:13px;border-radius:999px;padding:9px 18px;opacity:0;pointer-events:none;transition:.25s;z-index:9;box-shadow:0 10px 30px -10px rgba(232,200,114,.5)}
 .toast.show{opacity:1}
 .lock{text-align:center;padding:60px 10px;color:var(--dim)}
+.bar{height:7px;border-radius:999px;background:rgba(0,0,0,.3);overflow:hidden;margin:8px 0 4px}
+.bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#C9A24A,#F5DFA0);border-radius:999px;transition:width .4s ease}
+.foot{margin-top:26px;text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.12em}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
 </head>
 <body><div class="wrap">
-<header><span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت</span></header>
+<header>
+  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D7.0</span>
+</header>
 <div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
 <div id="panel" hidden>
-  <h2>وضعیت لحظه‌ای</h2>
+  <div class="h2">وضعیت لحظه‌ای</div>
   <div class="card"><div class="stat" id="stat"></div><div class="hint" id="statTime" style="padding:0 2px 8px"></div></div>
 
-  <h2>کانال</h2>
+  <div class="h2">بانک کانفیگ <span class="n" id="bankFlag"></span></div>
+  <div class="card">
+    <div class="bgrid" id="bankGrid"></div>
+    <div class="srcdots" id="bankSrc"></div>
+    <div class="hint" id="bankPass2" style="padding-bottom:10px"></div>
+  </div>
+
+  <div class="h2">کانال</div>
   <div class="card">
     <div class="row"><div><div class="k">کانال رسمی</div><div class="hint tg" id="chName">—</div></div></div>
     <div class="row"><div><div class="k">فاصلهٔ گزارش دوره‌ای</div><div class="hint">هر چند ساعت یه پست زنده توی کانال</div></div>
@@ -2774,24 +3180,47 @@ input{width:92px;background:rgba(0,0,0,.25);border:1px solid var(--line);color:v
     </div>
   </div>
 
-  <h2>رفتار ربات</h2>
+  <div class="h2">رفتار ربات</div>
   <div class="card">
     <div class="row"><div><div class="k">عضویت اجباری در کانال</div><div class="hint">بدون عضویت، ربات به کسی چیزی نمی‌ده</div></div><button class="tgl" id="tglJoin"></button></div>
     <div class="row"><div><div class="k">کانال اجباری</div><div class="hint tg" id="chUser">@Ariston_CH</div></div>
       <div style="display:flex;gap:6px;align-items:center"><input id="chUserIn" placeholder="@name" style="width:120px"><button class="tgl" id="saveCh">ثبت</button></div></div>
   </div>
 
-  <h2>دعوت دوستان</h2>
+  <div class="h2">دعوت دوستان</div>
   <div class="card">
     <div class="row"><div><div class="k">سهمیهٔ پایه</div><div class="hint">هر کاربر تازه با /start</div></div><input id="refBase" type="number" min="5" max="50"></div>
     <div class="row"><div><div class="k">سقف سهمیه</div><div class="hint">با دعوت دوستان تا این عدد</div></div><input id="refCap" type="number" min="10" max="100"></div>
     <div style="padding:10px 0 8px"><button class="btn" id="saveRef">ذخیره</button></div>
   </div>
 
-  <h2>کاربرها <span class="n" id="uTotal"></span></h2>
-  <div class="card" id="users"><div class="hint">—</div></div>
+  <div class="h2">مدیرها <span class="n" id="admTotal"></span></div>
+  <div class="card">
+    <div id="admins"><div class="hint">—</div></div>
+    <div class="row" style="border-bottom:none"><input id="admIn" placeholder="chat id" style="flex:1;text-align:left">
+      <button class="tgl" id="admAdd">➕ افزودن</button></div>
+    <div class="hint" style="padding-bottom:10px">دستورهای /panel و /freq فقط برای همین لیست توی منوی ربات نمایش داده می‌شه (دکمهٔ «همگام‌سازی منو» پایین صفحه).</div>
+  </div>
 
-  <h2>رأی کاربرها <span class="n" id="fbTotal"></span></h2>
+  <div class="h2">پیام همگانی <span class="n" id="bcTotal"></span></div>
+  <div class="card">
+    <div style="padding:10px 0 4px"><textarea id="bcText" placeholder="متن پیام برای همهٔ کاربرها… (HTML مجازه، مثلاً <b>بولد</b>)"></textarea></div>
+    <div class="bar" id="bcBarWrap" style="display:none"><i id="bcBar"></i></div>
+    <div class="hint" id="bcStat" style="padding-bottom:6px"></div>
+    <div style="display:flex;gap:8px;padding:4px 0 10px">
+      <button class="btn" id="bcSend">📣 ارسال</button>
+      <button class="btn warn" id="bcStop" style="flex:0 0 auto">⏹ توقف</button>
+    </div>
+  </div>
+
+  <div class="h2">کاربرها <span class="n" id="uTotal"></span></div>
+  <div class="card" id="users"><div class="hint">—</div></div>
+  <div class="pager">
+    <button class="btn ghost" id="uPrev">→ قبلی</button>
+    <button class="btn ghost" id="uNext">بعدی ←</button>
+  </div>
+
+  <div class="h2">رأی کاربرها <span class="n" id="fbTotal"></span></div>
   <div class="card">
     <div id="votes"><div class="hint">برای دیدن، دکمه را بزن</div></div>
     <div style="display:flex;gap:8px;padding:10px 0 8px">
@@ -2799,6 +3228,15 @@ input{width:92px;background:rgba(0,0,0,.25);border:1px solid var(--line);color:v
       <button class="btn ghost" id="dlVotes">⬇ JSON</button>
     </div>
   </div>
+
+  <div class="h2">نگهداری</div>
+  <div class="card">
+    <div class="row"><div><div class="k">پاک کردن کش داده‌ها</div><div class="hint">فایل‌های data برند و آمار از نو خونده می‌شن</div></div><button class="tgl" id="purgeBtn">🧹 پاک‌سازی</button></div>
+    <div class="row"><div><div class="k">همگام‌سازی منوی ربات</div><div class="hint">دکمهٔ /panel فقط برای مدیرها ست می‌شه</div></div><button class="tgl" id="cmdsBtn">🔄 همگام</button></div>
+    <div class="row"><div><div class="k">کانال فعلی</div><div class="hint tg" id="chId">—</div></div><div class="hint tg" id="bcStatus">—</div></div>
+  </div>
+
+  <div class="foot">ARISTON WORKER · D7.0 · V4.2</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -2814,7 +3252,11 @@ function post(path, body){
 function fmt(n){ return (n || 0).toLocaleString('en-US'); }
 function drawTgl(el, on){ el.textContent = on ? '✅ روشن' : '⛔ خاموش';
   el.classList.toggle('on', !!on); el.classList.toggle('off', !on); }
-var FREQS = [1, 2, 3, 6, 12, 24], S = null;
+function countUp(el, to){ var t0 = null, dur = 800;
+  function step(ts){ if (!t0) t0 = ts; var k = Math.min(1, (ts - t0) / dur); k = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmt(Math.round(to * k)); if (k < 1) requestAnimationFrame(step); }
+  requestAnimationFrame(step); }
+var FREQS = [1, 2, 3, 6, 12, 24], S = null, uOffset = 0;
 function draw(){
   drawTgl($('tglCard'), S.cfg.card_enabled !== false);
   drawTgl($('tglDigest'), S.cfg.digest_enabled !== false);
@@ -2823,6 +3265,7 @@ function draw(){
   $('refBase').value = S.cfg.ref_base || 10; $('refCap').value = S.cfg.ref_cap || 20;
   $('chName').textContent = S.channel ? ('@' + S.channel.user + ' · id ' + S.channel.id) : '— هنوز ثبت نشده —';
   $('chUserIn').value = '@' + (S.cfg.channel_user || 'Ariston_CH');
+  $('chId').textContent = S.channel ? ('id ' + S.channel.id) : '—';
   var ch = '';
   for (var i = 0; i < FREQS.length; i++){ var h = FREQS[i];
     ch += '<button class="chip' + (h === S.every_hours ? ' on' : '') + '" data-h="' + h + '">' + h + 'h</button>'; }
@@ -2830,13 +3273,70 @@ function draw(){
   Array.prototype.forEach.call($('freqChips').querySelectorAll('.chip'), function(b){
     b.onclick = function(){ set('every_hours', parseInt(b.getAttribute('data-h'), 10)); }; });
   if (S.stats){ var st = S.stats;
-    $('stat').innerHTML = '<div><b>' + fmt(st.gold) + '</b><span>طلایی</span></div>' +
-      '<div><b>' + fmt(st.alive) + '</b><span>سالم</span></div>' +
-      '<div><b>' + fmt(st.p50) + '</b><span>p50 ms</span></div>' +
-      '<div><b>' + fmt(st.sources_ok) + '/' + fmt(st.sources_total) + '</b><span>منابع</span></div>';
+    $('stat').innerHTML = '<div><b data-n="' + st.gold + '">0</b><span>طلایی</span></div>' +
+      '<div><b data-n="' + st.alive + '">0</b><span>سالم</span></div>' +
+      '<div><b data-n="' + st.p50 + '">0</b><span>p50 ms</span></div>' +
+      '<div><b data-n="' + st.sources_ok + '" data-suf="/' + fmt(st.sources_total) + '">0</b><span>منابع</span></div>';
+    Array.prototype.forEach.call($('stat').querySelectorAll('b'), function(b){
+      countUp(b, parseInt(b.getAttribute('data-n'), 10) || 0);
+      var suf = b.getAttribute('data-suf'); if (suf) setTimeout(function(){ b.textContent += suf; }, 820);
+    });
     try { $('statTime').textContent = 'آخرین تست: ' + new Date(st.generated_at).toLocaleString('fa-IR'); }
     catch (e){ $('statTime').textContent = st.generated_at || ''; }
   } else { $('stat').innerHTML = '<div style="grid-column:1/-1;color:var(--dim);text-align:center;padding:6px 0">آمار در دسترس نیست</div>'; $('statTime').textContent = ''; }
+  drawBank();
+  drawAdmins();
+  drawBc();
+}
+function drawBank(){
+  var b = S.bank, g = $('bankGrid'), src = $('bankSrc'), p2 = $('bankPass2'), fl = $('bankFlag');
+  if (!b || b.size == null){ g.innerHTML = '<div style="grid-column:1/-1;color:var(--dim);text-align:center;padding:8px 0">بانک هنوز شکل نگرفته — بعد از دور بعدی پایپ‌لاین پر می‌شه</div>';
+    src.innerHTML = ''; p2.textContent = ''; fl.textContent = ''; return; }
+  fl.textContent = b.full_scan ? '· اسکن کامل شنبه' : '';
+  var tiles = [
+    [fmt(b.size), 'خوش‌سابقه'],
+    [b.hit_rate != null ? b.hit_rate + '%' : '—', 'نرخ بازگشت'],
+    [(b.avg_streak != null ? b.avg_streak : '—') + 'x', 'میانگین سابقه'],
+    [(b.best_streak != null ? b.best_streak : '—') + 'x', 'بهترین سابقه'],
+    [b.avg_ms != null ? fmt(b.avg_ms) + 'ms' : '—', 'میانگین پینگ بانک'],
+    [(b.alive_delta != null ? (b.alive_delta > 0 ? '+' : '') + fmt(b.alive_delta) : '—'), 'دلتای سالم‌ها'],
+  ];
+  g.innerHTML = tiles.map(function(t){
+    return '<div><b>' + t[0] + '</b><span>' + t[1] + '</span></div>'; }).join('');
+  var bs = b.sources || {};
+  src.innerHTML =
+    '<span class="sdot h"><i></i>' + fmt(bs.healthy || 0) + ' سالم</span>' +
+    '<span class="sdot s"><i></i>' + fmt(bs.suspect || 0) + ' مشکوک</span>' +
+    '<span class="sdot q"><i></i>' + fmt(bs.quarantined || 0) + ' قرنطینه</span>' +
+    (bs.skipped_this_run ? '<span class="sdot"><i></i>' + fmt(bs.skipped_this_run) + ' کنارگذاشته</span>' : '');
+  var pp = b.pass2 || {};
+  p2.textContent = 'دور دوم: ' + fmt(pp.attempted || 0) + ' تلاش · ' + fmt(pp.rescued || 0) + ' نجات' +
+    (pp.timeout_s ? ' · تایم‌اوت ' + pp.timeout_s + 's' : '');
+}
+function drawAdmins(){
+  var list = S.admins || [];
+  $('admTotal').textContent = '· ' + list.length + ' نفر';
+  var h = '';
+  for (var i = 0; i < list.length; i++){ var a = list[i];
+    h += '<div class="u"><span class="mono">' + a.id + (a.owner ? ' 👑 <span style="color:var(--dim);font-family:inherit">مالک</span>' : '') + '</span>' +
+      (a.owner ? '<span></span>' : '<button class="mini" data-id="' + a.id + '">حذف</button>') + '</div>'; }
+  $('admins').innerHTML = h || '<div class="hint">مدیری ثبت نشده</div>';
+  Array.prototype.forEach.call($('admins').querySelectorAll('button.mini'), function(b){
+    b.onclick = function(){ adminOp('remove', b.getAttribute('data-id')); }; });
+}
+function drawBc(){
+  var bc = S.bc || {};
+  var total = bc.total || 0, cur = bc.cursor || 0;
+  $('bcTotal').textContent = total ? '· ' + fmt(total) + ' کاربر' : '';
+  if (total){
+    $('bcBarWrap').style.display = 'block';
+    $('bcBar').style.width = Math.round(100 * cur / total) + '%';
+    $('bcStat').textContent = (bc.active ? 'در حال ارسال… ' : '') + fmt(cur) + ' از ' + fmt(total) +
+      (bc.fails ? ' · ' + fmt(bc.fails) + ' خطا' : '');
+  } else {
+    $('bcBarWrap').style.display = 'none';
+    $('bcStat').textContent = '';
+  }
 }
 function set(key, value){
   post('set', { key: key, value: value }).then(function(r){
@@ -2846,7 +3346,7 @@ function set(key, value){
   }).catch(function(){ toast('خطا'); });
 }
 function loadUsers(){
-  post('users', { offset: 0, limit: 30 }).then(function(d){
+  post('users', { offset: uOffset, limit: 30 }).then(function(d){
     if (!d || d.error) return;
     $('uTotal').textContent = '· ' + fmt(d.total) + ' نفر';
     if (!d.items.length){ $('users').innerHTML = '<div class="hint">هنوز کاربری ثبت نشده</div>'; return; }
@@ -2854,11 +3354,11 @@ function loadUsers(){
     for (var i = 0; i < d.items.length; i++){ var u = d.items[i];
       h += '<div class="u"><span>' + (u.name ? '✍️ ' + u.name : (u.tg || '👤')) +
         ' <span style="color:var(--dim);font-family:var(--mono);font-size:10.5px">' + u.lang + '</span></span>' +
-        '<span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + u.isp + ' · 👥' + u.refs + '</span></div>'; }
+        '<span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + u.chat_id + ' · ' + u.isp + ' · 👥' + u.refs + '</span></div>'; }
     $('users').innerHTML = h;
   }).catch(function(){});
 }
-/* D6 — crowd votes: ranked view + raw JSON export */
+/* D7 — crowd votes: ranked view + raw JSON export */
 function drawVotes(items){
   var el = $('votes');
   if (!items || !items.length){ el.innerHTML = '<div class="hint">هنوز رأیی ثبت نشده</div>'; return; }
@@ -2882,15 +3382,56 @@ $('dlVotes').onclick = function(){
       toast('دانلود شد ✓');
     } catch (e){ toast('خطا'); }
   } else toast('خطا'); }).catch(function(){ toast('خطا'); }); };
-/* D5.2 hotfix — boot after Telegram attaches (async script), not before */
-function bootPanel(){
-  if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; return false; }
-  post('state').then(function(d){
-    if (!d || d.error){ $('lock').hidden = false; return; }
-    S = d; $('panel').hidden = false; draw(); loadUsers();
-  }).catch(function(){ $('lock').hidden = false; });
-  return true;
+/* D7 — admins management */
+function adminOp(op, id){
+  if (op === 'add'){
+    id = String($('admIn').value || '').trim();
+    if (!/^\d{3,20}$/.test(id)){ toast('یه chat id عددی بفرست'); return; }
+  }
+  post('admins', { op: op, id: id }).then(function(r){
+    if (r && r.ok){ toast(op === 'add' ? 'اضافه شد ✓' : 'حذف شد ✓');
+      if (op === 'add') $('admIn').value = '';
+      S.admins = r.admins || S.admins; drawAdmins(); }
+    else toast((r && r.error === 'owner') ? 'مالک حذف نمی‌شه' : 'خطا');
+  }).catch(function(){ toast('خطا'); });
 }
+$('admAdd').onclick = function(){ adminOp('add'); };
+/* D7 — broadcast: chunked sender with live progress */
+var bcTimer = null;
+function bcStep(op){
+  return post('broadcast', { op: op || 'step', text: op === 'start' ? $('bcText').value : undefined })
+    .then(function(r){
+      if (!r || !r.ok){ toast((r && r.error === 'big') ? 'متن طولانیه (حداکثر ۲۰۰۰ حرف)' : 'خطا'); return; }
+      S.bc = r; drawBc();
+      if (r.remaining > 0){ bcTimer = setTimeout(function(){ bcStep('step'); }, 400); }
+      else if (op !== 'status' && op !== 'cancel'){ toast('پیام همگانی تمام شد ✓'); $('bcText').value = ''; }
+    }).catch(function(){ toast('خطا'); });
+}
+$('bcSend').onclick = function(){
+  if (!($('bcText').value || '').trim()){ toast('متن پیام رو بنویس'); return; }
+  if (!confirm('پیام برای همهٔ کاربرها فرستاده بشه؟')) return;
+  clearTimeout(bcTimer);
+  toast('شروع ارسال…');
+  bcStep('start');
+};
+$('bcStop').onclick = function(){
+  clearTimeout(bcTimer);
+  post('broadcast', { op: 'cancel' }).then(function(r){
+    if (r && r.ok){ S.bc = r; drawBc(); toast('متوقف شد'); } else toast('خطا'); }).catch(function(){ toast('خطا'); });
+};
+/* D7 — maintenance */
+$('purgeBtn').onclick = function(){
+  toast('دارم پاک می‌کنم…');
+  post('purge', {}).then(function(r){
+    toast(r && r.ok ? fmt(r.purged) + ' کلید کش پاک شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); });
+};
+$('cmdsBtn').onclick = function(){
+  toast('دارم همگام می‌کنم…');
+  post('sync_cmds', {}).then(function(r){
+    toast(r && r.ok ? 'منوی ربات برای مدیرها ست شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); });
+};
+$('uPrev').onclick = function(){ uOffset = Math.max(0, uOffset - 30); loadUsers(); };
+$('uNext').onclick = function(){ uOffset += 30; loadUsers(); };
 $('tglCard').onclick = function(){ if (S) set('card_enabled', S.cfg.card_enabled === false); };
 $('tglDigest').onclick = function(){ if (S) set('digest_enabled', S.cfg.digest_enabled === false); };
 $('tglWatch').onclick = function(){ if (S) set('watchtower_enabled', S.cfg.watchtower_enabled === false); };
@@ -2903,11 +3444,21 @@ $('postCard').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'card' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
 $('postDigest').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'digest' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
+/* D5.2 hotfix — boot after Telegram attaches (async script), not before */
+function bootPanel(){
+  if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; return false; }
+  post('state').then(function(d){
+    if (!d || d.error){ $('lock').hidden = false; return; }
+    S = d; $('panel').hidden = false; draw(); loadUsers();
+    if (S.bc && S.bc.total && S.bc.active) bcStep('status');
+  }).catch(function(){ $('lock').hidden = false; });
+  return true;
+}
 function tgAttach(){
   tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (!tg) return false;
   initData = tg.initData || '';
-  try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){}
+  try { tg.ready(); tg.expand(); tg.setHeaderColor('#0C0A07'); tg.setBackgroundColor('#0C0A07'); } catch (e){}
   $('lock').hidden = true;
   bootPanel();
   return true;
@@ -2954,24 +3505,14 @@ export default {
       const me = await api(env, 'getMe');
       if (me && me.ok) await kvPut(env, 'meta:bot_username', me.result.username, 604800);
 
-      /* D4: menu button (Mini App one tap away) + the command list */
+      /* D4: menu button (Mini App one tap away) + the command list.
+         D7: the public list never contains /panel or /freq — those are
+         registered per-admin via chat scopes (syncAdminCommands). */
       const menuBtn = await api(env, 'setChatMenuButton', {
         menu_button: { type: 'web_app', text: '👑 ARISTON', web_app: { url: origin + '/app' } },
       });
-      const cmds = await api(env, 'setMyCommands', {
-        commands: [
-          { command: 'start', description: 'Start / main menu' },
-          { command: 'gold', description: 'Top gold configs' },
-          { command: 'best', description: 'Gold ticket — fastest alive' },
-          { command: 'stats', description: 'Live run stats' },
-          { command: 'sub', description: 'Personal subscription link' },
-          { command: 'ref', description: 'Invite friends — quota up to 20' },
-          { command: 'settings', description: 'ISP / client / name / rotation' },
-          { command: 'lang', description: 'Change language' },
-          { command: 'panel', description: 'Admin settings panel' },
-          { command: 'freq', description: 'Channel digest interval (owner)' },
-        ],
-      });
+      const cmds = await api(env, 'setMyCommands', { commands: USER_COMMANDS });
+      const cmdScopes = await syncAdminCommands(env);
 
       /* optional: register the official channel — /setup?key=…&channel=@name&lang=fa */
       let channel = null;
@@ -3016,6 +3557,7 @@ export default {
         inline_hint: 'enable inline mode once via @BotFather → /setinline',
         menu_button: Boolean(menuBtn && menuBtn.ok),
         commands: Boolean(cmds && cmds.ok),
+        admin_command_scopes: cmdScopes.admins,
         channel,
         test_card,
         webhook_info: info && info.ok ? info.result : null,
@@ -3064,6 +3606,11 @@ export default {
     if (url.pathname === '/app/api/admin/post_now' && request.method === 'POST') return guardAdmin(env, request, adminPostNow);
     if (url.pathname === '/app/api/admin/users' && request.method === 'POST') return guardAdmin(env, request, adminUsers);
     if (url.pathname === '/app/api/admin/feedback' && request.method === 'POST') return guardAdmin(env, request, adminFeedback);
+    /* ── D7 admin ops ── */
+    if (url.pathname === '/app/api/admin/admins' && request.method === 'POST') return guardAdmin(env, request, adminAdmins);
+    if (url.pathname === '/app/api/admin/broadcast' && request.method === 'POST') return guardAdmin(env, request, adminBroadcast);
+    if (url.pathname === '/app/api/admin/purge' && request.method === 'POST') return guardAdmin(env, request, adminPurge);
+    if (url.pathname === '/app/api/admin/sync_cmds' && request.method === 'POST') return guardAdmin(env, request, adminSyncCmds);
 
     /* CORS preflight for the public API */
     if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg' || url.pathname === '/card.png')) {
@@ -3122,6 +3669,16 @@ export default {
     if (cfg.watchtower_enabled !== false) ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
     ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
     ctx.waitUntil(channelDigest(env).catch((e) => console.error('digest error', e && e.message)));
+    /* D7 — one-time self-heal: re-register scoped commands so /panel & /freq
+       live only in the admins' own menus, never in the public command list. */
+    ctx.waitUntil((async () => {
+      try {
+        if ((await kvGet(env, 'meta:cmds_synced')) !== '2') {
+          const r = await syncAdminCommands(env);
+          if (r.global) await kvPut(env, 'meta:cmds_synced', '2');
+        }
+      } catch (e) { console.error('cmds sync error', e && e.message); }
+    })());
   },
 };
 

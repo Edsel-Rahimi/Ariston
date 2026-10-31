@@ -129,30 +129,45 @@ STATS_LABELS: dict[str, dict[str, str]] = {
         "healthy": "✅ سالم", "ir": "🇮🇷 روی شبکه‌های ایران",
         "tiers": "🏅 طلا / نقره / برنز", "median": "⚡ تأخیر میانه",
         "clean_v": "{raw} خام ← {uniq} یکتا", "tested_v": "{n} گره دو-موتوره",
+        "bank": "🏦 بانک کانفیگ", "bank_src": "🩺 سلامت منابع",
+        "bank_v": "{n} خوش‌سابقه · بازگشت {hit}٪ · میانگین سابقه {streak} دور",
+        "bank_src_v": "سالم {h} · مشکوک {s} · قرنطینه {q}",
     },
     "en": {
         "last": "🕒 Last run", "clean": "🧹 Cleanup", "tested": "🧪 Live-tested",
         "healthy": "✅ Healthy", "ir": "🇮🇷 On Iranian networks",
         "tiers": "🏅 Gold / Silver / Bronze", "median": "⚡ Median latency",
         "clean_v": "{raw} raw → {uniq} unique", "tested_v": "{n} nodes (dual-engine)",
+        "bank": "🏦 Config bank", "bank_src": "🩺 Source health",
+        "bank_v": "{n} known-good · hit {hit}% · avg streak {streak} runs",
+        "bank_src_v": "healthy {h} · suspect {s} · quarantined {q}",
     },
     "tr": {
         "last": "🕒 Son çalıştırma", "clean": "🧹 Temizlik", "tested": "🧪 Canlı test",
         "healthy": "✅ Sağlıklı", "ir": "🇮🇷 İran şebekelerinde",
         "tiers": "🏅 Altın / Gümüş / Bronz", "median": "⚡ Medyan gecikme",
         "clean_v": "{raw} ham → {uniq} tekil", "tested_v": "{n} düğüm (çift motor)",
+        "bank": "🏦 Yapılandırma bankası", "bank_src": "🩺 Kaynak sağlığı",
+        "bank_v": "{n} güvenilir · isabet {hit}% · ort. seri {streak} tur",
+        "bank_src_v": "sağlıklı {h} · şüpheli {s} · karantina {q}",
     },
     "ru": {
         "last": "🕒 Последний запуск", "clean": "🧹 Очистка", "tested": "🧪 Живая проверка",
         "healthy": "✅ Работают", "ir": "🇮🇷 В иранских сетях",
         "tiers": "🏅 Золото / Серебро / Бронза", "median": "⚡ Медианная задержка",
         "clean_v": "{raw} сырых → {uniq} уникальных", "tested_v": "{n} узлов (два движка)",
+        "bank": "🏦 Банк конфигов", "bank_src": "🩺 Здоровье источников",
+        "bank_v": "{n} надёжных · попаданий {hit}% · ср. серия {streak}",
+        "bank_src_v": "здоровых {h} · подозрительных {s} · карантин {q}",
     },
     "zh": {
         "last": "🕒 最近运行", "clean": "🧹 清洗", "tested": "🧪 实测",
         "healthy": "✅ 可用", "ir": "🇮🇷 位于伊朗网络",
         "tiers": "🏅 金 / 银 / 铜", "median": "⚡ 中位延迟",
         "clean_v": "{raw} 原始 → {uniq} 唯一", "tested_v": "{n} 个节点（双引擎）",
+        "bank": "🏦 配置银行", "bank_src": "🩺 源健康度",
+        "bank_v": "{n} 个优等 · 命中 {hit}% · 平均连击 {streak} 轮",
+        "bank_src_v": "健康 {h} · 可疑 {s} · 隔离 {q}",
     },
 }
 
@@ -180,5 +195,16 @@ def render_stats_markdown(stats: dict, lang: str = "fa") -> str:
     ]
     if ir is not None:
         rows.insert(4, (L["ir"], f"{ir:,}"))
+    # D7 — the config bank, in every README fragment
+    b = stats.get("bank") or {}
+    if b:
+        bs = b.get("sources") or {}
+        rows.append((L["bank"], L["bank_v"].format(
+            n=f"{int(b.get('size') or 0):,}",
+            hit=(b.get("hit_rate") if b.get("hit_rate") is not None else "—"),
+            streak=(b.get("avg_streak") if b.get("avg_streak") is not None else "—"))))
+        rows.append((L["bank_src"], L["bank_src_v"].format(
+            h=f"{int(bs.get('healthy') or 0):,}", s=f"{int(bs.get('suspect') or 0):,}",
+            q=f"{int(bs.get('quarantined') or 0):,}")))
     lines = ["| | |", "|---|---|"] + [f"| {k} | **{val}** |" for k, val in rows]
     return "\n".join(lines)

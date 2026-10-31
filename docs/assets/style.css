@@ -704,3 +704,23 @@ html[dir="rtl"] .client__go svg { transform: scaleX(-1); }
   .wire-row__name { min-width: 0; flex: 1; }
   .wire-row__ms { min-width: 0; }
 }
+
+/* ---------------- config bank strip (D7) ---------------- */
+.bank { display: grid; gap: 12px; margin: 14px auto 0; max-width: var(--maxw, 1180px); padding: 16px 20px; }
+.bank__head { display: flex; align-items: center; gap: 12px; }
+.bank__ico { width: 42px; height: 42px; display: grid; place-items: center; font-size: 20px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--gold-dim); }
+.bank__title { font-weight: 700; font-size: 15px; }
+.bank__sub { color: var(--txt3); font-size: 11px; letter-spacing: .08em; }
+.bank__tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.bank__tile { border: 1px solid var(--line-soft); border-radius: 12px; padding: 10px 12px; background: var(--bg1); }
+.bank__tile b { display: block; font-size: 20px; color: var(--gold); direction: ltr; text-align: inherit; }
+.bank__tile span { font-size: 10.5px; color: var(--txt3); letter-spacing: .1em; }
+.bank__src { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--txt2); }
+.bank__dot { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-soft);
+  border-radius: 999px; padding: 4px 11px; }
+.bank__dot i { width: 7px; height: 7px; border-radius: 50%; }
+.bank__dot--h i { background: var(--olive); box-shadow: 0 0 8px var(--olive); }
+.bank__dot--s i { background: var(--bronze); }
+.bank__dot--q i { background: var(--red); }
+[dir="ltr"] .bank__tile b { text-align: left; }

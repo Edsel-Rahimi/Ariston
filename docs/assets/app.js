@@ -46,6 +46,9 @@ const I18N = {
     probeMeta: 'تست زنده از مرورگر خودت — روی پورت‌های TLS', probeDone: 'تست تموم شد',
     kpiAlive: 'گرهٔ سالم', kpiGold: 'ردهٔ طلایی', kpiUnique: 'گرهٔ غیرتکراری در هر دور', kpiSources: 'منبع فعال',
     kpiAliveFoot: 'هر دو موتور تأییدشون کردن', kpiGoldFoot: 'سریع‌ترین و پایدارترین‌ها', kpiUniqueFoot: 'بعد از حذف تکراری‌ها', kpiSourcesFoot: 'توی آخرین دور بدون مشکل بودن',
+    bankTitle: 'بانک کانفیگ', bankSub: 'حافظهٔ خط تولید بین اجراها — TTL ۲۸ ساعت',
+    bankKnown: 'خوش‌سابقه', bankHit: 'نرخ بازگشت', bankStreak: 'میانگین سابقه', bankPass2: 'نجات دور دوم',
+    bankHealthy: 'منبع سالم', bankSuspect: 'مشکوک', bankQ: 'قرنطینه', bankFull: 'اسکن کامل شنبه',
     pipelineTitle: 'خط تولید ', pipelineDesc: 'مسیر زندهٔ گره‌ها — هر ذرهٔ نور یه گرهٔ واقعیه.',
     analyticsTitle: 'تحلیل شبکه ', analyticsDesc: 'عددهای همین دور، دست‌نخورده.',
     donutTitle: 'پروتکل‌ها (قبل از فیلتر)', barsTitle: 'سالم‌ها به تفکیک پروتکل', latencyTitle: 'پینگ (ms)', enginesTitle: 'خروجی برای هر اپ',
@@ -87,6 +90,9 @@ const I18N = {
     heroDesc: 'Ariston harvests configs from hundreds of sources hourly, validates every node with two real engines — xray-core and sing-box — and publishes Gold / Silver / Bronze tiers. This page is the live picture of that network.',
     kpiAlive: 'Alive nodes', kpiGold: 'Gold tier', kpiUnique: 'Unique / run', kpiSources: 'Active sources',
     kpiAliveFoot: 'verified by both engines', kpiGoldFoot: 'fastest & most stable', kpiUniqueFoot: 'after full dedup', kpiSourcesFoot: 'no errors in last run',
+    bankTitle: 'Config bank', bankSub: 'pipeline memory between runs — TTL 28h',
+    bankKnown: 'known-good', bankHit: 'hit rate', bankStreak: 'avg streak', bankPass2: 'pass-2 rescued',
+    bankHealthy: 'healthy sources', bankSuspect: 'suspect', bankQ: 'quarantined', bankFull: 'Saturday full scan',
     pipelineTitle: 'The Pipeline ', pipelineDesc: 'The live data path — light particles are real nodes.',
     analyticsTitle: 'Network analytics ', analyticsDesc: 'This run, measured — nothing in between.',
     donutTitle: 'Protocols — raw', barsTitle: 'Alive by protocol', latencyTitle: 'Latency (ms)', enginesTitle: 'Client exports',
@@ -954,8 +960,31 @@ function applyI18n() {
   $$('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
   if (S) { renderDynamic(); }
 }
+function renderBank() {
+  const el = $('#bankPanel');
+  if (!el) return;
+  const b = S.bank;
+  if (!b) { el.hidden = true; return; }
+  el.hidden = false;
+  $('#bankSub').textContent = t('bankSub');
+  const p2 = b.pass2 || {}, src = b.sources || {};
+  const tiles = [
+    [fmt(b.size ?? 0), t('bankKnown')],
+    [b.hit_rate != null ? b.hit_rate + '%' : '—', t('bankHit')],
+    [b.avg_streak != null ? b.avg_streak : '—', t('bankStreak')],
+    [fmt(p2.rescued ?? 0), t('bankPass2')],
+  ];
+  $('#bankTiles').innerHTML = tiles.map(([v, k]) =>
+    `<div class="bank__tile"><b>${v}</b><span>${k.toUpperCase()}</span></div>`).join('');
+  const hit = b.hit_rate != null ? ` · ${t('bankHit')} ${b.hit_rate}%` : '';
+  $('#bankSrc').innerHTML =
+    `<span class="bank__dot bank__dot--h"><i></i>${fmt(src.healthy ?? 0)} ${t('bankHealthy')}</span>` +
+    `<span class="bank__dot bank__dot--s"><i></i>${fmt(src.suspect ?? 0)} ${t('bankSuspect')}</span>` +
+    `<span class="bank__dot bank__dot--q"><i></i>${fmt(src.quarantined ?? 0)} ${t('bankQ')}</span>` +
+    (b.full_scan ? `<span class="bank__dot"><i></i>${t('bankFull')}</span>` : '') + hit;
+}
 function renderDynamic() {
-  renderKPIs(); renderTicker(); renderPipeline(); renderDonut(); renderBars();
+  renderKPIs(); renderTicker(); renderBank(); renderPipeline(); renderDonut(); renderBars();
   renderLatency(); renderEngines(); renderISP(); renderImport(); renderWire(); renderSources();
   renderDownload(); observeReveals();
 }

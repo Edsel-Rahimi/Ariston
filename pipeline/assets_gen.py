@@ -65,6 +65,19 @@ def brand_stats(s: dict) -> dict:
     sc = s.get("scoring") or {}
     pf = s.get("prefilter") or {}
     protos = [[str(k), int(n)] for k, n in (s.get("by_protocol") or {}).items()]
+    # D7 — the config bank, surfaced on GitHub via assets/bank-card.svg
+    b = s.get("bank") or {}
+    bs = b.get("sources") or {}
+    p2 = b.get("pass2") or {}
+    hit = b.get("hit_rate")
+    bank_flat = {
+        "size": f"{int(b.get('size') or 0):,}" if b else "—",
+        "hit": (f"{hit}%" if isinstance(hit, (int, float)) else "—"),
+        "streak": (str(b.get("avg_streak")) if b.get("avg_streak") is not None else "—"),
+        "pass2": f"{int(p2.get('rescued') or 0):,}" if p2 else "—",
+        "src": (f"{int(bs.get('healthy') or 0):,}/{int(bs.get('suspect') or 0):,}"
+                if bs else "—"),
+    }
     return {
         "total": f"{int(s.get('unique') or 0):,}",
         "validated": f"{int(v.get('alive') or 0):,}",
@@ -75,6 +88,7 @@ def brand_stats(s: dict) -> dict:
         "raw": s.get("raw"), "unique": s.get("unique"), "tcp": pf.get("output"),
         "probed": v.get("probed"), "alive": v.get("alive"),
         "protos": protos,
+        **bank_flat,
     }
 
 
@@ -148,6 +162,8 @@ def main() -> int:
     flat = brand_stats(s)
     print(f"  run-card: total={flat['total']} validated={flat['validated']} "
           f"silver={flat['silver']} gold={flat['gold']} updated={flat['updated']}")
+    print(f"  bank-card: size={flat['size']} hit={flat['hit']} streak={flat['streak']} "
+          f"pass2={flat['pass2']} src={flat['src']}")
 
     assets = all_assets(flat)
     for theme, pal in ((DARK, "dark"), (LIGHT, "light")):
