@@ -163,8 +163,8 @@ Yeni bir kaynağınız mı var (Telegram kanalı veya herkese açık dosya)? [`C
 - [x] **Faz 1b — çift motor testi: GitHub Actions'ta xray-core + sing-box**
 - [x] **Faz 2 — puanlama ve istemciler: altın/gümüş/bronz, mihomo.yaml, singbox.json**
 - [x] **Faz 3 — operatörler ve bildirim: İran ASN ayrımı, Telegram bildirimi, aynalar**
-- [ ] **Faz 4 — web panosu: GitHub Pages'te canlı sayfa**
-- [ ] **Faz 5 — Telegram botu: dosyaları Telegram içinde almak**
+- [x] **Faz 4 — web panosu: GitHub Pages'te canlı sayfa** ("Mission Control" — `docs/index.html`)
+- [x] **Faz 5 — Telegram botu: dosyaları Telegram içinde almak** — Cloudflare Worker üzerinde canlı (D1–D5: kişisel abonelik · Mini App · inline · herkese açık API · davetler)
 
 ## FAQ
 

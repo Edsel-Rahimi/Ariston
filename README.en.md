@@ -163,8 +163,8 @@ Have a new source (a Telegram channel or a public file)? See [`CONTRIBUTING.md`]
 - [x] **Phase 1b — dual-engine testing: xray-core + sing-box on GitHub Actions**
 - [x] **Phase 2 — scoring & clients: gold/silver/bronze, mihomo.yaml, singbox.json**
 - [x] **Phase 3 — operators & notify: Iran ASN split, Telegram notify, mirrors**
-- [ ] **Phase 4 — web dashboard: live page on GitHub Pages**
-- [ ] **Phase 5 — Telegram bot: fetch files inside Telegram**
+- [x] **Phase 4 — web dashboard: live page on GitHub Pages** ("Mission Control" — `docs/index.html`)
+- [x] **Phase 5 — Telegram bot: fetch files inside Telegram** — live on Cloudflare Worker (D1–D5: personal sub · Mini App · inline mode · public API · referrals)
 
 ## FAQ
 

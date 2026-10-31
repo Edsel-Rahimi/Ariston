@@ -503,13 +503,23 @@ async function fetchTextCached(env, name, ttlSec) {
 /* D4.2: ?fresh=1 bypasses the KV cache (CI calls /card.svg?fresh=1 right after
    publishing a new data snapshot so the committed PNG matches the fresh run) */
 const getStats = async (env, fresh) => {
+  /* D5.1: every good snapshot is kept in KV — a stale number beats a dead screen.
+     lastKeptAt dedupes writes per isolate → at most one KV write per new run. */
+  let lastKeptAt = null;
+  const keep = (j) => {
+    if (j && j.generated_at) {
+      if (j.generated_at !== lastKeptAt) { lastKeptAt = j.generated_at; kvPut(env, 'stats:lastgood', JSON.stringify(j), 7 * 86400); }
+      return j;
+    }
+    return null;
+  };
   if (fresh) {
     try {
       const r = await fetch(RAW + 'stats.json', { headers: { 'user-agent': 'ariston-bot/1.0 (+https://github.com/' + REPO + ')' }, cf: { cacheTtl: 60 } });
-      if (r.ok) { const j = await r.json(); if (j && j.generated_at) return j; }
+      if (r.ok) { const j = keep(await r.json()); if (j) return j; }
     } catch (_) { /* fall through to the KV cache */ }
   }
-  return fetchTextCached(env, 'stats.json', STATS_TTL_SEC).then((s) => { try { return s ? JSON.parse(s) : null; } catch (_) { return null; } });
+  return fetchTextCached(env, 'stats.json', STATS_TTL_SEC).then((s) => { try { return s ? keep(JSON.parse(s)) : null; } catch (_) { return null; } });
 };
 
 /* ─────────────── mini app: initdata auth, enrichment, feedback ─────────────── */
@@ -1547,7 +1557,12 @@ function landingPage(botUsername) {
 /* ───────────────────────────── mini app JSON api ──────────────────────────── */
 
 async function appStats(env) {
-  const s = await getStats(env);
+  let s = await getStats(env);
+  let stale = false;
+  if (!s || !s.validation || !s.scoring) { /* D5.1: upstream hiccup → serve the last good snapshot instead of a dead screen */
+    s = await kvGet(env, 'stats:lastgood', 'json');
+    stale = !!(s && s.validation && s.scoring);
+  }
   if (!s || !s.validation || !s.scoring) return Response.json({ error: 'no_data' }, { status: 503 });
   const v = s.validation, p = v.latency_ms || {};
   return Response.json({
@@ -1557,6 +1572,7 @@ async function appStats(env) {
     p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0),
     gold: s.scoring.gold || 0, silver: s.scoring.silver || 0, bronze: s.scoring.bronze || 0,
     bot: (await kvGet(env, 'meta:bot_username')) || null,
+    stale,
   });
 }
 
@@ -2055,10 +2071,12 @@ const MINI_APP_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON ⚡</title>
-<script src="https://telegram.org/js/telegram-web-app.js"><\/script>
+<!-- app build: D5.3-fix — regex escape corrected (served-output verified) -->
+<script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{--bg:#14110C;--card:rgba(232,200,114,.055);--card2:rgba(232,200,114,.11);
 --line:rgba(232,200,114,.16);--line2:rgba(232,200,114,.34);
@@ -2077,6 +2095,8 @@ header{display:flex;align-items:center;gap:10px;padding:8px 2px 14px}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,200,114,.5)}70%{box-shadow:0 0 0 7px rgba(232,200,114,0)}100%{box-shadow:0 0 0 0 rgba(232,200,114,0)}}
 .refresh{background:none;border:1px solid var(--line);color:var(--gold);width:30px;height:30px;border-radius:50%;font-size:13px;cursor:pointer;line-height:1}
 .refresh:active{transform:rotate(30deg)}
+.heroerr{width:100%;margin-top:12px;background:rgba(232,200,114,.06);border:1px dashed rgba(232,200,114,.35);color:var(--dim);border-radius:12px;padding:9px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.retrybtn{margin-top:10px;background:none;border:1px solid var(--line);color:var(--gold);border-radius:10px;padding:6px 16px;cursor:pointer;font-family:inherit;font-size:13px}
 .hero{position:relative;border:1px solid var(--line2);border-radius:20px;padding:22px 20px 18px;overflow:hidden;
 background:linear-gradient(165deg,rgba(232,200,114,.13),rgba(232,200,114,.03) 55%,rgba(232,200,114,.07));animation:up .5s ease both}
 .hero .num{font-family:'Cinzel',serif;font-weight:700;font-size:56px;line-height:1.05;color:var(--gold)}
@@ -2162,6 +2182,7 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
     <div class="num" id="heroNum">—</div>
     <div class="lbl" id="heroLbl">…</div>
     <div class="sub" id="heroSub">…</div>
+    <button class="heroerr" id="heroErr" style="display:none">⚠ <span id="heroErrTx"></span></button>
   </section>
 
   <div class="grid">
@@ -2184,7 +2205,7 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D4 · v4.0</span>
+    <span>D5.3 · v4.1</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -2279,6 +2300,7 @@ function countUp(el, to){ var t0 = null, dur = 900;
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function applyTexts(){
   document.getElementById('heroLbl').textContent = T('hero_lbl');
+  document.getElementById('heroErrTx').textContent = T('fail');
   document.getElementById('stAliveK').textContent = T('st_alive');
   document.getElementById('stP50K').textContent = T('st_p50');
   document.getElementById('stSrcK').textContent = T('st_src');
@@ -2288,10 +2310,13 @@ function applyTexts(){
   document.getElementById('subTitle').textContent = '🔗 ' + T('sub_t');
   var mb = document.getElementById('moreBtn'); mb.textContent = T('more');
 }
-var lastStats = null, goldOffset = 0;
+var lastStats = null, goldOffset = 0, statRetry = 0;
 function loadStats(){
   fetch('/app/api/stats').then(function(r){ return r.json(); }).then(function(s){
-    if (s.error){ return; }
+    /* D5.1: a silent bail left the app on «—» forever — every failure is now visible and retried */
+    if (s.error || !s.generated_at){ throw new Error('no_data'); }
+    statRetry = 0;
+    var he = document.getElementById('heroErr'); if (he) he.style.display = 'none';
     lastStats = s;
     countUp(document.getElementById('heroNum'), s.gold);
     document.getElementById('heroSub').textContent = T('hero_sub', {alive: fmtN(s.alive), run: rel(s.generated_at)});
@@ -2299,12 +2324,17 @@ function loadStats(){
     document.getElementById('stP50').innerHTML = fmtN(s.p50) + '<small> ms</small>';
     document.getElementById('stSrc').innerHTML = fmtN(s.sources_ok) + '<small> / ' + fmtN(s.sources_total) + '</small>';
     document.getElementById('stRun').textContent = rel(s.generated_at);
-  }).catch(function(){ toast(T('fail')); });
+  }).catch(function(){
+    var he = document.getElementById('heroErr'); if (he) he.style.display = 'block';
+    toast(T('fail'));
+    statRetry = Math.min(statRetry + 1, 6);
+    setTimeout(loadStats, [5000, 15000, 40000, 90000, 180000, 300000][statRetry - 1]);
+  });
 }
 function goldCard(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
   var hostPart = it.uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\/\//i, '').slice(0, 26) || '—';
+  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\\/\\//i, '').slice(0, 26) || '—';
   var rank = (goldOffset + idx < 3) ? MEDALS[goldOffset + idx] : ('#' + (goldOffset + idx + 1));
   var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
   var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
@@ -2350,6 +2380,19 @@ function bindCards(){
     });
   });
 }
+var goldAutoRetried = false;
+function showGoldFail(list){
+  list.innerHTML = '<div class="err">' + T('fail') + '</div>';
+  var b = document.createElement('button');
+  b.className = 'retrybtn'; b.textContent = '⟳';
+  b.addEventListener('click', function(){ loadGold(false); });
+  list.appendChild(b);
+}
+function goldAutoRetry(){
+  if (goldAutoRetried) return;
+  goldAutoRetried = true;
+  setTimeout(function(){ loadGold(false); }, 6000);
+}
 function loadGold(append){
   var list = document.getElementById('goldList');
   if (!append){ list.innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>'; goldOffset = 0; }
@@ -2359,8 +2402,9 @@ function loadGold(append){
         body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 6 }) })
     : fetch('/app/api/gold?offset=' + goldOffset + '&limit=6');
   req.then(function(r){ return r.json(); }).then(function(d){
-    if (d.error || !d.items){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; return; }
+    if (d.error || !d.items){ showGoldFail(list); goldAutoRetry(); return; }
     if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
+    goldAutoRetried = false;
     var html = append ? '' : '';
     for (var i = 0; i < d.items.length; i++){ html += goldCard(d.items[i], i); }
     if (append){ list.insertAdjacentHTML('beforeend', html); } else { list.innerHTML = html; }
@@ -2369,12 +2413,12 @@ function loadGold(append){
     /* D5: keep the app light — at most 12 gold cards, the rest lives in the bot (/gold) */
     mb.style.display = (goldOffset < d.total && goldOffset < 12) ? 'block' : 'none';
     bindCards();
-  }).catch(function(){ list.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
+  }).catch(function(){ showGoldFail(list); goldAutoRetry(); });
 }
 function subRow(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
   var hostPart = it.uri.split('://')[1] || '';
-  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\/\//i, '').slice(0, 26) || '—';
+  hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\\/\\//i, '').slice(0, 26) || '—';
   var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
   var okOn = it.mark === 1 ? ' on' : '', badOn = it.mark === 2 ? ' on' : '';
   return '<div class="scard" data-uri="' + esc(it.uri) + '">' +
@@ -2450,8 +2494,23 @@ loadGold(false);
 loadSub();
 document.getElementById('moreBtn').addEventListener('click', function(){ haptic('light'); loadGold(true); });
 document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); loadGold(false); });
+document.getElementById('heroErr').addEventListener('click', loadStats);
 setInterval(loadStats, 5 * 60 * 1000);
-if (tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){} }
+/* D5.2 hotfix — the Telegram script is async now: first paint never waits for
+   telegram.org (filtered/slow networks kept the page blank until timeout).
+   Attach TG features whenever it arrives (poll ≤ 4s), then refresh personal parts. */
+function tgAttach(){
+  tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (!tg) return false;
+  initData = tg.initData || '';
+  try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){}
+  if (initData){ loadSub(); loadGold(false); }
+  return true;
+}
+if (!tgAttach()){
+  var tgN = 0;
+  var tgIv = setInterval(function(){ if (tgAttach() || ++tgN > 40) clearInterval(tgIv); }, 100);
+}
 <\/script>
 </body>
 </html>`;
@@ -2466,10 +2525,12 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<script src="https://telegram.org/js/telegram-web-app.js"><\/script>
+<!-- panel build: D5.3-fix — externals never block first paint -->
+<script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{--bg:#14110C;--card:rgba(232,200,114,.06);--line:rgba(232,200,114,.18);
 --gold:#E8C872;--deep:#C9A24A;--txt:#F3ECDD;--dim:#8d8262;--bad:#e06c5a;--ok:#7ec97e;
@@ -2606,11 +2667,15 @@ function loadUsers(){
     $('users').innerHTML = h;
   }).catch(function(){});
 }
-if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; }
-else post('state').then(function(d){
-  if (!d || d.error){ $('lock').hidden = false; return; }
-  S = d; $('panel').hidden = false; draw(); loadUsers();
-}).catch(function(){ $('lock').hidden = false; });
+/* D5.2 hotfix — boot after Telegram attaches (async script), not before */
+function bootPanel(){
+  if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; return false; }
+  post('state').then(function(d){
+    if (!d || d.error){ $('lock').hidden = false; return; }
+    S = d; $('panel').hidden = false; draw(); loadUsers();
+  }).catch(function(){ $('lock').hidden = false; });
+  return true;
+}
 $('tglCard').onclick = function(){ if (S) set('card_enabled', S.cfg.card_enabled === false); };
 $('tglDigest').onclick = function(){ if (S) set('digest_enabled', S.cfg.digest_enabled === false); };
 $('tglWatch').onclick = function(){ if (S) set('watchtower_enabled', S.cfg.watchtower_enabled === false); };
@@ -2623,7 +2688,19 @@ $('postCard').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'card' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
 $('postDigest').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'digest' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
-if (tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){} }
+function tgAttach(){
+  tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (!tg) return false;
+  initData = tg.initData || '';
+  try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){}
+  $('lock').hidden = true;
+  bootPanel();
+  return true;
+}
+if (!tgAttach()){
+  var tgN = 0;
+  var tgIv = setInterval(function(){ if (tgAttach() || ++tgN > 40) clearInterval(tgIv); }, 100);
+}
 <\/script>
 </div></body>
 </html>`;

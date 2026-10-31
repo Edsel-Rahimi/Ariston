@@ -163,8 +163,8 @@ Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 - [x] **Фаза 1b — двух-двигательный тест: xray-core + sing-box в GitHub Actions**
 - [x] **Фаза 2 — скоринг и клиенты: золото/серебро/бронза, mihomo.yaml, singbox.json**
 - [x] **Фаза 3 — операторы и уведомления: ASN-разбивка Ирана, Telegram-уведомления, зеркала**
-- [ ] **Фаза 4 — веб-панель: живая страница на GitHub Pages**
-- [ ] **Фаза 5 — Telegram-бот: получение файлов внутри Telegram**
+- [x] **Фаза 4 — веб-панель: живая страница на GitHub Pages** («Mission Control» — `docs/index.html`)
+- [x] **Фаза 5 — Telegram-бот: получение файлов внутри Telegram** — работает на Cloudflare Worker (D1–D5: личная подписка · Mini App · inline · публичный API · рефералы)
 
 ## FAQ
 

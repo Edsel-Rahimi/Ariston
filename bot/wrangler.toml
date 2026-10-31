@@ -3,6 +3,7 @@
 
 name = "ariston-bot"
 main = "worker.js"
+account_id = "70aa670c9a1bd0cefea015f25b4c8c62"
 compatibility_date = "2026-01-01"
 
 # Create once:  wrangler kv namespace create ariston-kv

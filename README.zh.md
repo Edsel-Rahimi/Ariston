@@ -163,8 +163,8 @@ Every station in detail: [`docs/architecture.md`](docs/architecture.md)
 - [x] **阶段 1b — 双引擎测试：在 GitHub Actions 上运行 xray-core + sing-box**
 - [x] **阶段 2 — 评分与客户端：金/银/铜分层，mihomo.yaml、singbox.json**
 - [x] **阶段 3 — 运营商与通知：伊朗 ASN 分流、Telegram 通知、镜像**
-- [ ] **阶段 4 — 网页面板：GitHub Pages 上的实时页面**
-- [ ] **阶段 5 — Telegram 机器人：在 Telegram 内直接获取文件**
+- [x] **阶段 4 — 网页面板：GitHub Pages 上的实时页面**（「Mission Control」— `docs/index.html`）
+- [x] **阶段 5 — Telegram 机器人：在 Telegram 内直接获取文件** — 部署在 Cloudflare Worker 上（D1–D5：个人订阅 · Mini App · 内联模式 · 公共 API · 邀请）
 
 ## FAQ
 
