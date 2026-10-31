@@ -537,14 +537,25 @@ async function verifyInitData(env, initData) {
     if (!hash) return null;
     params.delete('hash');
     params.delete('signature');
-    const dataCheck = [...params.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([k, v]) => k + '=' + v).join('\n');
+    const mkCheck = (p) => [...p.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([k2, v2]) => k2 + '=' + v2).join('\n');
     const enc = new TextEncoder();
     const midKey = await crypto.subtle.importKey('raw', enc.encode('WebAppData'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const secret = await crypto.subtle.sign('HMAC', midKey, enc.encode(env.BOT_TOKEN));
     const hmacKey = await crypto.subtle.importKey('raw', secret, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    const sig = await crypto.subtle.sign('HMAC', hmacKey, enc.encode(dataCheck));
-    const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
-    if (hex !== hash) return null;
+    const matches = async (p) => {
+      const sig2 = await crypto.subtle.sign('HMAC', hmacKey, enc.encode(mkCheck(p)));
+      const hex2 = [...new Uint8Array(sig2)].map((b2) => b2.toString(16).padStart(2, '0')).join('');
+      return hex2 === hash;
+    };
+    /* dual-check: (A) all fields except hash [official docs, incl. signature] · (B) signature excluded too [older clients] */
+    const okA = await matches(params);
+    let okB = false;
+    if (!okA) {
+      const p2 = new URLSearchParams(initData || '');
+      p2.delete('hash');
+      okB = await matches(p2);
+    }
+    if (!okA && !okB) return null;
     const user = JSON.parse(params.get('user') || '{}');
     return user && user.id ? user : null;
   } catch (_) { return null; }
@@ -1328,7 +1339,7 @@ async function cmdFreq(env, chatId, lang, argText) {
 
 /* D5 — /panel: open the admin settings Mini App (admins only) */
 async function cmdPanel(env, chatId, lang, origin) {
-  if (!(await isAdmin(env, chatId))) return sendMessage(env, chatId, t(lang, 'panel_denied'));
+  if (!(await isAdmin(env, chatId))) return sendMessage(env, chatId, t(lang, 'panel_denied') + '\n\n\u{1FAAA} ID: ' + chatId);
   if (!origin) return sendMessage(env, chatId, t(lang, 'err_generic'));
   return sendMessage(env, chatId, t(lang, 'btn_panel') + '\n\n' + t(lang, 'menu_title'), {
     reply_markup: { inline_keyboard: [[{ text: '🛠 ' + t(lang, 'btn_panel'), web_app: { url: origin + '/panel' } }]] },
