@@ -30,11 +30,14 @@ def write_b64(path: Path, text: str) -> None:
     path.write_bytes(base64.b64encode(text.encode("utf-8")))
 
 
-def remark_uri(uri: str, ping_ms: float | None) -> str:
-    """Brand remark on every published URI: `Ariston-<ping>ms` (or `Ariston` when
-    no latency is known).  Anything taken from the GitHub page/repo carries it."""
+def remark_uri(uri: str, ping_ms: float | None, tier: str | None = None) -> str:
+    """Brand remark on every published URI: `Ariston-<ping>ms` — the gold tier
+    carries the GOLD flag (`Ariston-GOLD-<ping>ms`, decision 2026-11-01 #3); bare
+    `Ariston` when no latency is known.  Anything taken from the GitHub
+    page/repo carries it."""
     base = uri.split("#", 1)[0]
-    remark = f"Ariston-{round(ping_ms)}ms" if ping_ms else "Ariston"
+    brand = "Ariston-GOLD" if tier == "gold" else "Ariston"
+    remark = f"{brand}-{round(ping_ms)}ms" if ping_ms else brand
     return f"{base}#{remark}"
 
 
@@ -78,7 +81,8 @@ def publish_tiers(dist: Path, rows: list[dict]) -> None:
         "silver": [r for r in alive if r["tier"] == "silver"],
     }
     for name, selected in buckets.items():
-        text = "\n".join(remark_uri(r["uri"], r.get("latency_ms")) for r in selected) + "\n"
+        tier = "gold" if name == "gold" else None  # D6/B: gold = Ariston-GOLD-<ms>
+        text = "\n".join(remark_uri(r["uri"], r.get("latency_ms"), tier) for r in selected) + "\n"
         (dist / f"{name}.txt").write_text(text, encoding="utf-8")
         write_b64(dist / f"{name}.b64", text)
 

@@ -58,10 +58,12 @@ def _name(scheme: str, host: str, port: int, seen: dict) -> str:
     return base if n == 1 else f"{base}-{n}"
 
 
-def _brand_name(ping_ms: float | None, seen: dict) -> str:
-    """D4: proxy names carry the brand + measured ping: `Ariston-812ms`,
+def _brand_name(ping_ms: float | None, seen: dict, tier: str | None = None) -> str:
+    """D4: proxy names carry the brand + measured ping: `Ariston-812ms`
+    (`Ariston-GOLD-812ms` for the gold tier — decision 2026-11-01 #3),
     duplicates disambiguated (`Ariston-812ms-2`)."""
-    base = f"Ariston-{round(ping_ms)}ms" if ping_ms else "Ariston"
+    brand = "Ariston-GOLD" if tier == "gold" else "Ariston"
+    base = f"{brand}-{round(ping_ms)}ms" if ping_ms else brand
     n = seen.get(base, 0) + 1
     seen[base] = n
     return base if n == 1 else f"{base}-{n}"
@@ -252,7 +254,7 @@ def to_mihomo(rows: list[dict]) -> tuple[str, dict]:
     proxies, names, seen = [], [], {}
     skipped = 0
     for r in rows:
-        name = _brand_name(r.get("latency_ms"), seen)
+        name = _brand_name(r.get("latency_ms"), seen, r.get("tier"))
         p = _mihomo_proxy(r["uri"], name)
         if p is None:
             skipped += 1
@@ -399,7 +401,7 @@ def to_singbox(rows: list[dict]) -> tuple[str, dict]:
     skipped = 0
     for r in rows:
         uri = r["uri"]
-        tag = _brand_name(r.get("latency_ms"), seen)
+        tag = _brand_name(r.get("latency_ms"), seen, r.get("tier"))
         ob = _sb_outbound(uri, tag)
         if ob is None:
             skipped += 1
