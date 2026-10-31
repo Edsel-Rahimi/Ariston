@@ -541,7 +541,12 @@ const getStats = async (env, fresh) => {
 /* ─────────────── mini app: initdata auth, enrichment, feedback ─────────────── */
 
 async function sha16(s) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  /* D7 fix: published lines carry the brand remark (#Ariston-GOLD-65ms) since
+     D6/B, while results.json keys hash the bare canonical URI — strip the
+     fragment before hashing so telemetry (ema ✔/✘, ping) matches again.
+     Also unifies every consumer (gold cards · personal alloc · latency map). */
+  const base = String(s).split('#')[0];
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(base));
   return [...new Uint8Array(buf)].slice(0, 8).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
