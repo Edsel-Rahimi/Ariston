@@ -591,6 +591,30 @@ async function feedbackSet(env, hash, chatId, vote) {
   return { up: cur.up, down: cur.down };
 }
 
+/* ─────── D6 — personal history: persistent, ≤20 items, shown before global gold ─────── */
+
+const HIST_CAP = 20;
+
+async function historyGet(env, uid) {
+  const h = await kvGet(env, 'hist:' + uid, 'json');
+  return Array.isArray(h) ? h : [];
+}
+
+async function historyAdd(env, uid, item) {
+  const items = await historyGet(env, uid);
+  const clean = items.filter((x) => x && x.h !== item.h); // dedupe — most recent first
+  clean.unshift({
+    h: item.h,
+    u: String(item.u || '').slice(0, 600),
+    p: String(item.p || '').slice(0, 16),
+    l: isFinite(item.l) ? Math.round(Number(item.l)) : null,
+    ts: Date.now(),
+  });
+  const next = clean.slice(0, HIST_CAP);
+  await kvPut(env, 'hist:' + uid, JSON.stringify(next), 180 * 86400); // persistent, self-healing TTL
+  return next;
+}
+
 /* ──────────── cfg:admin (runtime settings · editable from the panel) ─────── */
 
 const CFG_DEFAULT = {
@@ -1669,6 +1693,37 @@ async function appFeedback(env, request) {
   return Response.json({ ok: true, ...out });
 }
 
+/* D6 — /app/api/history: the user's persistent copy-history (initData-gated) */
+async function appHistory(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const op = body.op === 'add' ? 'add' : body.op === 'clear' ? 'clear' : 'list';
+  if (op === 'clear') {
+    await kvDel(env, 'hist:' + tgUser.id);
+    return Response.json({ ok: true, items: [] });
+  }
+  if (op === 'add') {
+    const hash = String(body.hash || '');
+    if (!/^[a-f0-9]{16}$/.test(hash) || !body.uri) return Response.json({ error: 'bad_item' }, { status: 400 });
+    const items = await historyAdd(env, tgUser.id, { h: hash, u: String(body.uri), p: body.proto, l: Number(body.lat) });
+    return Response.json({ ok: true, items });
+  }
+  return Response.json({ ok: true, items: await historyGet(env, tgUser.id) });
+}
+
+/* D6 — /app/api/me: identity inside the mini app (admin chip + history badge) */
+async function appMe(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  return Response.json({
+    ok: true,
+    is_admin: await isAdmin(env, tgUser.id),
+    hist: (await historyGet(env, tgUser.id)).length,
+  });
+}
+
 /* ─────────────── D5 — admin panel api (initData + isAdmin) ───────────────── */
 
 /* runs fn(env, body) only when the initData belongs to a registered admin */
@@ -1752,6 +1807,24 @@ async function adminUsers(env, body) {
     });
   }
   return Response.json({ total, offset: off, items });
+}
+
+/* D6 — aggregated crowd votes (👍/👎), ranked by (up − down); raw → full list for export */
+async function adminFeedback(env, body) {
+  const out = [];
+  try {
+    let cursor;
+    do {
+      const page = await env.KV.list({ prefix: 'fb:', cursor, limit: 100 });
+      for (const k of (page.keys || [])) {
+        const v = await kvGet(env, k.name, 'json');
+        if (v && (v.up || v.down)) out.push({ hash: k.name.slice(3), up: v.up || 0, down: v.down || 0 });
+      }
+      cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor && out.length < 500);
+  } catch (_) { /* KV hiccup → whatever we collected */ }
+  out.sort((a, b) => (b.up - b.down) - (a.up - a.down));
+  return Response.json({ ok: true, total: out.length, items: body.raw ? out : out.slice(0, 30) });
 }
 
 /* ───────────────────── public API v1 (developers) ─────────────────────────── */
@@ -2071,7 +2144,7 @@ const MINI_APP_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON ⚡</title>
-<!-- app build: D5.3-fix — regex escape corrected (served-output verified) -->
+<!-- app build: D6.0 — personal history first · 10 gold cards · silent anon votes · admin chip -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2130,6 +2203,11 @@ transition:transform .12s ease,border-color .2s ease}
 .gfoot{display:flex;align-items:center;gap:12px;margin-top:9px;padding-top:9px;border-top:1px dashed rgba(232,200,114,.13)}
 .fb{background:none;border:none;color:var(--dim);font-size:12.5px;cursor:pointer;padding:0 2px;font-family:inherit}
 .fb.on{color:var(--gold)}
+.fb:disabled{opacity:.5;cursor:default}
+.admchip{display:none;background:none;border:1px solid var(--line2);color:var(--gold);border-radius:8px;font-size:12.5px;padding:3px 8px;cursor:pointer;font-family:inherit}
+.admchip:active{transform:scale(.95)}
+.hclear{display:none;background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:11px;padding:2px 8px;cursor:pointer;font-family:inherit}
+.hclear:active{transform:scale(.95)}
 .gfoot .ok{font-family:var(--mono);font-size:10px;color:var(--dim);margin-inline-start:auto;direction:ltr}
 .sub{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:15px 16px;animation:up .5s .18s ease both}
 .sub .t{font-weight:700;font-size:13.5px}
@@ -2172,6 +2250,7 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
     </svg>
     <div class="brand">ARISTON</div>
     <div class="hlive">
+      <button class="admchip" id="admChip" style="display:none" aria-label="admin">🛠</button>
       <div class="livewrap"><span class="dot"></span><span>LIVE</span></div>
       <button class="refresh" id="refresh" aria-label="refresh">⟳</button>
     </div>
@@ -2192,6 +2271,10 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
     <div class="stat"><div class="v" id="stRun">—</div><div class="k" id="stRunK">…</div></div>
   </div>
 
+  <div class="sec" id="histSec" style="display:none"><h2 id="histTitle">…</h2><div class="rule"></div><button class="hclear" id="histClear">🗑</button></div>
+  <div class="hint" id="histHint" style="display:none"></div>
+  <div id="histList"></div>
+
   <div class="sec"><h2 id="goldTitle">…</h2><div class="rule"></div></div>
   <div class="hint" id="goldHint">…</div>
   <div id="goldList">
@@ -2205,7 +2288,7 @@ background:rgba(30,26,19,.94);border:1px solid var(--line2);color:var(--txt);bor
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D5.3 · v4.1</span>
+    <span>D6.0 · v4.2</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -2216,7 +2299,8 @@ var I18N = {
     st_alive:'کانفیگ سالم', st_p50:'پینگ p50', st_src:'منابع فعال', st_run:'آخرین تست',
     rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
     gold_t:'کانفیگ‌های طلایی', gold_hint:'روی کارت بزن تا کپی بشه · 👍 یعنی برات کار کرد',
-    more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ممنون! ثبت شد 🙏', vote_tg:'رأی دادن فقط توی تلگرام ممکنه',
+    more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ممنون! ثبت شد 🙏',
+    hist_t:'تاریخچه من', hist_hint:'آخرین کانفیگ‌هایی که کپی کردی — تا ۲۰ مورد، همیشه همین‌جان', hist_empty:'هنوز چیزی کپی نکردی — از «کانفیگ‌های طلایی» شروع کن', hist_cleared:'تاریخچه پاک شد',
     sub_t:'اشتراک شخصی من', sub_note:'هر بار اپت رو آپدیت کنی، ۱۰ تا کانفیگ مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_copy:'کپی لینک',
     sub_meta:'اپراتور: {o} · اپ: {c}', sub_need:'اول توی ربات /start رو بزن', open_tg:'برای دیدن اشتراک شخصی، این صفحه رو توی تلگرام باز کن',
     mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های مخصوص من', rot_day:'تعویض: روزانه', rot_run:'تعویض: هر دور تست',
@@ -2225,7 +2309,8 @@ var I18N = {
     st_alive:'Alive configs', st_p50:'p50 latency', st_src:'Healthy sources', st_run:'Last run',
     rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
     gold_t:'Gold configs', gold_hint:'tap a card to copy · 👍 = it worked for you',
-    more:'Show more', copied:'Copied ✅', voted:'Recorded 🙏', vote_tg:'Voting works inside Telegram only',
+    more:'Show more', copied:'Copied ✅', voted:'Recorded 🙏',
+    hist_t:'My history', hist_hint:'the configs you copied — last 20, always here', hist_empty:'nothing copied yet — start from the gold list', hist_cleared:'history cleared',
     sub_t:'My personal subscription', sub_note:'every client refresh delivers your personal 10-pick (daily or per-run rotation)', sub_copy:'Copy link',
     sub_meta:'ISP: {o} · Client: {c}', sub_need:'press /start in the bot first', open_tg:'open this page inside Telegram for your personal sub',
     mk_ok:'connected', mk_fail:'failed', my10:'My personal picks', rot_day:'rotation: daily', rot_run:'rotation: per run',
@@ -2234,7 +2319,8 @@ var I18N = {
     st_alive:'Живых конфигов', st_p50:'Задержка p50', st_src:'Рабочих источников', st_run:'Последний прогон',
     rel_min:'{n} мин назад', rel_hour:'{n} ч назад', rel_day:'{n} дн назад',
     gold_t:'Золотые конфиги', gold_hint:'нажми на карточку — копировать · 👍 = работает',
-    more:'Показать ещё', copied:'Скопировано ✅', voted:'Записано 🙏', vote_tg:'Голосование — только в Telegram',
+    more:'Показать ещё', copied:'Скопировано ✅', voted:'Записано 🙏',
+    hist_t:'Моя история', hist_hint:'конфиги, которые ты копировал — последние 20, всегда здесь', hist_empty:'пока ничего — начни с золотого списка', hist_cleared:'история очищена',
     sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — твоя персональная десятка (день или прогон)', sub_copy:'Копировать ссылку',
     sub_meta:'Оператор: {o} · Клиент: {c}', sub_need:'сначала /start в боте', open_tg:'открой эту страницу в Telegram для личной подписки',
     mk_ok:'подключилось', mk_fail:'не вышло', my10:'Мои личные конфиги', rot_day:'ротация: день', rot_run:'ротация: прогон',
@@ -2243,7 +2329,8 @@ var I18N = {
     st_alive:'Çalışan yapılandırma', st_p50:'p50 gecikme', st_src:'Sağlıklı kaynak', st_run:'Son çalışma',
     rel_min:'{n} dk önce', rel_hour:'{n} sa önce', rel_day:'{n} gün önce',
     gold_t:'Altın yapılandırmalar', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
-    more:'Daha fazla', copied:'Kopyalandı ✅', voted:'Kaydedildi 🙏', vote_tg:'Oylama sadece Telegram içinde',
+    more:'Daha fazla', copied:'Kopyalandı ✅', voted:'Kaydedildi 🙏',
+    hist_t:'Geçmişim', hist_hint:'kopyaladığın yapılandırmalar — son 20, hep burada', hist_empty:'henüz bir şey kopyalanmadı — altın listeden başla', hist_cleared:'geçmiş temizlendi',
     sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede kişisel 10’luk seçkin (günlük veya her çalışma)', sub_copy:'Bağlantıyı kopyala',
     sub_meta:'Sağlayıcı: {o} · İstemci: {c}', sub_need:'önce botta /start gönder', open_tg:'kişisel abonelik için bu sayfayı Telegram içinde aç',
     mk_ok:'bağlandı', mk_fail:'olmadı', my10:'Kişisel seçkilerim', rot_day:'rotasyon: günlük', rot_run:'rotasyon: çalışma',
@@ -2252,7 +2339,8 @@ var I18N = {
     st_alive:'可用配置', st_p50:'p50 延迟', st_src:'可用源', st_run:'最近一轮',
     rel_min:'{n} 分钟前', rel_hour:'{n} 小时前', rel_day:'{n} 天前',
     gold_t:'金牌配置', gold_hint:'点卡片即复制 · 👍 = 对我有用',
-    more:'显示更多', copied:'已复制 ✅', voted:'已记录 🙏', vote_tg:'仅限在 Telegram 内投票',
+    more:'显示更多', copied:'已复制 ✅', voted:'已记录 🙏',
+    hist_t:'我的历史', hist_hint:'你复制过的配置 — 最近 20 条，一直都在', hist_empty:'还没有复制过 — 从金牌列表开始', hist_cleared:'历史已清除',
     sub_t:'我的个人订阅', sub_note:'客户端每次刷新拿到你的专属 10 个（按天或每轮轮换）', sub_copy:'复制链接',
     sub_meta:'运营商：{o} · 客户端：{c}', sub_need:'请先在机器人里 /start', open_tg:'在 Telegram 内打开此页面以获取个人订阅',
     mk_ok:'连上了', mk_fail:'连不上', my10:'我的专属配置', rot_day:'轮换：每天', rot_run:'轮换：每轮',
@@ -2307,6 +2395,7 @@ function applyTexts(){
   document.getElementById('stRunK').textContent = T('st_run');
   document.getElementById('goldTitle').textContent = '🏆 ' + T('gold_t');
   document.getElementById('goldHint').textContent = T('gold_hint');
+  document.getElementById('histTitle').textContent = '🕘 ' + T('hist_t');
   document.getElementById('subTitle').textContent = '🔗 ' + T('sub_t');
   var mb = document.getElementById('moreBtn'); mb.textContent = T('more');
 }
@@ -2339,15 +2428,15 @@ function goldCard(it, idx){
   var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
   var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
   var latTx = it.latency_ms !== null ? Math.round(it.latency_ms) + 'ms' : '—';
-  return '<div class="gcard" data-uri="' + esc(it.uri) + '" style="animation:up .4s ' + (idx * 0.05) + 's ease both">' +
+  return '<div class="gcard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '" style="animation:up .4s ' + (idx * 0.05) + 's ease both">' +
     '<div class="gtop"><div class="rank">' + rank + '</div>' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
     '<div class="host">' + esc(hostPart) + '</div>' +
     '<div class="metrics"><span class="ema ' + emaCls + '">' + emaTx + '</span>' +
     '<span class="lat">' + latTx + '</span></div></div>' +
     '<div class="gfoot">' +
-    '<button class="fb" data-hash="' + esc(it.hash) + '" data-v="up">👍 <span>' + (it.up || 0) + '</span></button>' +
-    '<button class="fb" data-hash="' + esc(it.hash) + '" data-v="down">👎 <span>' + (it.down || 0) + '</span></button>' +
+    '<button class="fb"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash) + '" data-v="up">👍 <span>' + (it.up || 0) + '</span></button>' +
+    '<button class="fb"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash) + '" data-v="down">👎 <span>' + (it.down || 0) + '</span></button>' +
     '<span class="ok">✔ ' + (it.ok || 0) + ' / ✘ ' + (it.fail || 0) + '</span></div></div>';
 }
 function bindCards(){
@@ -2357,13 +2446,14 @@ function bindCards(){
     card.addEventListener('click', function(ev){
       if (ev.target.closest && ev.target.closest('.fb')) return;
       copyText(card.getAttribute('data-uri'));
+      histAdd(card.getAttribute('data-uri'), card.getAttribute('data-hash'));
     });
   });
   Array.prototype.forEach.call(list.querySelectorAll('.fb'), function(btn){
     if (btn._bound) return; btn._bound = true;
     btn.addEventListener('click', function(ev){
       ev.stopPropagation();
-      if (!initData){ toast(T('vote_tg')); return; }
+      if (!initData) return; /* D6: anonymous visitors see counts only — buttons render disabled */
       var vote = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
       haptic('medium');
       fetch('/app/api/feedback', {method:'POST', headers:{'content-type':'application/json'},
@@ -2375,7 +2465,7 @@ function bindCards(){
             Array.prototype.forEach.call(card.querySelectorAll('.fb'), function(b){ b.classList.remove('on'); });
             btn.classList.add('on');
             var cnt = btn.querySelector('span'); if (cnt) cnt.textContent = (vote === 'up') ? res.up : res.down;
-          } else toast(T('vote_tg'));
+          } /* D6: server refused (expired session) — stay silent */
         }).catch(function(){ toast(T('fail')); });
     });
   });
@@ -2399,8 +2489,8 @@ function loadGold(append){
   /* D5: POST + initData → the server stamps the user's own name on the copied configs */
   var req = initData
     ? fetch('/app/api/gold', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 6 }) })
-    : fetch('/app/api/gold?offset=' + goldOffset + '&limit=6');
+        body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 10 }) })
+    : fetch('/app/api/gold?offset=' + goldOffset + '&limit=10');
   req.then(function(r){ return r.json(); }).then(function(d){
     if (d.error || !d.items){ showGoldFail(list); goldAutoRetry(); return; }
     if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
@@ -2410,8 +2500,8 @@ function loadGold(append){
     if (append){ list.insertAdjacentHTML('beforeend', html); } else { list.innerHTML = html; }
     goldOffset += d.items.length;
     var mb = document.getElementById('moreBtn');
-    /* D5: keep the app light — at most 12 gold cards, the rest lives in the bot (/gold) */
-    mb.style.display = (goldOffset < d.total && goldOffset < 12) ? 'block' : 'none';
+    /* D6: exactly 10 gold cards — the rest lives in the bot (/gold) */
+    mb.style.display = 'none';
     bindCards();
   }).catch(function(){ showGoldFail(list); goldAutoRetry(); });
 }
@@ -2421,7 +2511,7 @@ function subRow(it, idx){
   hostPart = hostPart.split(/[\\/?#]/)[0] || it.uri.replace(/^[a-z0-9+.-]+:\\/\\//i, '').slice(0, 26) || '—';
   var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
   var okOn = it.mark === 1 ? ' on' : '', badOn = it.mark === 2 ? ' on' : '';
-  return '<div class="scard" data-uri="' + esc(it.uri) + '">' +
+  return '<div class="scard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '">' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
     '<div class="host">' + esc(hostPart) + '</div>' +
     '<span class="ping">' + esc(pingTx) + '</span>' +
@@ -2435,13 +2525,14 @@ function bindSubMarks(){
     card.addEventListener('click', function(ev){
       if (ev.target.closest && ev.target.closest('.mk')) return;
       copyText(card.getAttribute('data-uri'));
+      histAdd(card.getAttribute('data-uri'), card.getAttribute('data-hash'));
     });
   });
   Array.prototype.forEach.call(document.querySelectorAll('#subCard .mk'), function(btn){
     if (btn._bound) return; btn._bound = true;
     btn.addEventListener('click', function(ev){
       ev.stopPropagation();
-      if (!initData){ toast(T('vote_tg')); return; }
+      if (!initData) return; /* D6: silent for anonymous users */
       var v = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
       var wasOn = btn.classList.contains('on');
       var mark = wasOn ? 'clear' : v;
@@ -2454,7 +2545,7 @@ function bindSubMarks(){
             var card = btn.closest('.scard');
             Array.prototype.forEach.call(card.querySelectorAll('.mk'), function(b){ b.classList.remove('on'); });
             if (!wasOn) btn.classList.add('on');
-          } else toast(T('vote_tg'));
+          } /* D6: server refused — stay silent */
         }).catch(function(){ toast(T('fail')); });
     });
   });
@@ -2488,10 +2579,90 @@ function loadSub(){
       bindSubMarks();
     }).catch(function(){ card.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
 }
+/* D6 — personal history: persistent ≤20, rendered BEFORE the global gold list */
+var histLoaded = false;
+function histCard(it){
+  var uri = it.u || '';
+  var proto = (uri.split('://')[0] || 'other').toLowerCase();
+  var hostPart = uri.split('://')[1] || '';
+  hostPart = hostPart.split(/[\\/?#]/)[0] || '—';
+  var latTx = (it.l != null && isFinite(it.l)) ? Math.round(it.l) + 'ms' : '—';
+  var ago = '—';
+  try { ago = rel(new Date(it.ts || Date.now()).toISOString()); } catch (e){}
+  return '<div class="scard" data-uri="' + esc(uri) + '">' +
+    '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
+    '<div class="host">' + esc(hostPart) + '</div>' +
+    '<span class="ping">' + esc(latTx) + '</span>' +
+    '<span class="ping">' + esc(ago) + '</span></div>';
+}
+function histRender(items){
+  var sec = document.getElementById('histSec'), hint = document.getElementById('histHint'),
+      list = document.getElementById('histList'), clr = document.getElementById('histClear');
+  if (!sec) return;
+  if (!initData){ sec.style.display = 'none'; hint.style.display = 'none'; return; }
+  sec.style.display = 'flex';
+  hint.style.display = 'block';
+  var has = items && items.length;
+  hint.textContent = has ? T('hist_hint') : T('hist_empty');
+  clr.style.display = has ? 'inline-flex' : 'none';
+  var html = '';
+  for (var i = 0; i < (items || []).length; i++) html += histCard(items[i]);
+  list.innerHTML = html;
+  Array.prototype.forEach.call(list.querySelectorAll('.scard'), function(card){
+    if (card._bound) return; card._bound = true;
+    card.addEventListener('click', function(){ copyText(card.getAttribute('data-uri')); });
+  });
+}
+function histAdd(uri, hash){
+  if (!initData || !hash) return; /* anonymous copies are not tracked — by design */
+  var proto = (String(uri).split('://')[0] || '').toLowerCase();
+  fetch('/app/api/history', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, op: 'add', hash: hash, uri: uri, proto: proto }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.ok) histRender(d.items); }).catch(function(){});
+}
+function loadHist(){
+  if (!initData){ histRender(null); return; }
+  if (histLoaded) return;
+  fetch('/app/api/history', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, op: 'list' }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.ok){ histLoaded = true; histRender(d.items); } })
+    .catch(function(){});
+}
+function loadMe(){
+  if (!initData) return;
+  fetch('/app/api/me', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!(d && d.ok && d.is_admin)) return;
+      var c = document.getElementById('admChip');
+      if (!c) return;
+      c.style.display = 'inline-flex';
+      if (!c._bound){ c._bound = true;
+        c.addEventListener('click', function(){
+          var u = location.origin + '/panel';
+          if (tg && tg.openLink) tg.openLink(u); else location.href = u;
+        });
+      }
+    }).catch(function(){});
+}
+document.getElementById('histClear').addEventListener('click', function(ev){
+  ev.stopPropagation();
+  if (!initData) return;
+  haptic('light');
+  fetch('/app/api/history', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, op: 'clear' }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.ok){ toast(T('hist_cleared')); histRender([]); } }).catch(function(){});
+});
 applyTexts();
 loadStats();
 loadGold(false);
 loadSub();
+loadMe();
+loadHist();
 document.getElementById('moreBtn').addEventListener('click', function(){ haptic('light'); loadGold(true); });
 document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); loadGold(false); });
 document.getElementById('heroErr').addEventListener('click', loadStats);
@@ -2504,7 +2675,7 @@ function tgAttach(){
   if (!tg) return false;
   initData = tg.initData || '';
   try { tg.ready(); tg.expand(); tg.setHeaderColor('#14110C'); tg.setBackgroundColor('#14110C'); } catch (e){}
-  if (initData){ loadSub(); loadGold(false); }
+  if (initData){ loadSub(); loadGold(false); loadHist(); loadMe(); }
   return true;
 }
 if (!tgAttach()){
@@ -2525,7 +2696,7 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D5.3-fix — externals never block first paint -->
+<!-- panel build: D6.0 — votes overview + JSON export -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2608,6 +2779,15 @@ input{width:92px;background:rgba(0,0,0,.25);border:1px solid var(--line);color:v
 
   <h2>کاربرها <span class="n" id="uTotal"></span></h2>
   <div class="card" id="users"><div class="hint">—</div></div>
+
+  <h2>رأی کاربرها <span class="n" id="fbTotal"></span></h2>
+  <div class="card">
+    <div id="votes"><div class="hint">برای دیدن، دکمه را بزن</div></div>
+    <div style="display:flex;gap:8px;padding:10px 0 8px">
+      <button class="btn ghost" id="loadVotes">📊 بارگذاری</button>
+      <button class="btn ghost" id="dlVotes">⬇ JSON</button>
+    </div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -2667,6 +2847,30 @@ function loadUsers(){
     $('users').innerHTML = h;
   }).catch(function(){});
 }
+/* D6 — crowd votes: ranked view + raw JSON export */
+function drawVotes(items){
+  var el = $('votes');
+  if (!items || !items.length){ el.innerHTML = '<div class="hint">هنوز رأیی ثبت نشده</div>'; return; }
+  var h = '';
+  for (var i = 0; i < items.length; i++){ var v = items[i];
+    h += '<div class="u"><span style="font-family:var(--mono);direction:ltr;font-size:11px">' + v.hash + '</span>' +
+      '<span style="font-family:var(--mono);direction:ltr">👍 ' + v.up + ' · 👎 ' + v.down + '</span></div>'; }
+  el.innerHTML = h;
+}
+$('loadVotes').onclick = function(){ toast('دارم میارم…');
+  post('feedback', {}).then(function(d){ if (d && d.ok){
+    $('fbTotal').textContent = '· ' + fmt(d.total) + ' کانفیگ';
+    drawVotes(d.items); toast('آماده ✓'); } else toast('خطا'); }).catch(function(){ toast('خطا'); }); };
+$('dlVotes').onclick = function(){
+  post('feedback', { raw: true }).then(function(d){ if (d && d.ok){
+    try {
+      var blob = new Blob([JSON.stringify(d.items || [], null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'ariston-feedback.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('دانلود شد ✓');
+    } catch (e){ toast('خطا'); }
+  } else toast('خطا'); }).catch(function(){ toast('خطا'); }); };
 /* D5.2 hotfix — boot after Telegram attaches (async script), not before */
 function bootPanel(){
   if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; return false; }
@@ -2837,6 +3041,8 @@ export default {
     if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
     if (url.pathname === '/app/api/mark' && request.method === 'POST') return appMark(env, request);
     if (url.pathname === '/app/api/feedback' && request.method === 'POST') return appFeedback(env, request);
+    if (url.pathname === '/app/api/history' && request.method === 'POST') return appHistory(env, request);
+    if (url.pathname === '/app/api/me' && request.method === 'POST') return appMe(env, request);
 
     /* ── D5 admin panel: page + api ── */
     if (url.pathname === '/panel' || url.pathname === '/panel/') {
@@ -2846,6 +3052,7 @@ export default {
     if (url.pathname === '/app/api/admin/set' && request.method === 'POST') return guardAdmin(env, request, adminSet);
     if (url.pathname === '/app/api/admin/post_now' && request.method === 'POST') return guardAdmin(env, request, adminPostNow);
     if (url.pathname === '/app/api/admin/users' && request.method === 'POST') return guardAdmin(env, request, adminUsers);
+    if (url.pathname === '/app/api/admin/feedback' && request.method === 'POST') return guardAdmin(env, request, adminFeedback);
 
     /* CORS preflight for the public API */
     if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg' || url.pathname === '/card.png')) {
