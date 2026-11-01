@@ -36,7 +36,7 @@ from queue import Queue
 from urllib.parse import parse_qsl, unquote, urlsplit
 
 # ------------------------------------------------------------------ knobs --
-from .bank import PASS2_REASONS, PASS2_TIMEOUT_FACTOR  # D6/C second pass
+from . import bank  # D8: pass-2 knobs are panel-tunable → read at call time
 
 ENV_XRAY = os.environ.get("ARISTON_XRAY", "bin/xray")
 ENV_SINGBOX = os.environ.get("ARISTON_SINGBOX", "bin/sing-box")
@@ -549,13 +549,14 @@ def validate_all(uris: list[str], prev: dict | None = None) -> tuple[dict, dict,
         # endpoints overwrite their first outcome before the history merge.
         pass2 = {"attempted": 0, "rescued": 0, "timeout_s": None}
         p2_jobs: list[tuple[int, str, str]] = []
-        if ENV_PASS2:
-            p2_timeout = round(ENV_TIMEOUT * PASS2_TIMEOUT_FACTOR, 2)
+        # D8: panel knobs read live; the env kill-switch (ARISTON_PASS2=0) still wins.
+        if ENV_PASS2 and bank.PASS2_ENABLED:
+            p2_timeout = round(ENV_TIMEOUT * bank.PASS2_TIMEOUT_FACTOR, 2)
             pass2["timeout_s"] = p2_timeout
             for i, (u, eng) in enumerate(routing):
                 res = outcomes[i]
                 if res is not None and eng and not res["alive"] \
-                        and res.get("reason") in PASS2_REASONS:
+                        and res.get("reason") in bank.PASS2_REASONS:
                     p2_jobs.append((i, u, eng))
             pass2["attempted"] = len(p2_jobs)
             if p2_jobs:

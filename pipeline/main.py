@@ -168,7 +168,16 @@ def cmd_collect() -> int:
 
 
 def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
+    # D8/H — panel knobs first (fail-safe: any error → built-in defaults).
+    pcfg = BK.load_pipeline_cfg()
+    eff = BK.apply_cfg(pcfg)
+    if eff.get("force_full_scan"):
+        full = True
+    if eff.get("skip_test"):
+        skip_validation = True
     full = full or os.environ.get("ARISTON_FULL") == "1" or _is_full_scan_window()
+    if eff.get("skip_test"):
+        print("[0/4] ⚠ PANEL SKIP_TEST — collect-only run (no engine tests, exports frozen)")
 
     # D6/C — the config bank: yesterday's memory for today's run.
     bank = BK.load_bank(dist_path=DIST / "bank.json")
@@ -184,6 +193,16 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
 
     uniq, stats = collect_phase(sources)
     stats["sources_skipped_quarantine"] = len(quarantined_skipped)
+
+    # D8/EH — bank resurrection: proven configs whose source vanished get a
+    # seat in this run's test queue again (golden rule intact — they must pass
+    # this run's engines like everyone else).
+    rescued_uris, rescue_stats = BK.resurrect(bank, set(uniq))
+    if rescued_uris:
+        uniq.extend(rescued_uris)
+        print(f"[2a/4] bank rescue: {rescue_stats['picked']} orphaned proven configs "
+              f"re-enter the queue (of {rescue_stats['candidates']} candidates)")
+    stats["rescue"] = rescue_stats
 
     # D6/C — fold this run's source health into the ledger.
     failed_ids = list((stats.get("sources_failed") or {}).keys())
@@ -220,16 +239,26 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
     tiers = {"gold": sum(1 for r in rows if r["alive"] and r["tier"] == "gold"),
              "silver": sum(1 for r in rows if r["alive"] and r["tier"] == "silver"),
              "bronze": sum(1 for r in rows if r["alive"] and r["tier"] == "bronze")}
-    stats["scoring"] = tiers
+    # D8/H: in skip_test runs there is no honest tier number → publish absence,
+    # not zeros (consumers treat a missing scoring as «nothing happened»).
+    if not skip_validation:
+        stats["scoring"] = tiers
 
     # D6/C — fold the run into the bank and publish it for the next one.
-    # When validation was skipped (--no-validate / missing engines) the bank
-    # is left untouched — a run that tested nothing must not punish anyone.
+    # When validation was skipped (--no-validate / missing engines / panel
+    # skip_test) the bank is left untouched — a run that tested nothing must
+    # not punish anyone.
     alive_hashes = {info["hash"] for info in per_node.values() if info.get("alive")}
     alive_now = vsummary.get("alive") if isinstance(vsummary, dict) else None
     bank_hits = len(alive_hashes & set(BK.bank_good_hashes(bank).keys()))
     if isinstance(vsummary, dict) and not vsummary.get("skipped"):
-        bank = BK.merge_run(bank, history, alive_hashes, alive_now)
+        uris_by_hash = {hashlib.sha256(u.encode()).hexdigest()[:16]: u for u in uniq}
+        bank = BK.merge_run(bank, history, alive_hashes, alive_now, uris_by_hash)
+    # D8/EH — rescue telemetry: how many resurrected configs came back alive
+    rescue_alive = 0
+    if rescued_uris:
+        rescue_hashes = {hashlib.sha256(u.encode()).hexdigest()[:16] for u in rescued_uris}
+        rescue_alive = len(alive_hashes & rescue_hashes)
     src_sum = BK.source_summary(bank)
     bank["meta"]["last_run_duration_s"] = stats.get("duration_seconds")
     # D7 — engineer-readable bank telemetry (surfaced in stats.json → bot /
@@ -253,14 +282,22 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
         "hit_rate": (round(100.0 * bank_hits / alive_now, 1)
                      if alive_now and isinstance(alive_now, (int, float)) else None),
         "avg_ms": bank_avg_ms,
+        # D8/EH — resurrection telemetry (surfaced by bot/panel/Pages)
+        "rescue": {**rescue_stats, "alive": rescue_alive} if rescued_uris else rescue_stats,
     }
     print(f"[3c/4] bank: {stats['bank']['size']} entries · hits {bank_hits} · "
           f"pass2 {stats['bank']['pass2']} · sources {stats['bank']['sources']}")
 
     print("[4/4] writing outputs ...")
     P.publish_master(DIST, uniq)
-    P.publish_tiers(DIST, rows)
-    stats["clients"] = P.publish_clients(DIST, rows)
+    if not skip_validation:
+        P.publish_tiers(DIST, rows)
+        stats["clients"] = P.publish_clients(DIST, rows)
+    else:
+        # D8/H skip_test: engine results are absent → never overwrite the
+        # live export files with empty lists.  The workflow prefetched the
+        # previous snapshot's exports into dist/, so they ride along frozen.
+        print("[4/4] skip_test: tier/client exports left frozen (previous snapshot)")
     (DIST / "readme-stats.md").write_text(P.render_stats_markdown(stats, "fa"), encoding="utf-8")
     for code, fname in [("en", "readme-stats-en.md"), ("tr", "readme-stats-tr.md"),
                         ("ru", "readme-stats-ru.md"), ("zh", "readme-stats-zh.md")]:
@@ -272,7 +309,18 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
     stats["operators"] = geo["stats"]
     lat_by_uri = {r["uri"]: r["latency_ms"] for r in rows if r.get("latency_ms") is not None}
     P.publish_operators(DIST, geo["by_slug"], lat_by_uri)  # all classified (like by-protocol)
+    # D8/U5 — per-config operator map (sha16(canonical uri) → slug) for the bot's
+    # operator chips.  Small, additive, and safe to ignore by every consumer.
+    op_by_hash = {}
+    for slug, info in (geo.get("by_slug") or {}).items():
+        for uri in info.get("uris") or []:
+            op_by_hash[hashlib.sha256(uri.encode()).hexdigest()[:16]] = slug
+    (DIST / "operators.json").write_text(
+        json.dumps(op_by_hash, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
+    # D8/H — publish the effective knob set (transparency + the worker uses it
+    # to confirm/reset «force full scan» requests from the panel).
+    stats["pipeline_cfg"] = {**eff, "requested": pcfg or {}}
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)
     # D6/C — the bank rides to the data branch with the rest of dist/

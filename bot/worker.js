@@ -1,7 +1,8 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  ARISTON — Telegram Bot · D7.0 — stitch mini-app redesign · bank everywhere ·
- *             rich admin panel (broadcast/admins/purge/scoped commands)
+ *  ARISTON — Telegram Bot · D8.0 — single-sub mode switch · bank resurrection
+ *             · admin panel phase 1 (pipeline + notifications) · UX pack
+ *             (QR · filters · favorites ⭐ · light/dark · operator chips)
  *  Cloudflare Worker (single file, dashboard-deployable) · webhook + KV
  *
  *  Golden rules (from BOT-RESEARCH.md):
@@ -175,6 +176,8 @@ const T = {
     rot_hint: '🔁 تغییر کرد: {mode} — دفعهٔ بعد که اپت رو آپدیت کنی، دستهٔ تازه می‌گیری.',
     name_now: '✍️ اسم: {name}', name_hint: '✍️ اسم جدیدت رو بفرست (یا «بدون اسم» رو بزن):',
     sub_rot_line: '🔁 تعویض: {mode} · 📦 {n} کانفیگ مخصوص تو',
+    sub_mode_line: '🎛 حالت این لینک: {mode} — از داخل اپ (کارت اشتراک) قابل تغییره',
+    mode_mine: 'فقط مخصوص من', mode_gold: 'فقط برترین‌ها', mode_mix: 'ترکیبی (شخصی + برترین‌ها)',
     digest_title: '📊 <b>آریستون — وضعیت لحظه‌ای</b>',
     freq_now: '⏱ گزارش دوره‌ای کانال: هر {n} ساعت یه‌بار\nبرای تغییر: <code>/freq 4</code> (بین ۱ تا ۲۴ ساعت)',
     freq_set: '✅ انجام شد! از الان هر {n} ساعت یه گزارش زنده توی کانال می‌ذارم.',
@@ -239,6 +242,8 @@ const T = {
     rot_hint: '🔁 Rotation changed: {mode} — your next client refresh delivers a fresh set.',
     name_now: '✍️ Name: {name}', name_hint: '✍️ Send the new name (or press skip):',
     sub_rot_line: '🔁 Rotation: {mode} · 📦 {n} personal picks',
+    sub_mode_line: '🎛 This link\'s mode: {mode} — switchable inside the mini app (subscription card)',
+    mode_mine: 'only mine', mode_gold: 'only best', mode_mix: 'mixed (personal + best)',
     digest_title: '📊 <b>Ariston — live status</b>',
     freq_now: '⏱ Channel digest interval: every {n} h\nTo change: <code>/freq 4</code> (1–24 hours)',
     freq_set: '✅ Done! A live digest will be posted to the channel every {n} h.',
@@ -303,6 +308,8 @@ const T = {
     rot_hint: '🔁 Ротация изменена: {mode} — следующее обновление клиента даст новый набор.',
     name_now: '✍️ Имя: {name}', name_hint: '✍️ Отправьте новое имя (или «Пропустить»):',
     sub_rot_line: '🔁 Ротация: {mode} · 📦 {n} личных конфигов',
+    sub_mode_line: '🎛 Режим ссылки: {mode} — меняется в мини-аппе (карточка подписки)',
+    mode_mine: 'только мои', mode_gold: 'только лучшие', mode_mix: 'смешанный (личные + лучшие)',
     digest_title: '📊 <b>Ariston — живой статус</b>',
     freq_now: '⏱ Интервал постов в канал: каждые {n} ч\nИзменить: <code>/freq 4</code> (1–24 часа)',
     freq_set: '✅ Готово! Живой отчёт будет в канале каждые {n} ч.',
@@ -367,6 +374,8 @@ const T = {
     rot_hint: '🔁 Rotasyon değişti: {mode} — bir sonraki istemci yenilemesi yeni set verir.',
     name_now: '✍️ İsim: {name}', name_hint: '✍️ Yeni ismi gönder (veya «Atla»):',
     sub_rot_line: '🔁 Rotasyon: {mode} · 📦 {n} kişisel seçki',
+    sub_mode_line: '🎛 Bu bağlantının modu: {mode} — mini uygulamadan değiştirilir (abonelik kartı)',
+    mode_mine: 'sadece benim', mode_gold: 'sadece en iyiler', mode_mix: 'karışık (kişisel + en iyiler)',
     digest_title: '📊 <b>Ariston — canlı durum</b>',
     freq_now: '⏱ Kanal özet aralığı: her {n} sa\nDeğiştirmek için: <code>/freq 4</code> (1–24 saat)',
     freq_set: '✅ Tamam! Kanala her {n} saatte bir canlı özet düşecek.',
@@ -431,6 +440,8 @@ const T = {
     rot_hint: '🔁 轮换已更改：{mode}——下次客户端刷新会拿到新的一组。',
     name_now: '✍️ 名字：{name}', name_hint: '✍️ 发送新名字（或点「跳过」）：',
     sub_rot_line: '🔁 轮换：{mode} · 📦 {n} 个专属配置',
+    sub_mode_line: '🎛 此链接模式：{mode} — 可在迷你应用（订阅卡片）中切换',
+    mode_mine: '只看我的', mode_gold: '只看最佳', mode_mix: '混合（个人+最佳）',
     digest_title: '📊 <b>Ariston — 实时状态</b>',
     freq_now: '⏱ 频道定时播报间隔：每 {n} 小时\n修改：<code>/freq 4</code>（1–24 小时）',
     freq_set: '✅ 好了！以后每 {n} 小时向频道发送一次实时报告。',
@@ -657,14 +668,86 @@ const CFG_DEFAULT = {
   watchtower_enabled: true,  // per-run alerts to opted-in users
   ref_base: REF_BASE,
   ref_cap: REF_CAP,
+  /* D8/P6 — notifications & quiet hours (admin panel, phase 1) */
+  watchtower_cap: 20,        // max watchtower recipients per run (free-plan budget)
+  quiet_enabled: false,      // «ساعات سکوت» — no automated messages in the window
+  quiet_start: 2,            // Tehran local hour, inclusive
+  quiet_end: 8,              // Tehran local hour, exclusive
   admin_ids: [],             // managed via /setup?admin=<id> and the panel
 };
+
+/* Tehran is UTC+3:30 year-round → local hour helper for quiet hours */
+function tehranHour() {
+  try { return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Asia/Tehran' }).format(new Date()) * 1; }
+  catch (_) { return ((new Date().getUTCHours() + 3) + Math.floor((new Date().getUTCMinutes() + 30) / 60)) % 24; }
+}
+function inQuietHours(cfg) {
+  if (!cfg || cfg.quiet_enabled !== true) return false;
+  const h = tehranHour(), a = ((cfg.quiet_start ?? 2) % 24 + 24) % 24, b = ((cfg.quiet_end ?? 8) % 24 + 24) % 24;
+  return a === b ? true : (a < b ? (h >= a && h < b) : (h >= a || h < b));
+}
 
 async function getCfg(env) {
   const c = await kvGet(env, 'cfg:admin', 'json');
   return { ...CFG_DEFAULT, ...(c && typeof c === 'object' ? c : {}) };
 }
 const putCfg = (env, c) => kvPut(env, 'cfg:admin', JSON.stringify(c));
+
+/* ───────── D8 — pipeline knobs (cfg:pipeline → /api/pipeline-cfg) ─────────
+   The GitHub Action reads this every run (fail-safe on the pipeline side too).
+   Values mirror pipeline/bank.py PCFG_SPEC — out-of-range junk is ignored. */
+const PCFG_DEFAULT = {
+  bank_ttl_hours: 28, pass2_enabled: true, pass2_factor: 2.0,
+  suspect_after: 2, quarantine_after: 3, quarantine_days: 7,
+  min_streak_priority: 1,
+  rescue_enabled: true, rescue_min_streak: 5, rescue_max: 1500,
+  skip_test: false, force_full_scan: false,
+};
+const PCFG_RANGE = {
+  bank_ttl_hours: [6, 72], pass2_factor: [1, 3], suspect_after: [1, 10],
+  quarantine_after: [2, 20], quarantine_days: [1, 30], min_streak_priority: [1, 10],
+  rescue_min_streak: [2, 20], rescue_max: [0, 5000],
+};
+const PCFG_BOOLS = ['pass2_enabled', 'rescue_enabled', 'skip_test', 'force_full_scan'];
+
+async function getPipelineCfg(env) {
+  const out = { ...PCFG_DEFAULT };
+  const c = await kvGet(env, 'cfg:pipeline', 'json');
+  if (c && typeof c === 'object') {
+    for (const k of Object.keys(PCFG_DEFAULT)) {
+      if (!(k in c)) continue;
+      if (PCFG_BOOLS.includes(k)) { out[k] = Boolean(c[k]); continue; }
+      const n = Number(c[k]);
+      const r = PCFG_RANGE[k];
+      if (isFinite(n)) out[k] = r ? Math.min(r[1], Math.max(r[0], n)) : n;  // clamp, never pass junk
+    }
+  }
+  return out;
+}
+const putPipelineCfg = (env, c) => kvPut(env, 'cfg:pipeline', JSON.stringify(c));
+
+/* D8/P3 — panel-requested «full scan» is one-shot: once a run whose own
+   stats.json echoes it (pipeline_cfg.requested) is live, reset + tell admins. */
+async function consumePipelineRequest(env) {
+  try {
+    const pc = await getPipelineCfg(env);
+    if (pc.force_full_scan !== true) return;
+    const s = await getStats(env, true);
+    const req = s && s.pipeline_cfg && s.pipeline_cfg.requested;
+    if (!s || !s.generated_at || !req || req.force_full_scan !== true) return;
+    await putPipelineCfg(env, { ...pc, force_full_scan: false });
+    const last = await kvGet(env, 'pcfg:last_full_done');
+    if (last === s.generated_at) return;
+    await kvPut(env, 'pcfg:last_full_done', s.generated_at);
+    const cfg = await getCfg(env);
+    const owner = await kvGet(env, 'meta:owner');
+    const ids = [...new Set([...(cfg.admin_ids || []).map(String), owner].filter(Boolean).map(String))];
+    for (const id of ids) {
+      const u = await getUser(env, id);
+      await sendMessage(env, id, '🛠 ⚙️ اسکن کامل درخواستیِ پنل تمام شد و دور جدید منتشر شد.\n🕐 دور: ' + s.generated_at + '\n✅ فلگ «اسکن کامل دستی» ریست شد.').catch(() => null);
+    }
+  } catch (_) { /* never break the cron over the request bookkeeping */ }
+}
 
 async function isAdmin(env, chatId, cfg) {
   const c = cfg || (await getCfg(env));
@@ -773,6 +856,20 @@ async function getLatencyMap(env) {
   return map;
 }
 
+/* D8/U5 — operators.json (pipeline) → { hash16: iran-operator slug } — cached 30 min.
+   Any absence = «no chip» on the card; the feature degrades to the old look. */
+async function getOperatorMap(env) {
+  const cached = await kvGet(env, 'rich:opmap', 'json');
+  if (cached && cached.ts && Date.now() - cached.ts < 30 * 60 * 1000 && cached.map) return cached.map;
+  const raw = await fetchTextCached(env, 'operators.json', 1800);
+  let map = {};
+  try { map = raw ? JSON.parse(raw) : {}; } catch (_) { map = {}; }
+  if (map && typeof map === 'object' && Object.keys(map).length) {
+    await kvPut(env, 'rich:opmap', JSON.stringify({ ts: Date.now(), map }), 3600);
+  }
+  return map && typeof map === 'object' ? map : {};
+}
+
 /* same golden-rule pool as the old subscription (operator → gold+silver → validated) */
 async function buildPool(env, user) {
   let lines = [], usedFallback = false;
@@ -837,6 +934,18 @@ async function markSet(env, chatId, hash, mark) { // mark: 1 ok | 2 fail | 0 cle
   return cur[hash] || 0;
 }
 
+/* ─────── D8/U3 — favorites ⭐: the configs the user starred (≤50, sticky) ─── */
+
+const FAV_CAP = 50;
+async function favsGet(env, uid) {
+  const f = await kvGet(env, 'fav:' + uid, 'json');
+  return Array.isArray(f) ? f : [];
+}
+async function favsSet(env, uid, items) {
+  await kvPut(env, 'fav:' + uid, JSON.stringify(items), 365 * 86400);
+  return items;
+}
+
 /* ─────────────────────── watchtower (new-run broadcast) ───────────────────── */
 
 async function idxAdd(env, chatId) {
@@ -851,14 +960,17 @@ async function idxAdd(env, chatId) {
 async function broadcastNewRun(env) {
   const cfg = await getCfg(env);
   if (cfg.watchtower_enabled === false) return;
+  if (inQuietHours(cfg)) return; // D8/P6 — quiet hours: no automated pings
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring || !s.generated_at) return;
+  if (s.validation.skipped) return; // D8/H — a skip_test run has no honest numbers
   const last = await kvGet(env, 'watch:last_gen');
   if (last === s.generated_at) return;
   await kvPut(env, 'watch:last_gen', s.generated_at);
   if (!last) return; // first boot: record baseline, don't spam
   const origin = await kvGet(env, 'meta:origin');
-  const idx = ((await kvGet(env, 'users:index', 'json')) || []).slice(-20); // free-plan subrequest budget
+  const cap = Math.min(100, Math.max(1, parseInt(cfg.watchtower_cap, 10) || 20));
+  const idx = ((await kvGet(env, 'users:index', 'json')) || []).slice(-cap); // free-plan subrequest budget
   const v = s.validation, p = v.latency_ms || {};
   for (const chatId of idx) {
     try {
@@ -877,6 +989,7 @@ async function broadcastNewRun(env) {
 async function dailyChannelCard(env, force = false) {
   const cfg = await getCfg(env);
   if (cfg.card_enabled === false) return;
+  if (inQuietHours(cfg)) return; // D8/P6 — quiet hours
   const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
   if (!chan) return; // not configured → silent no-op
   const now = new Date();
@@ -888,6 +1001,7 @@ async function dailyChannelCard(env, force = false) {
 
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring) return;
+  if (s.validation.skipped) return; // D8/H — no honest numbers in a skip_test run
   const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
   const v = s.validation, p = v.latency_ms || {};
   const dateStr = (() => { try { return new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Tehran' }).format(now); } catch (_) { return today; } })();
@@ -948,6 +1062,7 @@ async function dailyChannelCard(env, force = false) {
 async function channelDigest(env) {
   const cfg = await getCfg(env);
   if (cfg.digest_enabled === false) return;
+  if (inQuietHours(cfg)) return; // D8/P6 — quiet hours
   const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
   if (!chan) return; // not configured → silent no-op
   const hours = Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6));
@@ -958,6 +1073,7 @@ async function channelDigest(env) {
   }
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring) return; // golden rule: no stats → no post
+  if (s.validation.skipped) return; // D8/H — no honest numbers in a skip_test run
   const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
   const v = s.validation, p = v.latency_ms || {};
   const msg = [
@@ -1325,10 +1441,12 @@ async function cmdSub(env, chatId, lang, origin) {
   const clientLine = user.client ? clName(user.client, lang) : '—';
   const rotMode = t(lang, user.rotation === 'run' ? 'rot_run' : 'rot_day');
   const quota = refQuota(user.ref_count || 0, await getCfg(env)); // D4.2: referral-aware
+  const subMode = SUB_MODES.includes(user.sub_mode) ? user.sub_mode : 'mix'; // D8/S
   const msg = [
     t(lang, 'sub_title'), '',
     '<code>' + esc(url) + '</code>', '',
     t(lang, 'sub_note'), '',
+    t(lang, 'sub_mode_line', { mode: t(lang, 'mode_' + subMode) }),
     t(lang, 'sub_rot_line', { mode: rotMode, n: quota }),
     '📡 ' + ispName(user.isp, lang) + ' · 📱 ' + clientLine + (user.name ? ' · ✍️ ' + esc(cleanName(user.name)) : ''), note, '',
     t(lang, 'ref_stat', { n: user.ref_count || 0, q: quota, cap: (await getCfg(env)).ref_cap || REF_CAP }), '',
@@ -1570,27 +1688,60 @@ async function handleUpdate(env, update, origin) {
   }
 }
 
-/* ─────────────────────── personal subscription (/u/<token>) ───────────────── */
+/* ─────────────────────── personal subscription (/u/<token>) ─────────────────
+ * D8/S — one link, three modes (PDF ch.3 option 3):
+ *   mine  → the classic personal picks (pre-D8 behavior, preserved)
+ *   gold  → the public best-of-run list (gold.txt)
+ *   mix   → personal picks first + the gold list, deduped, capped (DEFAULT)
+ * The link itself NEVER changes — the mode lives in the user profile and can
+ * be overridden per request with ?m=mine|gold|mix (PDF option 4, advanced). */
+const SUB_MODES = ['mine', 'gold', 'mix'];
 
-async function buildSubscription(env, token) {
+async function buildSubscription(env, token, modeParam) {
   const rec = await kvGet(env, 'sub:' + token, 'json');
   if (!rec || !rec.chat_id) return null;
   const user = await getUser(env, rec.chat_id);
   if (!user) return null;
   const lang = user.lang || 'fa';
-
-  /* D4: 10 personalized picks (stable per rotation period) with brand remarks */
-  const alloc = await allocateSub(env, user);
-  if (!alloc || !alloc.items || !alloc.items.length) return null;
+  const mode = SUB_MODES.includes(modeParam) ? modeParam
+    : (SUB_MODES.includes(user.sub_mode) ? user.sub_mode : 'mix');
   const name = cleanName(user.name);
-  const title = 'ARISTON ' + (alloc.usedFallback ? '⭐' : '⚡') + ' ' + ispName(user.isp || 'other', lang);
-  const header = [
+  const mkHeader = (title) => [
     '#profile-title: ' + title,
     '#profile-update-interval: 12',
     '#profile-web-page-url: ' + PAGES,
   ].join('\n');
-  const body = header + '\n' + alloc.items.map((it) => remarkUri(it.uri, brandRemark(name, it.ping))).join('\n');
-  return { body: b64(body), title, count: alloc.items.length };
+
+  const goldOnly = async () => {
+    const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC)).slice(0, SUB_MAX_LINES);
+    if (!gold.length) return null;
+    const title = 'ARISTON ⭐ GOLD';
+    return { body: b64(mkHeader(title) + '\n' + gold.join('\n')), title, count: gold.length, mode };
+  };
+
+  if (mode === 'gold') return goldOnly();
+
+  /* D4: personalized picks (stable per rotation period) with brand remarks */
+  const alloc = await allocateSub(env, user);
+  if (!alloc || !alloc.items || !alloc.items.length) {
+    if (mode === 'mine') return null;      // classic behavior preserved
+    return goldOnly();                     // mix with an empty personal shelf → gold
+  }
+  const title = 'ARISTON ' + (alloc.usedFallback ? '⭐' : '⚡') + ' ' + ispName(user.isp || 'other', lang);
+  const lines = alloc.items.map((it) => remarkUri(it.uri, brandRemark(name, it.ping)));
+  let count = lines.length;
+  if (mode === 'mix') {
+    const seen = new Set(lines.map((l) => l.split('#')[0]));
+    for (const g of toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC))) {
+      if (count >= SUB_MAX_LINES) break;
+      const base = g.split('#')[0];
+      if (!base || seen.has(base)) continue;
+      seen.add(base);
+      lines.push(g);
+      count++;
+    }
+  }
+  return { body: b64(mkHeader(title) + '\n' + lines.join('\n')), title, count, mode };
 }
 
 /* ──────────────────────────────── landing page ────────────────────────────── */
@@ -1673,10 +1824,11 @@ async function appStats(env) {
 
 async function appGold(env, url, request) {
   const q = url.searchParams;
-  let limit = Math.min(Math.max(parseInt(q.get('limit') || '8', 10) || 8, 1), 24);
+  let limit = Math.min(Math.max(parseInt(q.get('limit') || '8', 10) || 8, 1), 32);
   let offset = Math.max(parseInt(q.get('offset') || '0', 10) || 0, 0);
-  /* D5: POST + initData → the caller is a known user → stamp their personal name on the copies */
   let remarkName = null;
+  let favs = [];
+  /* D5: POST + initData → the caller is a known user → stamp their personal name on the copies */
   if (request && request.method === 'POST') {
     const body = await request.json().catch(() => ({}));
     const tgUser = await verifyInitData(env, body.initData);
@@ -1684,16 +1836,20 @@ async function appGold(env, url, request) {
       const u = await getUser(env, tgUser.id);
       if (u && u.name) remarkName = cleanName(u.name);
       if (body.offset != null && isFinite(parseInt(body.offset, 10))) offset = Math.max(parseInt(body.offset, 10), 0);
-      if (body.limit != null && isFinite(parseInt(body.limit, 10))) limit = Math.min(Math.max(parseInt(body.limit, 10), 1), 24);
+      if (body.limit != null && isFinite(parseInt(body.limit, 10))) limit = Math.min(Math.max(parseInt(body.limit, 10), 1), 32);
+      favs = (await favsGet(env, tgUser.id)).map((f) => f.h); // D8/U3 — star states travel with the list
     }
   }
   const all = await getEnrichedGold(env);
   const slice = all.slice(offset, offset + limit);
+  const opmap = await getOperatorMap(env); // D8/U5 — Iranian operator chips
   const items = [];
   for (const it of slice) {
     const fb = await feedbackGet(env, it.hash);
     items.push({
       ...it, up: fb.up || 0, down: fb.down || 0,
+      fav: favs.includes(it.hash),
+      op: opmap[it.hash] || null,
       uri: remarkName ? remarkUri(it.uri, brandRemark(remarkName, it.latency_ms)) : it.uri,
     });
   }
@@ -1722,6 +1878,7 @@ async function appSub(env, request) {
   if (!user.name && tgUser.first_name) { user.name = cleanName(tgUser.first_name); await saveUser(env, chatId, user); } // D4
   const origin = new URL(request.url).origin;
   const rotMode = user.rotation === 'run' ? 'run' : 'day';
+  const subMode = SUB_MODES.includes(user.sub_mode) ? user.sub_mode : 'mix'; // D8/S
   const uname = cleanName(user.name); // D5: the name saved in the bot travels onto every copy
   let items = [];
   try { // D4: the personalized picks + the user's own connect marks
@@ -1736,9 +1893,65 @@ async function appSub(env, request) {
   } catch (_) { /* sub link still works without picks */ }
   return Response.json({
     url: origin + '/u/' + user.token, isp: user.isp, client: user.client || 'other', lang: user.lang || 'fa',
-    name: user.name || null, rotation: rotMode, n: items.length,
+    name: user.name || null, rotation: rotMode, sub_mode: subMode, n: items.length,
     items, // [{uri, hash, ping, mark: 0|1|2}] — 1 = connected ✅, 2 = failed ❌
   });
+}
+
+/* D8/S — the mode switch behind the single subscription link (mine/gold/mix) */
+async function appSubMode(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const mode = String(body.mode || '');
+  if (!SUB_MODES.includes(mode)) return Response.json({ error: 'bad_mode' }, { status: 400 });
+  const user = await getUser(env, tgUser.id);
+  if (!user) return Response.json({ error: 'no_user' }, { status: 404 });
+  user.sub_mode = mode;
+  await saveUser(env, tgUser.id, user);
+  return Response.json({ ok: true, sub_mode: mode });
+}
+
+/* D8/U4 — light/dark theme preference (profile-stored, survives devices) */
+async function appPref(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const theme = body.theme === 'light' ? 'light' : 'dark';
+  const user = await getUser(env, tgUser.id);
+  if (!user) return Response.json({ error: 'no_user' }, { status: 404 });
+  user.theme = theme;
+  await saveUser(env, tgUser.id, user);
+  return Response.json({ ok: true, theme });
+}
+
+/* D8/U3 — favorites ⭐ (add / del / clear / list) */
+async function appFavs(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const op = body.op === 'add' ? 'add' : body.op === 'del' ? 'del' : body.op === 'clear' ? 'clear' : 'list';
+  const items = await favsGet(env, tgUser.id);
+  if (op === 'clear') return Response.json({ ok: true, items: await favsSet(env, tgUser.id, []) });
+  if (op === 'del') {
+    const hash = String(body.hash || '');
+    if (!/^[a-f0-9]{16}$/.test(hash)) return Response.json({ error: 'bad_item' }, { status: 400 });
+    return Response.json({ ok: true, items: await favsSet(env, tgUser.id, items.filter((x) => x && x.h !== hash)) });
+  }
+  if (op === 'add') {
+    const hash = String(body.hash || '');
+    if (!/^[a-f0-9]{16}$/.test(hash) || !body.uri) return Response.json({ error: 'bad_item' }, { status: 400 });
+    const clean = items.filter((x) => x && x.h !== hash);
+    clean.unshift({
+      h: hash,
+      u: String(body.uri).slice(0, 600),
+      p: String(body.proto || '').slice(0, 16),
+      l: isFinite(body.lat) ? Math.round(Number(body.lat)) : null,
+      ts: Date.now(),
+    });
+    return Response.json({ ok: true, items: await favsSet(env, tgUser.id, clean.slice(0, FAV_CAP)) });
+  }
+  return Response.json({ ok: true, items });
 }
 
 async function appMark(env, request) { // D4 — ✅/❌ "did it connect for me"
@@ -1788,22 +2001,25 @@ async function appMe(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const u = await getUser(env, tgUser.id);
   return Response.json({
     ok: true,
     is_admin: await isAdmin(env, tgUser.id),
     hist: (await historyGet(env, tgUser.id)).length,
+    favs: (await favsGet(env, tgUser.id)).length,          // D8/U3
+    theme: (u && u.theme) === 'light' ? 'light' : 'dark',  // D8/U4
   });
 }
 
 /* ─────────────── D5 — admin panel api (initData + isAdmin) ───────────────── */
 
-/* runs fn(env, body) only when the initData belongs to a registered admin */
+/* runs fn(env, body, tgUser) only when the initData belongs to a registered admin */
 async function guardAdmin(env, request, fn) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
   if (!(await isAdmin(env, tgUser.id))) return Response.json({ error: 'forbidden' }, { status: 403 });
-  return fn(env, body);
+  return fn(env, body, tgUser);
 }
 
 async function adminState(env) {
@@ -1828,6 +2044,9 @@ async function adminState(env) {
     owner: owner || null,
     admins,
     bc,
+    /* D8/P1 — the pipeline knobs, exactly what /api/pipeline-cfg serves */
+    pcfg: await getPipelineCfg(env),
+    now: new Date().toISOString(), // client computes run-lag from this
     /* D7 — the config bank, straight from the latest stats.json */
     bank: s && s.bank ? {
       size: s.bank.size || 0,
@@ -1837,6 +2056,7 @@ async function adminState(env) {
       avg_ms: s.bank.avg_ms != null ? s.bank.avg_ms : null,
       alive_delta: s.bank.alive_delta != null ? s.bank.alive_delta : null,
       pass2: s.bank.pass2 || null,
+      rescue: s.bank.rescue || null,
       sources: s.bank.sources || null,
       full_scan: Boolean(s.bank.full_scan),
     } : null,
@@ -1849,13 +2069,26 @@ async function adminState(env) {
   });
 }
 
+/* D8/P — panel-editable keys. cfg:admin keeps the bot/notify knobs (existing
+   behavior preserved); cfg:pipeline holds the pipeline knobs the Actions run
+   reads every 30 min. Specs: bool · int:lo-hi · num:lo-hi · handle. */
 const ADMIN_SET_KEYS = {
   force_join: 'bool', card_enabled: 'bool', digest_enabled: 'bool', watchtower_enabled: 'bool',
   ref_base: 'int:5-50', ref_cap: 'int:10-100', every_hours: 'int:1-24', channel_user: 'handle',
+  /* D8/P6 — notifications & quiet hours */
+  watchtower_cap: 'int:5-100', quiet_enabled: 'bool', quiet_start: 'int:0-23', quiet_end: 'int:0-23',
+};
+const PCFG_SET_KEYS = {
+  bank_ttl_hours: 'num:6-72', pass2_enabled: 'bool', pass2_factor: 'num:1-3',
+  suspect_after: 'int:1-10', quarantine_after: 'int:2-20', quarantine_days: 'num:1-30',
+  min_streak_priority: 'int:1-10', rescue_enabled: 'bool',
+  rescue_min_streak: 'int:2-20', rescue_max: 'int:0-5000',
+  skip_test: 'bool', force_full_scan: 'bool',
 };
 
 async function adminSet(env, body) {
-  const key = String(body.key || ''), spec = ADMIN_SET_KEYS[key];
+  const key = String(body.key || '');
+  const spec = ADMIN_SET_KEYS[key] || PCFG_SET_KEYS[key];
   if (!spec) return Response.json({ error: 'bad_key' }, { status: 400 });
   let v = body.value;
   if (spec === 'bool') v = Boolean(v);
@@ -1863,14 +2096,21 @@ async function adminSet(env, body) {
     v = String(v || '').replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '');
     if (v.length < 4) return Response.json({ error: 'bad_value' }, { status: 400 });
   } else {
-    const m = spec.match(/^int:(\d+)-(\d+)$/);
-    v = parseInt(v, 10);
+    const m = spec.match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+    v = Number(v);
     if (!m || !isFinite(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
-    v = Math.min(parseInt(m[2], 10), Math.max(parseInt(m[1], 10), v));
+    v = Math.min(parseFloat(m[2]), Math.max(parseFloat(m[1]), v));
+    if (spec.startsWith('int:')) v = Math.round(v);
   }
   if (key === 'every_hours') { // lives outside cfg — /freq reads the same knob
     await kvPut(env, 'ch:every_hours', String(v));
     await kvDel(env, 'ch:last_post'); // new interval takes effect on the next tick
+    return Response.json({ ok: true, key, value: v });
+  }
+  if (key in PCFG_SET_KEYS) {
+    const pc = await getPipelineCfg(env);
+    pc[key] = v;
+    await putPipelineCfg(env, pc);
     return Response.json({ ok: true, key, value: v });
   }
   const cfg = await getCfg(env);
@@ -1884,6 +2124,44 @@ async function adminPostNow(env, body) {
   const kind = body.kind === 'digest' ? 'digest' : 'card';
   if (kind === 'card') await dailyChannelCard(env, true);
   else { await kvDel(env, 'ch:last_post'); await channelDigest(env); }
+  return Response.json({ ok: true, kind });
+}
+
+/* D8/P6 — «ارسال تستی به من»: preview any automated message in the admin's own chat.
+   Same builders as the real paths → the sample is the truth, no fake text. */
+async function adminTestNotify(env, body, tgUser) {
+  const chatId = tgUser.id;
+  const kind = body.kind === 'card' ? 'card' : body.kind === 'digest' ? 'digest' : 'watchtower';
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring) return Response.json({ error: 'no_data' }, { status: 503 });
+  const u = await getUser(env, chatId);
+  const lang = (u && u.lang) || 'fa';
+  const v = s.validation, p = v.latency_ms || {};
+  if (kind === 'watchtower') {
+    const origin = await kvGet(env, 'meta:origin');
+    const rows = [];
+    if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+    rows.push([{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }]);
+    await sendMessage(env, chatId, '🧪 ' + t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
+    return Response.json({ ok: true, kind });
+  }
+  const bankLines = s.bank && s.bank.size != null ? [
+    t(lang, 'bank_line', { n: fmt(s.bank.size), hit: s.bank.hit_rate != null ? s.bank.hit_rate : '—', streak: s.bank.avg_streak != null ? s.bank.avg_streak : '—' }),
+    t(lang, 'bank_src', { h: fmt((s.bank.sources && s.bank.sources.healthy) || 0), s: fmt((s.bank.sources && s.bank.sources.suspect) || 0), q: fmt((s.bank.sources && s.bank.sources.quarantined) || 0) }),
+  ] : [];
+  const head = kind === 'card' ? [t(lang, 'daily_title'), '🧪 ' + (u && u.lang === 'fa' ? 'نمونهٔ تستی' : 'test preview'), '']
+                              : [t(lang, 'digest_title'), '🧪 ' + (u && u.lang === 'fa' ? 'نمونهٔ تستی' : 'test preview'), ''];
+  const msg = [...head,
+    '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
+    t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
+    ...bankLines,
+  ].join('\n');
+  try {
+    const png = (await fetchCardPng()) || (await renderCardPNG(s));
+    const sent = await sendPhotoFile(env, chatId, png, 'ariston-card.png', msg.slice(0, 1024));
+    if (sent && sent.ok) return Response.json({ ok: true, kind });
+  } catch (_) { /* fall through to the text sample */ }
+  await sendMessage(env, chatId, msg);
   return Response.json({ ok: true, kind });
 }
 
@@ -2364,7 +2642,7 @@ const MINI_APP_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON ⚡</title>
-<!-- app build: D7.0 — stitch redesign · motion engine · bank strip · smart sort · 10 gold cards -->
+<!-- app build: D8.0 — single-sub mode switch · QR · filters · favorites · light/dark · operator chips -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2527,6 +2805,66 @@ background:rgba(30,26,19,.95);border:1px solid var(--line2);color:var(--txt);bor
 @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .err{border:1px dashed rgba(224,108,90,.5);color:#d8a18c;border-radius:14px;padding:14px;font-size:12.5px;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
+/* ───── D8/U4 — light theme (same golden palette on cream) ───── */
+body.light{--bg:#F4EEDF;--bg2:#FBF7EC;--card:rgba(184,115,51,.07);--card2:rgba(184,115,51,.14);
+--line:rgba(146,102,42,.22);--line2:rgba(146,102,42,.45);
+--gold:#B8860B;--gold2:#8a6a14;--deep:#9A6B1F;--txt:#2A2113;--dim:#7d6f52}
+body.light{background:
+radial-gradient(700px 340px at 50% -90px,rgba(184,134,11,.14),transparent 70%),
+radial-gradient(420px 260px at 8% 22%,rgba(154,107,31,.06),transparent 70%),
+radial-gradient(420px 260px at 92% 60%,rgba(154,107,31,.05),transparent 70%)}
+body.light .stat,body.light .gcard,body.light .scard{background:linear-gradient(160deg,rgba(184,115,51,.08),rgba(184,115,51,.03))}
+body.light .toast{background:rgba(251,247,236,.97);color:#2A2113;border-color:var(--line2)}
+body.light .sub .url,body.light .hpill{background:rgba(255,253,246,.7)}
+body.light .hbadge,body.light .livewrap{background:rgba(251,247,236,.75)}
+body.light .brand{background:linear-gradient(180deg,#8a6a14,#B8860B 55%,#6e520a);-webkit-background-clip:text;background-clip:text}
+body.light .hnum{color:#B8860B;text-shadow:0 0 24px rgba(184,134,11,.25)}
+body.light .chip.vless{background:rgba(184,134,11,.07)}
+body.light .sk{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%}
+/* ───── D8/S — sub mode switch + advanced links ───── */
+.msw{display:flex;gap:0;margin:12px 0 4px;border:1px solid var(--line2);border-radius:13px;overflow:hidden;background:rgba(12,10,7,.45)}
+body.light .msw{background:rgba(255,253,246,.7)}
+.msw button{flex:1;border:none;background:none;color:var(--dim);font-family:inherit;font-size:11.5px;font-weight:700;padding:9px 4px;cursor:pointer;transition:all .2s}
+.msw button+button{border-inline-start:1px solid var(--line)}
+.msw button.on{background:var(--gold);color:#14110C}
+.msw button:active{transform:scale(.95)}
+.mswnote{font-size:10.5px;color:var(--dim);margin-top:7px}
+.adv{margin-top:12px;border:1px dashed var(--line);border-radius:13px;overflow:hidden}
+.adv>summary{cursor:pointer;list-style:none;padding:9px 13px;font-size:11.5px;color:var(--dim);font-weight:700;user-select:none}
+.adv>summary::-webkit-details-marker{display:none}
+.adv>summary::after{content:' ⌄';float:left}
+.adv[open]>summary::after{content:' ⌃'}
+.adv .arow{display:flex;align-items:center;gap:8px;padding:8px 13px;border-top:1px solid var(--line)}
+.adv .arow .url{flex:1;min-width:0;font-family:var(--mono);font-size:9.5px;color:var(--dim);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adv .arow .tag{font-size:10px;color:var(--gold);flex:0 0 auto;font-weight:700}
+.mini2{background:none;border:1px solid var(--line);color:var(--gold);border-radius:8px;font-size:10.5px;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;flex:0 0 auto}
+.mini2:active{transform:scale(.94)}
+/* ───── D8/U1 — QR modal ───── */
+.qmodal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:99;background:rgba(8,6,3,.78);backdrop-filter:blur(3px)}
+.qmodal.show{display:flex}
+.qbox{background:var(--bg2);border:1px solid var(--line2);border-radius:22px;padding:20px 18px 16px;text-align:center;max-width:86vw;animation:up .3s ease both}
+.qbox .qt{font-weight:800;font-size:14px;color:var(--gold);margin-bottom:4px}
+.qbox .qh{font-size:10.5px;color:var(--dim);margin-top:9px;max-width:250px}
+.qbox canvas{border-radius:14px;width:232px;height:232px;display:block;margin:10px auto 0;background:#FFFDF6;padding:10px;box-sizing:content-box}
+.qbox .qclose{margin-top:13px;background:none;border:1px solid var(--line2);color:var(--txt);border-radius:999px;padding:7px 22px;font-family:inherit;font-size:12px;cursor:pointer}
+/* ───── D8/U2 — gold filters ───── */
+.frow{display:flex;gap:6px;margin:9px 0 0;flex-wrap:wrap;align-items:center}
+.fchip{border:1px solid var(--line);background:rgba(232,200,114,.04);color:var(--dim);border-radius:999px;padding:5px 11px;font-size:10.5px;cursor:pointer;font-family:var(--mono);font-weight:600;transition:all .18s}
+.fchip.on{background:var(--gold);color:#14110C;border-color:var(--gold)}
+.fchip:active{transform:scale(.94)}
+.fsearch{flex:1;min-width:120px;background:rgba(12,10,7,.4);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:6px 12px;font-family:var(--mono);font-size:11px;direction:ltr}
+body.light .fsearch{background:rgba(255,253,246,.8)}
+.fsearch::placeholder{color:var(--dim)}
+.fmeta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px 0}
+.fcount{font-family:var(--mono);font-size:10px;color:var(--dim);direction:ltr}
+.copyall{background:none;border:1px solid var(--line2);color:var(--gold);border-radius:9px;font-size:10.5px;padding:4px 11px;cursor:pointer;font-family:inherit;font-weight:700}
+.copyall:active{transform:scale(.94)}
+/* ───── D8/U3 — favorites star ───── */
+.star{background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:0 1px;line-height:1;transition:color .2s,transform .15s}
+.star.on{color:var(--gold);text-shadow:0 0 9px rgba(232,200,114,.55)}
+.star.pop{animation:pop .35s ease}
+.favclear{display:none;background:none;border:1px solid var(--line);border-radius:9px;color:var(--dim);font-size:11px;padding:3px 9px;cursor:pointer;font-family:inherit}
+.opchip{font-family:var(--mono);font-size:9px;border:1px solid rgba(126,201,126,.4);color:var(--ok);border-radius:6px;padding:1.5px 6px;flex:0 0 auto;font-weight:700;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2548,6 +2886,7 @@ background:rgba(30,26,19,.95);border:1px solid var(--line2);color:var(--txt);bor
     <div class="hlive">
       <button class="admchip" id="admChip" style="display:none" aria-label="admin">🛠 پنل</button>
       <div class="livewrap"><span class="dot"></span><span>LIVE</span></div>
+      <button class="refresh" id="themeBtn" aria-label="theme" style="font-size:13px">🌙</button>
       <button class="refresh" id="refresh" aria-label="refresh">⟳</button>
     </div>
   </header>
@@ -2585,6 +2924,10 @@ background:rgba(30,26,19,.95);border:1px solid var(--line2);color:var(--txt);bor
   <div class="hint" id="histHint" style="display:none"></div>
   <div id="histList"></div>
 
+  <div class="sec" id="favSec" style="display:none"><h2 id="favTitle">…</h2><div class="rule"></div><button class="favclear" id="favClear">🗑</button></div>
+  <div class="hint" id="favHint" style="display:none"></div>
+  <div id="favList"></div>
+
   <div class="sec"><h2 id="goldTitle">…</h2><div class="rule"></div></div>
   <div class="hint" id="goldHint">…</div>
   <div class="chips" id="sortChips">
@@ -2592,6 +2935,23 @@ background:rgba(30,26,19,.95);border:1px solid var(--line2);color:var(--txt);bor
     <button class="schip" data-sort="ok" id="chipOk">…</button>
     <button class="schip" data-sort="vote" id="chipVote">…</button>
   </div>
+  <div class="frow" id="protoRow">
+    <button class="fchip on" data-f="">ALL</button>
+    <button class="fchip" data-f="vless">vless</button>
+    <button class="fchip" data-f="trojan">trojan</button>
+    <button class="fchip" data-f="vmess">vmess</button>
+    <button class="fchip" data-f="hysteria2">hy2</button>
+    <button class="fchip" data-f="tuic">tuic</button>
+    <input class="fsearch" id="goldQ" placeholder="search host…">
+  </div>
+  <div class="frow" id="pingRow">
+    <button class="fchip on" data-p="0">∞</button>
+    <button class="fchip" data-p="500">&lt;500ms</button>
+    <button class="fchip" data-p="1000">&lt;1000ms</button>
+    <button class="fchip" data-p="2000">&lt;2000ms</button>
+    <button class="fchip" data-fav="1" id="favOnlyChip">⭐</button>
+  </div>
+  <div class="fmeta"><span class="fcount" id="fCount"></span><button class="copyall" id="copyAllBtn" style="display:none">⧉</button></div>
   <div id="goldList">
     <div class="sk"></div><div class="sk"></div><div class="sk"></div>
   </div>
@@ -2603,10 +2963,11 @@ background:rgba(30,26,19,.95);border:1px solid var(--line2);color:var(--txt);bor
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D7.0 · V4.2</span>
+    <span>D8.0 · V4.3</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
+<div class="qmodal" id="qmodal"><div class="qbox"><div class="qt" id="qTitle">QR</div><canvas id="qCanvas" width="264" height="264"></canvas><div class="qh" id="qHint"></div><button class="qclose" id="qClose">✕</button></div></div>
 
 <script>
 var I18N = {
@@ -2623,7 +2984,15 @@ var I18N = {
     sub_t:'اشتراک شخصی و اختصاصی', sub_note:'هر بار اپت رو آپدیت کنی، کانفیگ‌های مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_copy:'کپی لینک',
     sub_meta:'اپراتور: {o} · اپ: {c}', sub_need:'اول توی ربات /start رو بزن', open_tg:'جهت دریافت اشتراک شخصی، این صفحه رو داخل تلگرام باز کن',
     mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های مخصوص من', rot_day:'تعویض: روزانه', rot_run:'تعویض: هر دور تست',
-    marked:'ثبت شد', fail:'نتونستم اطلاعات رو بگیرم — دوباره امتحان کن', isp_other:'همه', cl_other:'سایر'},
+    marked:'ثبت شد', fail:'نتونستم اطلاعات رو بگیرم — دوباره امتحان کن', isp_other:'همه', cl_other:'سایر',
+    qr_t:'اشتراک من · QR', qr_hint:'توی اپ دوم (یا دسکتاپ) از حالت «اسکن QR» استفاده کن — لینک بدون کپی‌پیست وارد می‌شه',
+    fav_t:'پسندیده‌های من', fav_hint:'کانفیگ‌هایی که ستاره‌زدی — تا ۵۰ مورد، همیشه همین‌جان', fav_empty:'هنوز چیزی ستاره نزدی — روی ⭐ کارت‌ها بزن',
+    fav_saved:'⭐ ستاره خورد', fav_gone:'از پسندیده‌ها حذف شد', fav_only:'⭐ فقط ستاره‌دارها',
+    search_ph:'جستجوی هاست…', copy_all:'کپی همه ({n})', copied_n:'{n} کانفیگ کپی شد ✅',
+    msw_mine:'فقط مخصوص من', msw_gold:'فقط برترین‌ها', msw_mix:'ترکیبی',
+    msw_note:'این لینک هیچ‌وقت عوض نمی‌شه؛ فقط محتواش با همین سوییچ عوض می‌شه. بعد از تغییر، «به‌روزرسانی اشتراک» اپت رو بزن.',
+    msw_saved:'حالت ذخیره شد ✅', adv_t:'لینک‌های پیشرفته (برای حرفه‌ای‌ها)',
+    tag_mine:'شخصی', tag_gold:'برترین‌ها', tag_mix:'ترکیبی', qr_btn:'QR', copy_btn:'کپی'},
   en: {hero_badge:'Smart live selection', hero_lbl:'gold configs',
     hero_a:'refined from {alive} alive configs', hero_b:'run {run}',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Alive configs verified', st_p50:'Network avg ping',
@@ -2637,7 +3006,15 @@ var I18N = {
     sub_t:'My personal subscription', sub_note:'every client refresh delivers your personal picks (daily or per-run rotation)', sub_copy:'Copy link',
     sub_meta:'ISP: {o} · Client: {c}', sub_need:'press /start in the bot first', open_tg:'open this page inside Telegram for your personal sub',
     mk_ok:'connected', mk_fail:'failed', my10:'My personal picks', rot_day:'rotation: daily', rot_run:'rotation: per run',
-    marked:'Recorded', fail:'failed to load — try again', isp_other:'All', cl_other:'Other'},
+    marked:'Recorded', fail:'failed to load — try again', isp_other:'All', cl_other:'Other',
+    qr_t:'My subscription · QR', qr_hint:'use “Scan QR” in a second device / desktop client — imports the link without copy-paste',
+    fav_t:'My favorites', fav_hint:'the configs you starred — up to 50, always here', fav_empty:'nothing starred yet — tap ⭐ on any card',
+    fav_saved:'⭐ starred', fav_gone:'removed from favorites', fav_only:'⭐ starred only',
+    search_ph:'search host…', copy_all:'Copy all ({n})', copied_n:'{n} configs copied ✅',
+    msw_mine:'Only mine', msw_gold:'Only best', msw_mix:'Mixed',
+    msw_note:'this link never changes — only its content does. After switching, hit “update subscription” in your client.',
+    msw_saved:'Mode saved ✅', adv_t:'Advanced links (for power users)',
+    tag_mine:'personal', tag_gold:'best', tag_mix:'mixed', qr_btn:'QR', copy_btn:'Copy'},
   ru: {hero_badge:'Умный выбор в реальном времени', hero_lbl:'золотых конфигов',
     hero_a:'отобрано из {alive} живых конфигов', hero_b:'прогон {run}',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Проверенных конфигов', st_p50:'Средний пинг сети',
@@ -2651,7 +3028,15 @@ var I18N = {
     sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — твоя персональная подборка (день или прогон)', sub_copy:'Копировать ссылку',
     sub_meta:'Оператор: {o} · Клиент: {c}', sub_need:'сначала /start в боте', open_tg:'открой эту страницу в Telegram для личной подписки',
     mk_ok:'подключилось', mk_fail:'не вышло', my10:'Мои личные конфиги', rot_day:'ротация: день', rot_run:'ротация: прогон',
-    marked:'Записано', fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое'},
+    marked:'Записано', fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое',
+    qr_t:'Моя подписка · QR', qr_hint:'используй «Сканировать QR» на втором устройстве / в десктоп-клиенте — ссылка без копипаста',
+    fav_t:'Мои избранные', fav_hint:'конфиги со звездой — до 50, всегда здесь', fav_empty:'пока ничего — нажми ⭐ на карточке',
+    fav_saved:'⭐ в избранном', fav_gone:'удалено из избранного', fav_only:'⭐ только избранные',
+    search_ph:'поиск хоста…', copy_all:'Копировать все ({n})', copied_n:'{n} конфигов скопировано ✅',
+    msw_mine:'Только мои', msw_gold:'Только лучшие', msw_mix:'Смешанный',
+    msw_note:'ссылка никогда не меняется — меняется только содержимое. После смены нажми «обновить подписку».',
+    msw_saved:'Режим сохранён ✅', adv_t:'Продвинутые ссылки (для профи)',
+    tag_mine:'личные', tag_gold:'лучшие', tag_mix:'микс', qr_btn:'QR', copy_btn:'Копировать'},
   tr: {hero_badge:'Akıllı anlık seçki', hero_lbl:'altın yapılandırma',
     hero_a:'{alive} çalışan içinden seçildi', hero_b:'tur {run}',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Onaylanan çalışan yapılandırma', st_p50:'Ağ ortalama ping',
@@ -2665,7 +3050,15 @@ var I18N = {
     sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede kişisel seçkinlerin gelir (günlük veya her tur)', sub_copy:'Bağlantıyı kopyala',
     sub_meta:'Sağlayıcı: {o} · İstemci: {c}', sub_need:'önce botta /start gönder', open_tg:'kişisel abonelik için bu sayfayı Telegram içinde aç',
     mk_ok:'bağlandı', mk_fail:'olmadı', my10:'Kişisel seçkilerim', rot_day:'rotasyon: günlük', rot_run:'rotasyon: her tur',
-    marked:'Kaydedildi', fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer'},
+    marked:'Kaydedildi', fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer',
+    qr_t:'Aboneliğim · QR', qr_hint:'ikinci cihazda / masaüstü istemcide “QR Tara” kullan — kopyala-yapıştır olmadan içe girer',
+    fav_t:'Favorilerim', fav_hint:'yıldızladığın yapılandırmalar — 50’e kadar, hep burada', fav_empty:'henüz yok — bir kartta ⭐’ya dokun',
+    fav_saved:'⭐ favorilere eklendi', fav_gone:'favorilerden çıkarıldı', fav_only:'⭐ sadece favoriler',
+    search_ph:'host ara…', copy_all:'Tümünü kopyala ({n})', copied_n:'{n} yapılandırma kopyalandı ✅',
+    msw_mine:'Sadece benim', msw_gold:'Sadece en iyiler', msw_mix:'Karışık',
+    msw_note:'bu bağlantı hiç değişmez — sadece içeriği değişir. Sonra istemcide “aboneliği güncelle”ye bas.',
+    msw_saved:'Mod kaydedildi ✅', adv_t:'Gelişmiş bağlantılar (profesyoneller için)',
+    tag_mine:'kişisel', tag_gold:'en iyiler', tag_mix:'karışık', qr_btn:'QR', copy_btn:'Kopyala'},
   zh: {hero_badge:'实时智能精选', hero_lbl:'金牌配置',
     hero_a:'从 {alive} 个可用配置中精选', hero_b:'第 {run} 轮',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'已验证可用配置', st_p50:'网络平均延迟',
@@ -2679,7 +3072,15 @@ var I18N = {
     sub_t:'我的个人订阅', sub_note:'客户端每次刷新拿到你的专属配置（按天或每轮轮换）', sub_copy:'复制链接',
     sub_meta:'运营商：{o} · 客户端：{c}', sub_need:'请先在机器人里 /start', open_tg:'在 Telegram 内打开此页面以获取个人订阅',
     mk_ok:'连上了', mk_fail:'连不上', my10:'我的专属配置', rot_day:'轮换：每天', rot_run:'轮换：每轮',
-    marked:'已记录', fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他'}
+    marked:'已记录', fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他',
+    qr_t:'我的订阅 · QR', qr_hint:'在第二台设备或桌面客户端用“扫描二维码” — 无需复制粘贴',
+    fav_t:'我的收藏', fav_hint:'你加星标的配置 — 最多 50 条，一直都在', fav_empty:'还没有收藏 — 点卡片上的 ⭐',
+    fav_saved:'⭐ 已收藏', fav_gone:'已取消收藏', fav_only:'⭐ 只看收藏',
+    search_ph:'搜索主机…', copy_all:'复制全部 ({n})', copied_n:'已复制 {n} 个配置 ✅',
+    msw_mine:'只看我的', msw_gold:'只看最佳', msw_mix:'混合',
+    msw_note:'链接永不改变 — 只变内容。切换后在客户端点“更新订阅”。',
+    msw_saved:'模式已保存 ✅', adv_t:'高级链接（进阶用户）',
+    tag_mine:'个人', tag_gold:'最佳', tag_mix:'混合', qr_btn:'QR', copy_btn:'复制'}
 };
 var MEDALS = ['🥇', '🥈', '🥉'];
 var ISPN = {irancell:'Irancell', mci:'MCI', rightel:'Rightel', shatel:'Shatel', asiatech:'Asiatech', tci:'TCI'};
@@ -2740,9 +3141,343 @@ function applyTexts(){
   document.getElementById('chipPing').textContent = T('sort_fast');
   document.getElementById('chipOk').textContent = T('sort_ok');
   document.getElementById('chipVote').textContent = T('sort_vote');
+  document.getElementById('favTitle').textContent = '⭐ ' + T('fav_t');
+  document.getElementById('goldQ').placeholder = T('search_ph');
   var mb = document.getElementById('moreBtn'); mb.textContent = T('more');
 }
 var lastStats = null, goldOffset = 0, statRetry = 0, goldItems = [], goldSort = 'ping';
+/* D8 — UX state: filters · favorites · theme · sub mode */
+var goldFProto = '', goldFPing = 0, goldQ = '', goldFavOnly = false;
+var favSet = {}, favItems = [], subModeCur = 'mix', subUrlCur = '';
+
+/* ── D8/U4 theme ── */
+function applyTheme(mode){
+  var light = mode === 'light';
+  document.body.classList.toggle('light', light);
+  var btn = document.getElementById('themeBtn'); if (btn) btn.textContent = light ? '☀️' : '🌙';
+  try { if (tg) { tg.setHeaderColor(light ? '#F4EEDF' : '#0C0A07'); tg.setBackgroundColor(light ? '#F4EEDF' : '#0C0A07'); } } catch (e){}
+}
+function initTheme(){
+  var saved = null;
+  try { saved = localStorage.getItem('ariston_theme'); } catch (e){}
+  applyTheme(saved === 'light' ? 'light' : 'dark');
+}
+function saveThemePref(mode){
+  try { localStorage.setItem('ariston_theme', mode); } catch (e){}
+  if (initData) fetch('/app/api/pref', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, theme: mode }) }).catch(function(){});
+}
+
+/* ── D8/U3 favorites ── */
+function favRender(items){
+  favItems = Array.isArray(items) ? items : [];
+  favSet = {};
+  for (var i = 0; i < favItems.length; i++) favSet[favItems[i].h] = true;
+  var sec = document.getElementById('favSec'), hint = document.getElementById('favHint'),
+      list = document.getElementById('favList'), clr = document.getElementById('favClear');
+  if (!sec) return;
+  if (!initData){ sec.style.display = 'none'; hint.style.display = 'none'; return; }
+  sec.style.display = 'flex';
+  hint.style.display = 'block';
+  var has = favItems.length > 0;
+  hint.textContent = has ? T('fav_hint') : T('fav_empty');
+  clr.style.display = has ? 'inline-flex' : 'none';
+  var html = '';
+  for (var j = 0; j < favItems.length; j++){
+    var it = favItems[j], uri = it.u || '';
+    var proto = (uri.split('://')[0] || 'other').toLowerCase();
+    var latTx = (it.l != null && isFinite(it.l)) ? Math.round(it.l) + 'ms' : '—';
+    html += '<div class="scard" data-uri="' + esc(uri) + '" data-hash="' + esc(it.h || '') + '">' +
+      '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
+      '<div class="host">' + esc(hostOf(uri)) + '</div>' +
+      '<span class="ping">' + esc(latTx) + '</span>' +
+      '<button class="star on" data-hash="' + esc(it.h || '') + '" data-uri="' + esc(uri) + '" data-p="' + esc(it.p || '') + '" data-l="' + (it.l == null ? '' : it.l) + '">⭐</button>' +
+      '</div>';
+  }
+  list.innerHTML = html;
+  Array.prototype.forEach.call(list.querySelectorAll('.scard'), function(card){
+    if (card._bound) return; card._bound = true;
+    card.addEventListener('click', function(ev){
+      if (ev.target.closest && ev.target.closest('.star')) return;
+      copyText(card.getAttribute('data-uri'));
+    });
+  });
+  Array.prototype.forEach.call(list.querySelectorAll('.star'), function(btn){
+    if (btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      favToggle(btn.getAttribute('data-hash'), btn.getAttribute('data-uri'), btn.getAttribute('data-p'), btn.getAttribute('data-l'));
+    });
+  });
+  if (goldItems.length) renderGold(); // star badges on gold cards may change
+}
+function favToggle(hash, uri, proto, lat){
+  if (!initData || !hash) return;
+  var wasOn = !!favSet[hash];
+  haptic('medium');
+  var op = wasOn ? 'del' : 'add';
+  fetch('/app/api/fav', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, op: op, hash: hash, uri: uri, proto: proto, lat: lat === '' ? null : Number(lat) }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.ok){ toast(T(wasOn ? 'fav_gone' : 'fav_saved')); favRender(d.items); } })
+    .catch(function(){ toast(T('fail')); });
+}
+function loadFavs(){
+  if (!initData){ favRender([]); return; }
+  fetch('/app/api/fav', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, op: 'list' }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.ok) favRender(d.items); }).catch(function(){});
+}
+
+/* ── D8/U2 gold filters ── */
+function goldFiltered(){
+  var a = sortItems(goldItems);
+  var q = goldQ.toLowerCase();
+  return a.filter(function(it){
+    var proto = (it.uri.split('://')[0] || '').toLowerCase();
+    if (goldFProto && proto !== goldFProto) return false;
+    if (goldFPing > 0 && !(it.latency_ms != null && it.latency_ms <= goldFPing)) return false;
+    if (goldFavOnly && !favSet[it.hash]) return false;
+    if (q && hostOf(it.uri).toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+}
+
+/* ── D8/U1 QR (self-contained encoder — the sub link never leaves the device) ──
+   Byte-mode QR, versions 1–10, ECC M then L, spec-faithful mask penalty. */
+var QR = (function(){
+  var ECC_FMT = { L: 1, M: 0 };
+  /* [ecc][version-1] → [codewords-per-block, blocks] (versions 1..10) */
+  var ECC_TAB = {
+    L: { cw: [7,10,15,20,26,18,20,24,30,18],  bl: [1,1,1,1,1,2,2,2,2,4] },
+    M: { cw: [10,16,26,18,24,16,18,22,22,26], bl: [1,1,1,2,2,4,4,4,5,5] },
+  };
+  function rawDataModules(v){
+    var r = (16*v + 128)*v + 64;
+    if (v >= 2){ var n = Math.floor(v/7) + 2; r -= (25*n - 10)*n - 55; if (v >= 7) r -= 36; }
+    return r;
+  }
+  function dataCodewords(v, e){ return Math.floor(rawDataModules(v)/8) - ECC_TAB[e].cw[v-1]*ECC_TAB[e].bl[v-1]; }
+  function alignPos(v){
+    if (v === 1) return [];
+    var n = Math.floor(v/7) + 2, st = Math.ceil((v*4 + 4)/(n*2 - 2))*2, r = [6];
+    for (var p = v*4 + 10; r.length < n; p -= st) r.splice(1, 0, p);
+    return r;
+  }
+  function formatBits(e, mask){
+    var d = (ECC_FMT[e] << 3) | mask, rem = d;
+    for (var i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    return ((d << 10) | rem) ^ 0x5412;
+  }
+  function versionBits(v){
+    var rem = v;
+    for (var i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+    return (v << 12) | rem;
+  }
+  function gmul(x, y){
+    var z = 0;
+    for (var i = 7; i >= 0; i--){ z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; }
+    return z & 0xFF;
+  }
+  function rsDivisor(deg){
+    var res = []; for (var i = 0; i < deg - 1; i++) res.push(0); res.push(1);
+    var root = 1;
+    for (var i2 = 0; i2 < deg; i2++){
+      for (var j = 0; j < res.length; j++){
+        res[j] = gmul(res[j], root);
+        if (j + 1 < res.length) res[j] ^= res[j + 1];
+      }
+      root = gmul(root, 2);
+    }
+    return res;
+  }
+  function rsRemainder(data, div){
+    var res = div.map(function(){ return 0; });
+    for (var k = 0; k < data.length; k++){
+      var factor = data[k] ^ res.shift(); res.push(0);
+      for (var i = 0; i < div.length; i++) res[i] ^= gmul(div[i], factor);
+    }
+    return res;
+  }
+  function make(text){
+    var bytes;
+    try { bytes = Array.prototype.slice.call(new TextEncoder().encode(String(text))); }
+    catch (e){ bytes = []; for (var q = 0; q < String(text).length; q++) bytes.push(String(text).charCodeAt(q) & 0xFF); }
+    var ver = 0, ecc = null;
+    outer:
+    for (var ei = 0; ei < 2; ei++){
+      var e = ei === 0 ? 'M' : 'L';
+      for (var v = 1; v <= 10; v++){
+        var cap = dataCodewords(v, e)*8 - 4 - (v < 10 ? 8 : 16);
+        if (bytes.length*8 <= cap){ ver = v; ecc = e; break outer; }
+      }
+    }
+    if (!ver) return null;
+    var total = dataCodewords(ver, ecc), bits = [];
+    function push(val, n){ for (var i = n - 1; i >= 0; i--) bits.push((val >>> i) & 1); }
+    push(4, 4); push(bytes.length, ver < 10 ? 8 : 16);
+    for (var b = 0; b < bytes.length; b++) push(bytes[b], 8);
+    push(0, Math.min(4, total*8 - bits.length));
+    while (bits.length % 8 !== 0) bits.push(0);
+    var data = [];
+    for (var d = 0; d < bits.length; d += 8){ var by = 0; for (var b2 = 0; b2 < 8; b2++) by = (by << 1) | bits[d + b2]; data.push(by); }
+    var flip = false;
+    for (var pd = data.length; pd < total; pd++){ data.push(flip ? 0x11 : 0xEC); flip = !flip; }  // pads alternate EC,11,… starting EC
+    var nb = ECC_TAB[ecc].bl[ver - 1], deg = ECC_TAB[ecc].cw[ver - 1];
+    var div = rsDivisor(deg);
+    /* block layout: rawCount = data + all ecc codewords; blocks split rawCount
+       into shortLen / shortLen+1 DATA bytes (+ deg ecc each), short blocks first */
+    var rawCount = total + deg * nb;
+    var numShort = nb - (rawCount % nb);
+    var shortLen = Math.floor(rawCount / nb);
+    var blocks = [], eccs = [], off = 0;
+    for (var bi = 0; bi < nb; bi++){
+      var len = shortLen - deg + (bi < numShort ? 0 : 1);
+      blocks.push(data.slice(off, off + len)); off += len;
+      eccs.push(rsRemainder(blocks[bi], div));
+    }
+    var cw = [];
+    var maxData = blocks[nb - 1].length;
+    for (var i3 = 0; i3 < maxData; i3++) for (var b3 = 0; b3 < nb; b3++) if (i3 < blocks[b3].length) cw.push(blocks[b3][i3]);
+    for (var i4 = 0; i4 < deg; i4++) for (var b4 = 0; b4 < nb; b4++) cw.push(eccs[b4][i4]);
+    return draw(ver, ecc, cw);
+  }
+  function draw(ver, ecc, cw){
+    var size = ver*4 + 17, mod = [], fn = [];
+    for (var i = 0; i < size; i++){ mod.push(new Array(size).fill(false)); fn.push(new Array(size).fill(false)); }
+    function setF(x, y, dark){ fn[y][x] = true; mod[y][x] = dark; }
+    function finder(cx, cy){
+      for (var dy = -1; dy <= 7; dy++) for (var dx = -1; dx <= 7; dx++){
+        var x = cx + dx, y = cy + dy;
+        if (x < 0 || x >= size || y < 0 || y >= size) continue;
+        var dark = (dx >= 0 && dx <= 6 && dy >= 0 && dy <= 6) &&
+          (dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4));
+        setF(x, y, dark);
+      }
+    }
+    finder(0, 0); finder(size - 7, 0); finder(0, size - 7);
+    for (var t = 8; t < size - 8; t++){ setF(t, 6, t % 2 === 0); setF(6, t, t % 2 === 0); }
+    var ap = alignPos(ver);
+    for (var ai = 0; ai < ap.length; ai++) for (var aj = 0; aj < ap.length; aj++){
+      /* spec: skip ONLY the three finder corners — patterns that cross the
+         timing lines are drawn too (they replace that timing segment) */
+      if ((ai === 0 && aj === 0) || (ai === 0 && aj === ap.length - 1) ||
+          (ai === ap.length - 1 && aj === 0)) continue;
+      var ax = ap[ai], ay = ap[aj];
+      for (var dy2 = -2; dy2 <= 2; dy2++) for (var dx2 = -2; dx2 <= 2; dx2++)
+        setF(ax + dx2, ay + dy2, Math.max(Math.abs(dx2), Math.abs(dy2)) !== 1);
+    }
+    function drawFormat(mask){
+      var fb = formatBits(ecc, mask);
+      for (var i = 0; i <= 5; i++) setF(8, i, ((fb >> i) & 1) === 1);
+      setF(8, 7, ((fb >> 6) & 1) === 1);
+      setF(8, 8, ((fb >> 7) & 1) === 1);
+      setF(7, 8, ((fb >> 8) & 1) === 1);
+      for (var i2 = 9; i2 < 15; i2++) setF(14 - i2, 8, ((fb >> i2) & 1) === 1);
+      for (var i3 = 0; i3 < 8; i3++) setF(size - 1 - i3, 8, ((fb >> i3) & 1) === 1);
+      for (var i4 = 8; i4 < 15; i4++) setF(8, size - 15 + i4, ((fb >> i4) & 1) === 1);
+      setF(8, size - 8, true); /* the ever-dark module (x=8, y=size-8) */
+    }
+    drawFormat(0);
+    if (ver >= 7){
+      var vb = versionBits(ver);
+      for (var i5 = 0; i5 < 18; i5++){
+        var bit = ((vb >> i5) & 1) === 1, a = size - 11 + (i5 % 3), b = Math.floor(i5/3);
+        setF(a, b, bit); setF(b, a, bit);
+      }
+    }
+    /* zig-zag data placement */
+    var di = 0, len = cw.length;
+    for (var right = size - 1; right >= 1; right -= 2){
+      if (right === 6) right = 5;
+      for (var vert = 0; vert < size; vert++){
+        for (var j = 0; j < 2; j++){
+          var x = right - j, upward = ((right + 1) & 2) === 0;
+          var y = upward ? size - 1 - vert : vert;
+          if (!fn[y][x] && di < len*8){
+            mod[y][x] = ((cw[di >>> 3] >>> (7 - (di & 7))) & 1) === 1;
+            di++;
+          }
+        }
+      }
+    }
+    /* mask selection (spec penalty rules) */
+    function maskBit(m, x, y){
+      switch (m){
+        case 0: return (x + y) % 2 === 0;
+        case 1: return y % 2 === 0;
+        case 2: return x % 3 === 0;
+        case 3: return (x + y) % 3 === 0;
+        case 4: return (Math.floor(x/3) + Math.floor(y/2)) % 2 === 0;
+        case 5: return ((x*y) % 2 + (x*y) % 3) === 0;
+        case 6: return (((x*y) % 2 + (x*y) % 3) % 2) === 0;
+        default: return (((x + y) % 2 + (x*y) % 3) % 2) === 0;
+      }
+    }
+    function penaltyOf(mask){
+      var res = [], pen = 0;
+      for (var y = 0; y < size; y++){
+        res.push(new Array(size));
+        for (var x = 0; x < size; x++){
+          var v = fn[y][x] ? mod[y][x] : (mod[y][x] !== maskBit(mask, x, y));
+          res[y][x] = v;
+        }
+      }
+      var PAT = [true,false,true,true,true,false,true,false,false,false,false];
+      for (var a = 0; a < 2; a++){
+        for (var i = 0; i < size; i++){
+          var run = 1;
+          for (var j = 1; j < size; j++){
+            var c1 = a === 0 ? res[i][j] : res[j][i];
+            var c0 = a === 0 ? res[i][j-1] : res[j-1][i];
+            if (c1 === c0){ run++; if (j === size - 1 && run >= 5) pen += 3 + (run - 5); }
+            else { if (run >= 5) pen += 3 + (run - 5); run = 1; }
+          }
+        }
+        for (var i2 = 0; i2 < size; i2++){
+          for (var j2 = 0; j2 <= size - 11; j2++){
+            var ok1 = true, ok2 = true;
+            for (var k = 0; k < 11; k++){
+              var c = a === 0 ? res[i2][j2 + k] : res[j2 + k][i2];
+              if (c !== PAT[k]) ok1 = false;
+              if (c !== PAT[10 - k]) ok2 = false;
+            }
+            if (ok1 || ok2) pen += 40;
+          }
+        }
+      }
+      for (var y2 = 0; y2 < size - 1; y2++) for (var x2 = 0; x2 < size - 1; x2++)
+        if (res[y2][x2] === res[y2][x2+1] && res[y2][x2] === res[y2+1][x2] && res[y2][x2] === res[y2+1][x2+1]) pen += 3;
+      var dark = 0;
+      for (var y3 = 0; y3 < size; y3++) for (var x3 = 0; x3 < size; x3++) if (res[y3][x3]) dark++;
+      var k4 = Math.ceil(Math.abs(dark*20 - size*size*10) / (size*size)) - 1;
+      pen += Math.max(0, k4) * 10;
+      return pen;
+    }
+    var bestMask = 0, bestPen = Infinity;
+    for (var m = 0; m < 8; m++){ var p = penaltyOf(m); if (p < bestPen){ bestPen = p; bestMask = m; } }
+    for (var y4 = 0; y4 < size; y4++) for (var x4 = 0; x4 < size; x4++)
+      if (!fn[y4][x4]) mod[y4][x4] = mod[y4][x4] !== maskBit(bestMask, x4, y4);
+    drawFormat(bestMask);
+    return { size: size, get: function(x, y){ return mod[y][x]; } };
+  }
+  return { make: make };
+})();
+function showQR(url){
+  var q = QR.make(url);
+  if (!q){ toast(T('fail')); return; }
+  var cv = document.getElementById('qCanvas'), ctx = cv.getContext('2d');
+  var quiet = 2, cells = q.size + quiet*2, scale = Math.floor(264/cells) || 1, off = Math.floor((264 - cells*scale)/2);
+  ctx.fillStyle = '#FFFDF6'; ctx.fillRect(0,0,264,264);
+  ctx.fillStyle = '#1A150C';
+  for (var y=0;y<q.size;y++) for (var x=0;x<q.size;x++)
+    if (q.get(x,y)) ctx.fillRect(off+(x+quiet)*scale, off+(y+quiet)*scale, scale, scale);
+  document.getElementById('qTitle').textContent = T('qr_t');
+  document.getElementById('qHint').textContent = T('qr_hint');
+  document.getElementById('qmodal').classList.add('show');
+  haptic('light');
+}
 function loadStats(){
   fetch('/app/api/stats').then(function(r){ return r.json(); }).then(function(s){
     /* D5.1: every failure is visible and retried — never a silent «—» */
@@ -2791,10 +3526,16 @@ function sortItems(items){
 function renderGold(){
   var list = document.getElementById('goldList');
   if (!goldItems.length){ list.innerHTML = '<div class="err">⏳</div>'; return; }
-  var items = sortItems(goldItems);
+  var filtered = goldFiltered();
+  var anyFilter = goldFProto || goldFPing > 0 || goldQ || goldFavOnly;
+  var shown = anyFilter ? filtered : filtered.slice(0, 10); /* D6 look: 10 cards by default */
   var html = '';
-  for (var i = 0; i < items.length; i++){ html += goldCard(items[i], i); }
+  for (var i = 0; i < shown.length; i++){ html += goldCard(shown[i], i); }
   list.innerHTML = html;
+  document.getElementById('fCount').textContent = shown.length + ' / ' + goldItems.length;
+  var cab = document.getElementById('copyAllBtn');
+  cab.style.display = anyFilter && shown.length ? 'inline-flex' : 'none';
+  cab.textContent = T('copy_all', {n: shown.length});
   bindCards();
 }
 function goldCard(it, idx){
@@ -2803,16 +3544,20 @@ function goldCard(it, idx){
   var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
   var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
   var latTx = it.latency_ms !== null ? Math.round(it.latency_ms) + 'ms' : '—';
+  var starred = favSet[it.hash] ? ' on' : '';
+  var opTx = it.op ? '<span class="opchip">' + esc(ISPN[it.op] || it.op) + '</span>' : '';
   return '<div class="gcard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '" style="animation:up .4s ' + (idx * 0.05) + 's ease both">' +
     '<div class="gtop"><div class="rank">' + rank + '</div>' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
     '<div class="host">' + esc(hostOf(it.uri)) + '</div>' +
+    opTx +
     '<span class="livedot"></span>' +
     '<div class="metrics"><span class="ema ' + emaCls + '">' + emaTx + '</span>' +
     '<span class="lat">' + latTx + '</span></div></div>' +
     '<div class="gfoot">' +
     '<button class="fb"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash) + '" data-v="up">👍 <span>' + (it.up || 0) + '</span></button>' +
     '<button class="fb"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash) + '" data-v="down">👎 <span>' + (it.down || 0) + '</span></button>' +
+    '<button class="star' + starred + '"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash || '') + '" data-uri="' + esc(it.uri) + '" data-p="' + esc(proto) + '" data-l="' + (it.latency_ms == null ? '' : Math.round(it.latency_ms)) + '">⭐</button>' +
     '<span class="ok">✔ ' + (it.ok || 0) + ' / ✘ ' + (it.fail || 0) + '</span></div></div>';
 }
 function bindCards(){
@@ -2820,9 +3565,19 @@ function bindCards(){
   Array.prototype.forEach.call(list.querySelectorAll('.gcard'), function(card){
     if (card._bound) return; card._bound = true;
     card.addEventListener('click', function(ev){
-      if (ev.target.closest && ev.target.closest('.fb')) return;
+      if (ev.target.closest && (ev.target.closest('.fb') || ev.target.closest('.star'))) return;
       copyText(card.getAttribute('data-uri'));
       histAdd(card.getAttribute('data-uri'), card.getAttribute('data-hash'));
+    });
+  });
+  Array.prototype.forEach.call(list.querySelectorAll('.star'), function(btn){
+    if (btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (!initData) return;
+      favToggle(btn.getAttribute('data-hash'), btn.getAttribute('data-uri'), btn.getAttribute('data-p'), btn.getAttribute('data-l'));
+      btn.classList.toggle('on', !btn.classList.contains('on'));
+      btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
     });
   });
   Array.prototype.forEach.call(list.querySelectorAll('.fb'), function(btn){
@@ -2862,7 +3617,44 @@ Array.prototype.forEach.call(document.querySelectorAll('.schip'), function(chip)
     renderGold();
   });
 });
-var goldAutoRetried = false;
+  /* D8/U2 — filter chips + search + copy-all */
+  Array.prototype.forEach.call(document.querySelectorAll('#protoRow .fchip'), function(chip){
+    chip.addEventListener('click', function(){
+      haptic('light');
+      Array.prototype.forEach.call(document.querySelectorAll('#protoRow .fchip'), function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      goldFProto = chip.getAttribute('data-f') || '';
+      renderGold();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#pingRow .fchip[data-p]'), function(chip){
+    chip.addEventListener('click', function(){
+      haptic('light');
+      Array.prototype.forEach.call(document.querySelectorAll('#pingRow .fchip[data-p]'), function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      goldFPing = parseInt(chip.getAttribute('data-p'), 10) || 0;
+      renderGold();
+    });
+  });
+  var foc = document.getElementById('favOnlyChip');
+  if (foc) foc.addEventListener('click', function(){
+    if (!initData){ toast(T('open_tg')); return; }
+    haptic('light');
+    goldFavOnly = !goldFavOnly;
+    foc.classList.toggle('on', goldFavOnly);
+    renderGold();
+  });
+  var qin = document.getElementById('goldQ');
+  if (qin){ var qT = null; qin.addEventListener('input', function(){
+    clearTimeout(qT); qT = setTimeout(function(){ goldQ = qin.value.trim(); renderGold(); }, 220);
+  }); }
+  document.getElementById('copyAllBtn').addEventListener('click', function(){
+    var shown = goldFiltered();
+    if (!shown.length) return;
+    copyText(shown.map(function(it){ return it.uri; }).join('\n'));
+    toast(T('copied_n', {n: shown.length}));
+  });
+  var goldAutoRetried = false;
 function showGoldFail(list){
   list.innerHTML = '<div class="err">' + T('fail') + '</div>';
   var b = document.createElement('button');
@@ -2881,8 +3673,8 @@ function loadGold(append){
   /* POST + initData → the server stamps the user's own name on the copied configs */
   var req = initData
     ? fetch('/app/api/gold', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 10 }) })
-    : fetch('/app/api/gold?offset=' + goldOffset + '&limit=10');
+        body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 24 }) })
+    : fetch('/app/api/gold?offset=' + goldOffset + '&limit=24');
   req.then(function(r){ return r.json(); }).then(function(d){
     if (d.error || !d.items){ showGoldFail(list); goldAutoRetry(); return; }
     if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
@@ -2890,7 +3682,7 @@ function loadGold(append){
     goldItems = append ? goldItems.concat(d.items) : d.items;
     goldOffset += d.items.length;
     renderGold();
-    /* D6: exactly 10 gold cards — the rest lives in the bot (/gold) */
+    /* D8/U2: filters live client-side — no pager button needed any more */
     document.getElementById('moreBtn').style.display = 'none';
   }).catch(function(){ showGoldFail(list); goldAutoRetry(); });
 }
@@ -2898,10 +3690,12 @@ function subRow(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
   var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
   var okOn = it.mark === 1 ? ' on' : '', badOn = it.mark === 2 ? ' on' : '';
+  var starred = favSet[it.hash] ? ' on' : '';
   return '<div class="scard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '" style="animation-delay:' + (idx * 0.04) + 's">' +
     '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
     '<div class="host">' + esc(hostOf(it.uri)) + '</div>' +
     '<span class="ping">' + esc(pingTx) + '</span>' +
+    '<button class="star' + starred + '" data-hash="' + esc(it.hash || '') + '" data-uri="' + esc(it.uri) + '" data-p="' + esc(proto) + '" data-l="' + (it.ping == null ? '' : Math.round(it.ping)) + '">⭐</button>' +
     '<button class="mk ok' + okOn + '" data-hash="' + esc(it.hash) + '" data-v="ok" title="' + T('mk_ok') + '">✅</button>' +
     '<button class="mk bad' + badOn + '" data-hash="' + esc(it.hash) + '" data-v="fail" title="' + T('mk_fail') + '">❌</button>' +
     '</div>';
@@ -2910,9 +3704,18 @@ function bindSubMarks(){
   Array.prototype.forEach.call(document.querySelectorAll('#subCard .scard'), function(card){
     if (card._bound) return; card._bound = true;
     card.addEventListener('click', function(ev){
-      if (ev.target.closest && ev.target.closest('.mk')) return;
+      if (ev.target.closest && (ev.target.closest('.mk') || ev.target.closest('.star'))) return;
       copyText(card.getAttribute('data-uri'));
       histAdd(card.getAttribute('data-uri'), card.getAttribute('data-hash'));
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#subCard .star'), function(btn){
+    if (btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (!initData) return;
+      favToggle(btn.getAttribute('data-hash'), btn.getAttribute('data-uri'), btn.getAttribute('data-p'), btn.getAttribute('data-l'));
+      btn.classList.toggle('on', !btn.classList.contains('on'));
     });
   });
   Array.prototype.forEach.call(document.querySelectorAll('#subCard .mk'), function(btn){
@@ -2951,10 +3754,23 @@ function loadSub(){
       var cl = d.client === 'other' ? T('cl_other') : d.client;
       var rotChip = '<span class="rot">' + T(d.rotation === 'run' ? 'rot_run' : 'rot_day') + '</span>';
       var nameTag = d.name ? ' · ✍️ ' + esc(d.name) : '';
+      subModeCur = d.sub_mode || 'mix'; subUrlCur = d.url;
+      var modeBtn = function(m, key){ return '<button data-m="' + m + '"' + (subModeCur === m ? ' class="on"' : '') + '>' + T(key) + '</button>'; };
       var html = '<div class="t">' + T('sub_t') + ' ' + rotChip + '</div>' +
         '<div class="url">' + esc(d.url) + '</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
         '<button class="btn" id="copySub">📋 ' + T('sub_copy') + '</button>' +
-        '<div class="meta">' + T('sub_note') + '</div>' +
+        '<button class="btn" id="qrSub" style="background:none;color:var(--gold)">🔲 ' + T('qr_btn') + '</button>' +
+        '</div>' +
+        '<div class="msw" id="msw">' +
+        modeBtn('mine', 'msw_mine') + modeBtn('gold', 'msw_gold') + modeBtn('mix', 'msw_mix') +
+        '</div>' +
+        '<div class="mswnote">' + T('msw_note') + '</div>' +
+        '<details class="adv"><summary>' + T('adv_t') + '</summary>' +
+        '<div class="arow"><span class="tag">' + T('tag_mine') + '</span><div class="url">' + esc(d.url + '?m=mine') + '</div><button class="mini2" data-copy="' + esc(d.url + '?m=mine') + '">' + T('copy_btn') + '</button></div>' +
+        '<div class="arow"><span class="tag">' + T('tag_gold') + '</span><div class="url">' + esc(d.url + '?m=gold') + '</div><button class="mini2" data-copy="' + esc(d.url + '?m=gold') + '">' + T('copy_btn') + '</button></div>' +
+        '<div class="arow"><span class="tag">' + T('tag_mix') + '</span><div class="url">' + esc(d.url + '?m=mix') + '</div><button class="mini2" data-copy="' + esc(d.url + '?m=mix') + '">' + T('copy_btn') + '</button></div>' +
+        '</details>' +
         '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + nameTag + '</div>';
       if (d.items && d.items.length){
         html += '<div class="meta" style="margin-top:14px;font-weight:800;color:var(--gold)">📦 ' + T('my10') + ' · ' + d.items.length + '</div>';
@@ -2963,6 +3779,25 @@ function loadSub(){
       }
       card.innerHTML = html;
       document.getElementById('copySub').addEventListener('click', function(){ copyText(d.url); });
+      document.getElementById('qrSub').addEventListener('click', function(){ showQR(d.url); });
+      Array.prototype.forEach.call(document.querySelectorAll('#msw button'), function(btn){
+        btn.addEventListener('click', function(){
+          var m = btn.getAttribute('data-m');
+          if (m === subModeCur) return;
+          haptic('medium');
+          fetch('/app/api/submode', { method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ initData: initData, mode: m }) })
+            .then(function(r){ return r.json(); })
+            .then(function(res){
+              if (res && res.ok){ subModeCur = m; toast(T('msw_saved'));
+                Array.prototype.forEach.call(document.querySelectorAll('#msw button'), function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); });
+              } else toast(T('fail'));
+            }).catch(function(){ toast(T('fail')); });
+        });
+      });
+      Array.prototype.forEach.call(card.querySelectorAll('.mini2[data-copy]'), function(btn){
+        btn.addEventListener('click', function(ev){ ev.stopPropagation(); copyText(btn.getAttribute('data-copy')); });
+      });
       bindSubMarks();
     }).catch(function(){ card.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
 }
@@ -3021,6 +3856,7 @@ function loadMe(){
     body: JSON.stringify({ initData: initData }) })
     .then(function(r){ return r.json(); })
     .then(function(d){
+      if (d && d.ok && d.theme) applyTheme(d.theme); // D8/U4 — profile theme wins
       if (!(d && d.ok && d.is_admin)) return;
       var c = document.getElementById('admChip');
       if (!c) return;
@@ -3043,14 +3879,32 @@ document.getElementById('histClear').addEventListener('click', function(ev){
     .then(function(d){ if (d && d.ok){ toast(T('hist_cleared')); histRender([]); } }).catch(function(){});
 });
 applyTexts();
+initTheme();
 loadStats();
 loadGold(false);
 loadSub();
 loadMe();
 loadHist();
+loadFavs();
 document.getElementById('moreBtn').addEventListener('click', function(){ haptic('light'); loadGold(true); });
 document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); loadGold(false); });
 document.getElementById('heroErr').addEventListener('click', loadStats);
+document.getElementById('themeBtn').addEventListener('click', function(){
+  haptic('light');
+  var next = document.body.classList.contains('light') ? 'dark' : 'light';
+  applyTheme(next); saveThemePref(next);
+});
+document.getElementById('favClear').addEventListener('click', function(ev){
+  ev.stopPropagation();
+  if (!initData) return;
+  haptic('light');
+  fetch('/app/api/fav', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ initData: initData, op: 'clear' }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.ok){ toast(T('fav_gone')); favRender([]); } }).catch(function(){});
+});
+document.getElementById('qClose').addEventListener('click', function(){ document.getElementById('qmodal').classList.remove('show'); });
+document.getElementById('qmodal').addEventListener('click', function(ev){ if (ev.target.id === 'qmodal') document.getElementById('qmodal').classList.remove('show'); });
 setInterval(loadStats, 5 * 60 * 1000);
 /* D5.2 hotfix — the Telegram script is async now: first paint never waits for
    telegram.org. Attach TG features whenever it arrives (poll ≤ 4s), then refresh personal parts. */
@@ -3058,8 +3912,8 @@ function tgAttach(){
   tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (!tg) return false;
   initData = tg.initData || '';
-  try { tg.ready(); tg.expand(); tg.setHeaderColor('#0C0A07'); tg.setBackgroundColor('#0C0A07'); } catch (e){}
-  if (initData){ loadSub(); loadGold(false); loadHist(); loadMe(); }
+  try { tg.ready(); tg.expand(); tg.setHeaderColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); tg.setBackgroundColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); } catch (e){}
+  if (initData){ loadSub(); loadGold(false); loadHist(); loadMe(); loadFavs(); }
   return true;
 }
 if (!tgAttach()){
@@ -3080,7 +3934,7 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D7.0 — bank telemetry · broadcast · admins · maintenance · motion -->
+<!-- panel build: D8.0 — phase 1: pipeline knobs · manual full scan · quiet hours · test-send · two-step confirm -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3157,18 +4011,38 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
 </head>
 <body><div class="wrap">
 <header>
-  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D7.0</span>
+  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D8.0</span>
 </header>
 <div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
 <div id="panel" hidden>
   <div class="h2">وضعیت لحظه‌ای</div>
-  <div class="card"><div class="stat" id="stat"></div><div class="hint" id="statTime" style="padding:0 2px 8px"></div></div>
+  <div class="card"><div class="stat" id="stat"></div><div class="hint" id="statTime" style="padding:0 2px 2px"></div><div class="hint" id="runStatus" style="padding:0 2px 8px;font-weight:700">—</div></div>
 
   <div class="h2">بانک کانفیگ <span class="n" id="bankFlag"></span></div>
   <div class="card">
     <div class="bgrid" id="bankGrid"></div>
     <div class="srcdots" id="bankSrc"></div>
     <div class="hint" id="bankPass2" style="padding-bottom:10px"></div>
+    <div class="hint" id="bankRescue" style="padding:0 0 10px;display:none"></div>
+  </div>
+
+  <div class="h2">بانک و پایپ‌لاین — فاز ۱ <span class="n">تنظیمات زندهٔ دور بعد</span></div>
+  <div class="card">
+    <div class="row"><div><div class="k">TTL بانک (ساعت)</div><div class="hint">مدخل بدون پاس بعد از این مدت حذف می‌شود (۶ تا ۷۲)</div></div><input id="pTtl" type="number" min="6" max="72"></div>
+    <div class="row"><div><div class="k">دور دوم نجات (Pass-2)</div><div class="hint">تست دوبارهٔ ردشدگان مرزی با تایم‌اوت بیشتر</div></div><button class="tgl" id="tglPass2"></button></div>
+    <div class="row"><div><div class="k">ضریب تایم‌اوت دور دوم</div><div class="hint">۴٫۵ ثانیه × این ضریب</div></div><div class="chips" id="p2Chips"></div></div>
+    <div class="row"><div><div class="k">آستانهٔ «مشکوک»</div><div class="hint">تعداد خطای پشت‌سرهم منبع</div></div><input id="pSuspect" type="number" min="1" max="10"></div>
+    <div class="row"><div><div class="k">آستانهٔ «قرنطینه»</div><div class="hint">بعد از این تعداد، منبع کنار می‌رود</div></div><input id="pQuar" type="number" min="2" max="20"></div>
+    <div class="row"><div><div class="k">مدت قرنطینه (روز)</div><div class="hint">اسکن کامل شنبه راه بازگشت است</div></div><input id="pQdays" type="number" min="1" max="30"></div>
+    <div class="row"><div><div class="k">حداقل سابقهٔ «خوش‌سابقه»</div><div class="hint">برای اول صف تست شدن (۱ تا ۱۰)</div></div><input id="pMinStreak" type="number" min="1" max="10"></div>
+    <div class="row"><div><div class="k">احیای بانک (Rescue)</div><div class="hint">کانفیگ‌های سابقه‌دار بی‌منبع، دوباره تست می‌شوند</div></div><button class="tgl" id="tglRescue"></button></div>
+    <div class="row"><div><div class="k">حداقل سابقهٔ احیا</div><div class="hint">از این streak به بعد URI ذخیره می‌شود (۲ تا ۲۰)</div></div><input id="pRmin" type="number" min="2" max="20"></div>
+    <div class="row"><div><div class="k">سقف احیا در هر دور</div><div class="hint">بودجهٔ تست کاندیدهای احیا (۰ تا ۵۰۰۰)</div></div><input id="pRmax" type="number" min="0" max="5000"></div>
+    <div style="padding:10px 0 8px"><button class="btn" id="savePipe">ذخیرهٔ تنظیمات پایپ‌لاین</button></div>
+  </div>
+  <div class="card">
+    <div class="row"><div><div class="k">🛠 اسکن کامل دستی</div><div class="hint">معادل دور شنبه‌شب — فلگ برای رانِ بعدی؛ بعد از اجرا خودکار ریست می‌شود</div></div><button class="btn warn" id="fullScanBtn" style="flex:0 0 auto;padding:9px 14px">🚀 اجرا</button></div>
+    <div class="row"><div><div class="k">⚠ فقط جمع‌آوری، بدون تست</div><div class="hint">کلید اضطراری: خروجی‌ها منجمد می‌مانند، بانک دست‌نخورده</div></div><button class="tgl" id="tglSkip"></button></div>
   </div>
 
   <div class="h2">کانال</div>
@@ -3182,6 +4056,21 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div style="display:flex;gap:8px;padding:10px 0 8px">
       <button class="btn ghost" id="postCard">🖼 پست فوری: کارت</button>
       <button class="btn ghost" id="postDigest">📊 پست فوری: گزارش</button>
+    </div>
+  </div>
+
+  <div class="h2">اعلان‌ها و سکوت</div>
+  <div class="card">
+    <div class="row"><div><div class="k">سقف گیرندگان «تست جدید»</div><div class="hint">در هر دور به آخرین N کاربر (۵ تا ۱۰۰)</div></div><input id="wtCap" type="number" min="5" max="100"></div>
+    <div class="row"><div><div class="k">ساعات سکوت</div><div class="hint">در این بازهٔ تهران هیچ پیام خودکاری نمی‌رود</div></div><button class="tgl" id="tglQuiet"></button></div>
+    <div class="row"><div><div class="k">از ساعت / تا ساعت</div><div class="hint">ساعت تهران — شروعinclusive، پایان exclusive</div></div>
+      <div style="display:flex;gap:6px;align-items:center"><input id="qStart" type="number" min="0" max="23" style="width:64px"><span style="color:var(--dim)">تا</span><input id="qEnd" type="number" min="0" max="23" style="width:64px"></div></div>
+    <div style="padding:10px 0 4px"><button class="btn" id="saveNotify">ذخیرهٔ اعلان‌ها</button></div>
+    <div class="hint" style="padding:2px 2px 6px">🧪 نمونهٔ زندهٔ هر پیام خودکار، فقط برای خودت فرستاده می‌شود:</div>
+    <div style="display:flex;gap:8px;padding:0 0 10px">
+      <button class="btn ghost" id="testWatch">🔔 واچ‌تاور</button>
+      <button class="btn ghost" id="testCard">🖼 کارت</button>
+      <button class="btn ghost" id="testDigest">📊 گزارش</button>
     </div>
   </div>
 
@@ -3241,7 +4130,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div class="row"><div><div class="k">کانال فعلی</div><div class="hint tg" id="chId">—</div></div><div class="hint tg" id="bcStatus">—</div></div>
   </div>
 
-  <div class="foot">ARISTON WORKER · D7.0 · V4.2</div>
+  <div class="foot">ARISTON WORKER · D8.0 · V4.3</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -3262,6 +4151,7 @@ function countUp(el, to){ var t0 = null, dur = 800;
     el.textContent = fmt(Math.round(to * k)); if (k < 1) requestAnimationFrame(step); }
   requestAnimationFrame(step); }
 var FREQS = [1, 2, 3, 6, 12, 24], S = null, uOffset = 0;
+var P2_FACTORS = [1.5, 2, 3];
 function draw(){
   drawTgl($('tglCard'), S.cfg.card_enabled !== false);
   drawTgl($('tglDigest'), S.cfg.digest_enabled !== false);
@@ -3288,10 +4178,49 @@ function draw(){
     });
     try { $('statTime').textContent = 'آخرین تست: ' + new Date(st.generated_at).toLocaleString('fa-IR'); }
     catch (e){ $('statTime').textContent = st.generated_at || ''; }
-  } else { $('stat').innerHTML = '<div style="grid-column:1/-1;color:var(--dim);text-align:center;padding:6px 0">آمار در دسترس نیست</div>'; $('statTime').textContent = ''; }
+    /* D8/P5 — current run status from the fresh-run timestamp */
+    var lagMin = 0;
+    try { lagMin = Math.max(0, (Date.now() - new Date(st.generated_at).getTime()) / 60000); } catch (e2){}
+    var rs = $('runStatus');
+    if (lagMin < 12){ rs.textContent = '🟢 دور اخیراً تمام شد — همه‌چیز سر جاش'; rs.style.color = 'var(--ok)'; }
+    else if (lagMin < 38){ rs.textContent = '🔵 دور بعدی احتمالاً در حال اجراست'; rs.style.color = 'var(--gold)'; }
+    else { rs.textContent = '🔴 از آخرین دور ' + Math.round(lagMin) + ' دقیقه گذشته — Actions را چک کن'; rs.style.color = 'var(--bad)'; }
+  } else { $('stat').innerHTML = '<div style="grid-column:1/-1;color:var(--dim);text-align:center;padding:6px 0">آمار در دسترس نیست</div>'; $('statTime').textContent = ''; $('runStatus').textContent = '—'; }
   drawBank();
   drawAdmins();
   drawBc();
+  drawPipe();
+  drawNotify();
+}
+/* D8/P2 — pipeline knobs (cfg:pipeline) */
+function drawPipe(){
+  var p = S.pcfg || {};
+  $('pTtl').value = p.bank_ttl_hours != null ? p.bank_ttl_hours : 28;
+  $('pSuspect').value = p.suspect_after != null ? p.suspect_after : 2;
+  $('pQuar').value = p.quarantine_after != null ? p.quarantine_after : 3;
+  $('pQdays').value = p.quarantine_days != null ? p.quarantine_days : 7;
+  $('pMinStreak').value = p.min_streak_priority != null ? p.min_streak_priority : 1;
+  $('pRmin').value = p.rescue_min_streak != null ? p.rescue_min_streak : 5;
+  $('pRmax').value = p.rescue_max != null ? p.rescue_max : 1500;
+  drawTgl($('tglPass2'), p.pass2_enabled !== false);
+  drawTgl($('tglRescue'), p.rescue_enabled !== false);
+  drawTgl($('tglSkip'), p.skip_test === true);
+  var chips = '';
+  for (var i = 0; i < P2_FACTORS.length; i++){
+    var f = P2_FACTORS[i];
+    chips += '<button class="chip' + (Number(p.pass2_factor) === f ? ' on' : '') + '" data-f="' + f + '">' + f + '×</button>';
+  }
+  $('p2Chips').innerHTML = chips;
+  Array.prototype.forEach.call($('p2Chips').querySelectorAll('.chip'), function(b){
+    b.onclick = function(){ set('pass2_factor', parseFloat(b.getAttribute('data-f'))); }; });
+  $('fullScanBtn').textContent = (p.force_full_scan === true) ? '⏳ در صف اجرا…' : '🚀 اجرا';
+}
+/* D8/P6 — notifications & quiet hours (cfg:admin) */
+function drawNotify(){
+  $('wtCap').value = S.cfg.watchtower_cap != null ? S.cfg.watchtower_cap : 20;
+  $('qStart').value = S.cfg.quiet_start != null ? S.cfg.quiet_start : 2;
+  $('qEnd').value = S.cfg.quiet_end != null ? S.cfg.quiet_end : 8;
+  drawTgl($('tglQuiet'), S.cfg.quiet_enabled === true);
 }
 function drawBank(){
   var b = S.bank, g = $('bankGrid'), src = $('bankSrc'), p2 = $('bankPass2'), fl = $('bankFlag');
@@ -3317,6 +4246,14 @@ function drawBank(){
   var pp = b.pass2 || {};
   p2.textContent = 'دور دوم: ' + fmt(pp.attempted || 0) + ' تلاش · ' + fmt(pp.rescued || 0) + ' نجات' +
     (pp.timeout_s ? ' · تایم‌اوت ' + pp.timeout_s + 's' : '');
+  /* D8/E — resurrection telemetry */
+  var rc = b.rescue;
+  var rEl = $('bankRescue');
+  if (rc){
+    rEl.style.display = 'block';
+    rEl.textContent = '🛟 احیای بانک: ' + fmt(rc.picked || 0) + ' از ' + fmt(rc.candidates || 0) + ' کاندید تست شد' +
+      (rc.alive != null ? ' · ' + fmt(rc.alive) + ' زنده برگشت' : '');
+  } else rEl.style.display = 'none';
 }
 function drawAdmins(){
   var list = S.admins || [];
@@ -3346,9 +4283,17 @@ function drawBc(){
 function set(key, value){
   post('set', { key: key, value: value }).then(function(r){
     if (r && r.ok){ toast('ذخیره شد ✓');
-      if (key === 'every_hours') S.every_hours = r.value; else S.cfg[key] = r.value;
+      if (key === 'every_hours') S.every_hours = r.value;
+      else if (key in S.cfg) S.cfg[key] = r.value;
+      else if (S.pcfg) S.pcfg[key] = r.value;
       draw(); } else toast('خطا — دوباره بزن');
   }).catch(function(){ toast('خطا'); });
+}
+/* D8/P7 — two-step confirm: first tap arms the button for 3s, second tap fires */
+function confirm2(btn, fn){
+  if (btn._armed){ btn._armed = false; clearTimeout(btn._t); btn.textContent = btn._label; fn(); return; }
+  btn._armed = true; btn._label = btn.textContent; btn.textContent = '⚠️ مطمئنی؟ دوباره بزن';
+  btn._t = setTimeout(function(){ btn._armed = false; btn.textContent = btn._label; }, 3000);
 }
 function loadUsers(){
   post('users', { offset: uOffset, limit: 30 }).then(function(d){
@@ -3387,18 +4332,26 @@ $('dlVotes').onclick = function(){
       toast('دانلود شد ✓');
     } catch (e){ toast('خطا'); }
   } else toast('خطا'); }).catch(function(){ toast('خطا'); }); };
-/* D7 — admins management */
+/* D7 — admins management (two-step confirm on remove) */
 function adminOp(op, id){
   if (op === 'add'){
     id = String($('admIn').value || '').trim();
     if (!/^\d{3,20}$/.test(id)){ toast('یه chat id عددی بفرست'); return; }
   }
-  post('admins', { op: op, id: id }).then(function(r){
-    if (r && r.ok){ toast(op === 'add' ? 'اضافه شد ✓' : 'حذف شد ✓');
-      if (op === 'add') $('admIn').value = '';
-      S.admins = r.admins || S.admins; drawAdmins(); }
-    else toast((r && r.error === 'owner') ? 'مالک حذف نمی‌شه' : 'خطا');
-  }).catch(function(){ toast('خطا'); });
+  var run = function(){
+    post('admins', { op: op, id: id }).then(function(r){
+      if (r && r.ok){ toast(op === 'add' ? 'اضافه شد ✓' : 'حذف شد ✓');
+        if (op === 'add') $('admIn').value = '';
+        S.admins = r.admins || S.admins; drawAdmins(); }
+      else toast((r && r.error === 'owner') ? 'مالک حذف نمی‌شه' : 'خطا');
+    }).catch(function(){ toast('خطا'); });
+  };
+  if (op === 'remove'){
+    var btns = $('admins').querySelectorAll('button.mini');
+    var btn = null;
+    for (var i = 0; i < btns.length; i++) if (btns[i].getAttribute('data-id') === String(id)) btn = btns[i];
+    if (btn) confirm2(btn, run); else run();
+  } else run();
 }
 $('admAdd').onclick = function(){ adminOp('add'); };
 /* D7 — broadcast: chunked sender with live progress */
@@ -3426,9 +4379,11 @@ $('bcStop').onclick = function(){
 };
 /* D7 — maintenance */
 $('purgeBtn').onclick = function(){
-  toast('دارم پاک می‌کنم…');
-  post('purge', {}).then(function(r){
-    toast(r && r.ok ? fmt(r.purged) + ' کلید کش پاک شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); });
+  confirm2($('purgeBtn'), function(){
+    toast('دارم پاک می‌کنم…');
+    post('purge', {}).then(function(r){
+      toast(r && r.ok ? fmt(r.purged) + ' کلید کش پاک شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); });
+  });
 };
 $('cmdsBtn').onclick = function(){
   toast('دارم همگام می‌کنم…');
@@ -3449,6 +4404,42 @@ $('postCard').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'card' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
 $('postDigest').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'digest' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
+/* ─── D8/P — phase 1 bindings: pipeline · notifications · test-send · confirm2 ─── */
+$('savePipe').onclick = function(){ if (!S) return;
+  var keys = [['bank_ttl_hours','pTtl'], ['suspect_after','pSuspect'], ['quarantine_after','pQuar'],
+              ['quarantine_days','pQdays'], ['min_streak_priority','pMinStreak'],
+              ['rescue_min_streak','pRmin'], ['rescue_max','pRmax']];
+  toast('دارم ذخیره می‌کنم…');
+  keys.forEach(function(k, idx){
+    setTimeout(function(){ set(k[0], parseFloat($(k[1]).value)); }, idx * 350);
+  });
+};
+$('tglPass2').onclick = function(){ if (S) set('pass2_enabled', S.pcfg.pass2_enabled === false); };
+$('tglRescue').onclick = function(){ if (S) set('rescue_enabled', S.pcfg.rescue_enabled === false); };
+$('tglSkip').onclick = function(){
+  if (!S) return;
+  var enabling = S.pcfg.skip_test !== true;
+  var apply = function(){ set('skip_test', enabling); };
+  if (enabling) confirm2($('tglSkip'), apply); else apply();
+};
+$('fullScanBtn').onclick = function(){
+  if (!S) return;
+  if (S.pcfg.force_full_scan === true){ toast('قبلاً در صف اجراست — بعد از دور بعد ریست می‌شود'); return; }
+  confirm2($('fullScanBtn'), function(){ set('force_full_scan', true); toast('فلگ ثبت شد — ران بعدی (تا ۳۰ دقیقه دیگر) کامل اسکن می‌کند'); });
+};
+$('saveNotify').onclick = function(){ if (!S) return;
+  toast('دارم ذخیره می‌کنم…');
+  [['watchtower_cap','wtCap'], ['quiet_start','qStart'], ['quiet_end','qEnd']].forEach(function(k, idx){
+    setTimeout(function(){ set(k[0], parseInt($(k[1]).value, 10)); }, idx * 350);
+  });
+};
+$('tglQuiet').onclick = function(){ if (S) set('quiet_enabled', S.cfg.quiet_enabled !== true); };
+$('testWatch').onclick = function(){ toast('نمونه می‌آورم…');
+  post('test_notify', { kind: 'watchtower' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : (r && r.error === 'no_data') ? 'آمار در دسترس نیست' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
+$('testCard').onclick = function(){ toast('نمونه می‌آورم…');
+  post('test_notify', { kind: 'card' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : (r && r.error === 'no_data') ? 'آمار در دسترس نیست' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
+$('testDigest').onclick = function(){ toast('نمونه می‌آورم…');
+  post('test_notify', { kind: 'digest' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : (r && r.error === 'no_data') ? 'آمار در دسترس نیست' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
 /* D5.2 hotfix — boot after Telegram attaches (async script), not before */
 function bootPanel(){
   if (!initData){ $('lock').hidden = false; $('lock').textContent = 'برای باز کردن پنل، این صفحه رو داخل تلگرام باز کن.'; return false; }
@@ -3569,11 +4560,11 @@ export default {
       }, null, 2), { headers: { 'content-type': 'application/json; charset=utf-8' } });
     }
 
-    /* GET /u/<token> — personal subscription feed */
+    /* GET /u/<token> — personal subscription feed (?m=mine|gold|mix overrides the profile mode) */
     const um = url.pathname.match(/^\/u\/([A-Za-z0-9-]{8,})\/?$/);
     if (um) {
       let sub = null;
-      try { sub = await buildSubscription(env, um[1]); } catch (e) { console.error('sub error', e && e.message); }
+      try { sub = await buildSubscription(env, um[1], url.searchParams.get('m')); } catch (e) { console.error('sub error', e && e.message); }
       if (!sub) return new Response('not found\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
       return new Response(sub.body, {
         headers: {
@@ -3597,6 +4588,9 @@ export default {
     if (url.pathname === '/app/api/stats') return appStats(env);
     if (url.pathname === '/app/api/gold') return appGold(env, url, request);
     if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
+    if (url.pathname === '/app/api/submode' && request.method === 'POST') return appSubMode(env, request);
+    if (url.pathname === '/app/api/pref' && request.method === 'POST') return appPref(env, request);
+    if (url.pathname === '/app/api/fav' && request.method === 'POST') return appFavs(env, request);
     if (url.pathname === '/app/api/mark' && request.method === 'POST') return appMark(env, request);
     if (url.pathname === '/app/api/feedback' && request.method === 'POST') return appFeedback(env, request);
     if (url.pathname === '/app/api/history' && request.method === 'POST') return appHistory(env, request);
@@ -3616,6 +4610,16 @@ export default {
     if (url.pathname === '/app/api/admin/broadcast' && request.method === 'POST') return guardAdmin(env, request, adminBroadcast);
     if (url.pathname === '/app/api/admin/purge' && request.method === 'POST') return guardAdmin(env, request, adminPurge);
     if (url.pathname === '/app/api/admin/sync_cmds' && request.method === 'POST') return guardAdmin(env, request, adminSyncCmds);
+    if (url.pathname === '/app/api/admin/test_notify' && request.method === 'POST') return guardAdmin(env, request, adminTestNotify);
+
+    /* D8/H — pipeline knobs for the GitHub Action (public, read-only, no
+       secrets; the pipeline clamps everything again on its side). */
+    if (url.pathname === '/api/pipeline-cfg') {
+      const pc = await getPipelineCfg(env);
+      return new Response(JSON.stringify({ pipeline: pc, updated_at: new Date().toISOString() }), {
+        headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=60', ...CORS_HEADERS },
+      });
+    }
 
     /* CORS preflight for the public API */
     if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname === '/card.svg' || url.pathname === '/card.png')) {
@@ -3674,6 +4678,9 @@ export default {
     if (cfg.watchtower_enabled !== false) ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
     ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
     ctx.waitUntil(channelDigest(env).catch((e) => console.error('digest error', e && e.message)));
+    /* D8/P3 — one-shot «اسکن کامل دستی» from the panel: consumed once a run
+       that actually read the flag is live; then the admins get a receipt. */
+    ctx.waitUntil(consumePipelineRequest(env).catch((e) => console.error('pcfg error', e && e.message)));
     /* D7 — one-time self-heal: re-register scoped commands so /panel & /freq
        live only in the admins' own menus, never in the public command list. */
     ctx.waitUntil((async () => {
@@ -3688,4 +4695,4 @@ export default {
 };
 
 /* test hooks — named exports are ignored by the Workers runtime */
-export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription };
+export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription, getPipelineCfg, inQuietHours };

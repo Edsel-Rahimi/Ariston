@@ -45,6 +45,16 @@ jobs:
             -o dist/bank.json || echo "no bank yet — first run"
           curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/sources-health.json?t=$(date +%s)" \
             -o dist/sources-health.json || true
+
+      # D8/H — prefetch the previous snapshot's user-facing exports.  In a
+      # normal run the pipeline overwrites them; in a panel «skip_test»
+      # emergency run they are left frozen so users never see an empty shelf.
+      - name: Fetch previous exports (skip-test freeze source)
+        run: |
+          for f in gold.txt silver.txt bronze.txt validated.txt all.txt mihomo.yaml singbox.json; do
+            curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/$f?t=$(date +%s)" \
+              -o "dist/$f" || echo "no previous $f"
+          done
           ls -la dist/ | sed 's/^/      /'
 
       - name: Restore engines
@@ -78,6 +88,10 @@ jobs:
           ARISTON_TIMEOUT: "4.5"
           ARISTON_TCP_CONCURRENCY: "512"
           ARISTON_TCP_TIMEOUT: "2.0"
+          # D8/H — panel-tunable knobs (bank TTL, pass-2, quarantine, rescue…).
+          # The endpoint is public & read-only (no secrets); any failure inside
+          # the pipeline falls back to the built-in defaults.
+          ARISTON_PIPELINE_CFG_URL: "https://ariston-bot.ariston-vbot.workers.dev/api/pipeline-cfg"
         run: python -m pipeline.main run
 
       # Publish FIRST: the Worker's /card.svg?fresh=1 then renders THIS run's
