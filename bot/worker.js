@@ -3651,7 +3651,7 @@ Array.prototype.forEach.call(document.querySelectorAll('.schip'), function(chip)
   document.getElementById('copyAllBtn').addEventListener('click', function(){
     var shown = goldFiltered();
     if (!shown.length) return;
-    copyText(shown.map(function(it){ return it.uri; }).join('\n'));
+    copyText(shown.map(function(it){ return it.uri; }).join('\\n'));
     toast(T('copied_n', {n: shown.length}));
   });
   var goldAutoRetried = false;
