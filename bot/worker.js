@@ -42,7 +42,7 @@ const CDN = 'https://cdn.jsdelivr.net/gh/' + REPO + '@data/';
 const PAGES = 'https://edsel-rahimi.github.io/Ariston/';
 
 const FILE_TTL_SEC = 600;   // data-branch file cache (KV)
-const STATS_TTL_SEC = 300;  // stats.json cache (KV)
+const STATS_TTL_SEC = 120;  // stats.json cache (KV) — D10.1/B2: short, the run timestamp must track the live run
 const SUB_MAX_LINES = 300;  // cap subscription size
 const SUB_MIN_OP_LINES = 10; // operator file below this → fall back to gold+silver
 const API_RATE_LIMIT = 120; // public API: best-effort requests / IP / minute
@@ -557,15 +557,23 @@ async function saveUser(env, chatId, u) { await kvPut(env, 'user:' + chatId, JSO
 
 /* ─────────────────────────── data-branch access ───────────────────────────── */
 
-async function fetchTextCached(env, name, ttlSec) {
+/* D10.1/B2 — raw.githubusercontent/Fastly can hand back a branch object that is
+   many minutes (sometimes tens of minutes) old, which is exactly how the panel
+   ended up «70 minutes behind» while the bot had just announced the run.
+   A quantized cache-buster forces the edge to revalidate while still letting
+   Cloudflare collapse requests inside the same 2-minute bucket. */
+const statsBust = () => '?t=' + Math.floor(Date.now() / 120e3);
+
+async function fetchTextCached(env, name, ttlSec, bust) {
   const key = 'file:' + name;
   const hit = await kvGet(env, key, 'json');
   if (hit && hit.ts && Date.now() - hit.ts < ttlSec * 1000 && typeof hit.text === 'string' && hit.text !== '') return hit.text;
+  const suffix = bust ? statsBust() : '';
   for (const base of [RAW, CDN]) {
     try {
-      const r = await fetch(base + name, {
+      const r = await fetch(base + name + suffix, {
         headers: { 'user-agent': 'ariston-bot/1.0 (+https://github.com/' + REPO + ')' },
-        cf: { cacheTtl: 300, cacheEverything: true },
+        cf: { cacheTtl: bust ? 60 : 300, cacheEverything: true },
       });
       if (!r.ok) continue;
       const text = await r.text();
@@ -592,11 +600,11 @@ const getStats = async (env, fresh) => {
   };
   if (fresh) {
     try {
-      const r = await fetch(RAW + 'stats.json', { headers: { 'user-agent': 'ariston-bot/1.0 (+https://github.com/' + REPO + ')' }, cf: { cacheTtl: 60 } });
+      const r = await fetch(RAW + 'stats.json' + statsBust(), { headers: { 'user-agent': 'ariston-bot/1.0 (+https://github.com/' + REPO + ')' }, cf: { cacheTtl: 60 } });
       if (r.ok) { const j = keep(await r.json()); if (j) return j; }
     } catch (_) { /* fall through to the KV cache */ }
   }
-  return fetchTextCached(env, 'stats.json', STATS_TTL_SEC).then((s) => { try { return s ? keep(JSON.parse(s)) : null; } catch (_) { return null; } });
+  return fetchTextCached(env, 'stats.json', STATS_TTL_SEC, true).then((s) => { try { return s ? keep(JSON.parse(s)) : null; } catch (_) { return null; } });
 };
 
 /* ─────────────── mini app: initdata auth, enrichment, feedback ─────────────── */
@@ -911,7 +919,33 @@ async function isMember(env, chatId, chan) {
   const r = await api(env, 'getChatMember', { chat_id: chan.id, user_id: chatId });
   if (!r || !r.ok) return true; // fail-open: an API hiccup must never lock users out
   const st = r.result && r.result.status;
-  return st === 'member' || st === 'administrator' || st === 'creator';
+  return MEMBER_OK.has(st); // D10.1/B3 — 'restricted' users are joined too (muted ≠ left)
+}
+
+/* D10.1/B3 — membership verdict with a short KV cache so EVERY access path
+   (bot commands · mini app · /u/ feeds · broadcasts · inline) can afford to
+   ask on every hit without burning the getChatMember budget.
+   positive 30 min · negative 3 min · API hiccups stay fail-open and uncached. */
+const MEMBER_OK = new Set(['member', 'administrator', 'creator', 'restricted']);
+async function membership(env, chatId, cfg) {
+  const key = 'mem:' + chatId;
+  const hit = await kvGet(env, key);
+  if (hit === 'in') return true;
+  if (hit === 'out') return false;
+  const chan = await resolveChannel(env, cfg);
+  if (!chan) return true; // channel unresolvable → never lock users out
+  const r = await api(env, 'getChatMember', { chat_id: chan.id, user_id: chatId });
+  if (!r || !r.ok) return true; // fail-open, never cached
+  const ok = MEMBER_OK.has(r.result && r.result.status);
+  await kvPut(env, key, ok ? 'in' : 'out', ok ? 1800 : 180);
+  return ok;
+}
+
+/* pure check — sends nothing. Admins and force_join=off always pass. */
+async function gateUser(env, chatId, cfg) {
+  if (!cfg || cfg.force_join === false) return true;
+  if (await isAdmin(env, chatId, cfg)) return true;
+  return membership(env, chatId, cfg);
 }
 
 /* returns true when the user may proceed; otherwise sends the join wall */
@@ -920,7 +954,7 @@ async function gateJoin(env, chatId, cfg, lang) {
   if (await isAdmin(env, chatId, cfg)) return true;
   const chan = await resolveChannel(env, cfg);
   if (!chan) return true; // channel unresolvable → never lock users out
-  if (await isMember(env, chatId, chan)) return true;
+  if (await membership(env, chatId, cfg)) return true;
   await sendMessage(env, chatId, t(lang, 'join_wall'), {
     reply_markup: { inline_keyboard: [
       [{ text: '🔔 @' + chan.user, url: 'https://t.me/' + chan.user, style: 'primary' }],
@@ -1123,6 +1157,7 @@ async function broadcastNewRun(env) {
   const custom = renderTpl(tpl, { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) });
   for (const chatId of idx) {
     try {
+      if (!(await gateUser(env, chatId, cfg))) continue; // D10.1/B3 — no run pings for leavers
       const u = await getUser(env, chatId);
       const lang = (u && u.lang) || 'fa';
       const rows = [];
@@ -1168,6 +1203,7 @@ async function favDeathScan(env) {
     if (chatId == null) continue;
     try {
       if (await isBlocked(env, chatId)) continue;
+      if (!(await gateUser(env, chatId, cfg))) continue; // D10.1/B3 — leavers get no fav-death pings
       const favs = await favsGet(env, chatId);
       if (!favs.length) continue;
       const dead = favs.find((f) => f && f.h && isDead(f.h));
@@ -1264,6 +1300,7 @@ async function weeklyDigest(env) {
     if (chatId == null) continue;
     try {
       if (await isBlocked(env, chatId)) continue;
+      if (!(await gateUser(env, chatId, cfg))) continue; // D10.1/B3 — leavers get no weekly summary
       const guard = 'wk:sent:' + chatId + ':' + wk;
       if (await kvGet(env, guard)) continue;
       const u = await getUser(env, chatId);
@@ -1346,7 +1383,7 @@ async function dailyChannelCard(env, force = false) {
     if (now.getUTCHours() < 9) return;                       // first cron after 09:00 UTC (≈12:30 Tehran)
   }
 
-  const s = await getStats(env);
+  const s = await getStats(env, true); // D10.1/B1 — caption must quote the run the card shows
   if (!s || !s.validation || !s.scoring) return;
   if (s.validation.skipped) return; // D8/H — no honest numbers in a skip_test run
   const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
@@ -1371,6 +1408,7 @@ async function dailyChannelCard(env, force = false) {
   const origin = await kvGet(env, 'meta:origin');
   const bot = (await kvGet(env, 'meta:bot_username')) || null;
   const tplV = { date: dateStr, gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0),
+    last_run: relTime(s.generated_at, lang),
     sources_ok: fmt(s.sources_ok), sources_total: fmt(s.sources_total),
     bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
     hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
@@ -1380,6 +1418,7 @@ async function dailyChannelCard(env, force = false) {
     t(lang, 'daily_title'),
     '🗓 ' + dateStr, '',
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
+    '🕐 ' + t(lang, 'last_run', { t: relTime(s.generated_at, lang) }),
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     '📈 ' + (Object.entries(v.by_protocol_alive || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => esc(k) + ' ' + fmt(n)).join(' · ') || '—'),
     /* D7 — config bank line (matches the bank-card artwork on GitHub) */
@@ -1403,7 +1442,7 @@ async function dailyChannelCard(env, force = false) {
   /* D4.2: the brand PNG committed by CI beats the in-worker raster; text is the last resort */
   let sent = null;
   try {
-    const png = (await fetchCardPng()) || (await renderCardPNG(s));
+    const png = (await fetchCardPng(env, s)) || (await renderCardPNG(s));
     sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), { reply_markup: { inline_keyboard: rows }, disable_notification: false });
   } catch (e) { console.error('card png error', e && e.message); }
   if (!sent || !sent.ok) sent = await sendMessage(env, chan, msg, { reply_markup: { inline_keyboard: rows }, disable_notification: false });
@@ -1424,7 +1463,7 @@ async function channelDigest(env) {
     const lastMs = Date.parse(last);
     if (isFinite(lastMs) && Date.now() - lastMs < hours * 3600e3) return; // not due yet
   }
-  const s = await getStats(env);
+  const s = await getStats(env, true); // D10.1/B1 — caption must quote the run the card shows
   if (!s || !s.validation || !s.scoring) return; // golden rule: no stats → no post
   if (s.validation.skipped) return; // D8/H — no honest numbers in a skip_test run
   const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
@@ -1463,7 +1502,7 @@ async function channelDigest(env) {
   /* D4.2: digest goes out as a photo post too (the user-facing card image) */
   let sent = null;
   try {
-    const png = (await fetchCardPng()) || (await renderCardPNG(s));
+    const png = (await fetchCardPng(env, s)) || (await renderCardPNG(s));
     sent = await sendPhotoFile(env, chan, png, 'ariston-card.png', msg.slice(0, 1024), markup);
   } catch (e) { console.error('digest png error', e && e.message); }
   if (!sent || !sent.ok) sent = await sendMessage(env, chan, msg, markup);
@@ -1497,6 +1536,10 @@ const hostOf = (uri) => {
 async function handleInline(env, iq) {
   const q = String(iq.query || '').trim().toLowerCase();
   const lang = guessLang(iq.from && iq.from.language_code);
+  /* D10.1/B3 — inline mode is part of the bot too: leavers get silence */
+  if (!(await gateUser(env, iq.from && iq.from.id, await getCfg(env)))) {
+    return api(env, 'answerInlineQuery', { inline_query_id: iq.id, results: [], cache_time: 30 });
+  }
   const proto = Object.keys(INLINE_PROTOS).find((p) => q.includes(p)) || null;
   const scheme = proto ? INLINE_PROTOS[proto] : null;
   let op = null;
@@ -1592,7 +1635,35 @@ const CARD_PNG_BASES = [
   'https://raw.githubusercontent.com/' + REPO + '/main/assets/card/',
   'https://cdn.jsdelivr.net/gh/' + REPO + '@main/assets/card/',
 ];
-async function fetchCardPng() {
+/* D10.1/B1 — when was the brand card.png last committed to main?  The
+   unauthenticated atom feed answers it without burning API rate limits
+   (KV-cached 10 min).  Feed trouble → null → the caller keeps the CI card. */
+async function cardPngCommitAt(env) {
+  const hit = await kvGet(env, 'card:commit_at');
+  if (hit) return hit;
+  try {
+    const r = await fetch('https://github.com/' + REPO + '/commits/main/assets/card/card.png.atom',
+      { headers: { 'user-agent': 'ariston-bot/1.0' }, cf: { cacheTtl: 600, cacheEverything: true } });
+    if (r.ok) {
+      const m = (await r.text()).match(/<updated>([^<]+)<\/updated>/);
+      if (m && Date.parse(m[1])) { await kvPut(env, 'card:commit_at', m[1], 600); return m[1]; }
+    }
+  } catch (_) { /* fail-safe below */ }
+  return null;
+}
+
+async function fetchCardPng(env, s) {
+  /* D10.1/B1 — a card committed for an OLDER run must never ride a post whose
+     caption quotes the fresh run: that is the «card and caption don't agree»
+     bug.  If the PNG lags the stats by more than one run cycle, skip it — the
+     caller then renders the in-worker raster from the very same stats. */
+  if (env && s && s.generated_at) {
+    const commitAt = await cardPngCommitAt(env);
+    if (commitAt) {
+      const lagMin = (Date.parse(s.generated_at) - Date.parse(commitAt)) / 60000;
+      if (isFinite(lagMin) && lagMin > 20) return null;
+    }
+  }
   const bust = Math.floor(Date.now() / 300e3);
   for (const base of CARD_PNG_BASES) {
     try {
@@ -1965,6 +2036,7 @@ async function handleUpdate(env, update, origin) {
         const chan = await resolveChannel(env, cfg);
         const ok = Boolean(chan) && (await isMember(env, chatId, chan));
         await api(env, 'answerCallbackQuery', { callback_query_id: cb.id, text: t(lang, ok ? 'join_ok' : 'join_still') });
+        if (ok) await kvDel(env, 'mem:' + chatId); // D10.1/B3 — fresh membership beats the stale negative cache
         if (ok) {
           if (cbUser && cbUser.lang && cbUser.isp && cbUser.client) {
             if (cbUser.name === undefined) { cbUser.await = 'name'; await saveUser(env, chatId, cbUser); return askName(env, chatId, lang); }
@@ -2075,6 +2147,8 @@ async function buildSubscription(env, token, modeParam) {
   if (!rec || !rec.chat_id) return null;
   const user = await getUser(env, rec.chat_id);
   if (!user) return null;
+  /* D10.1/B3 — a leaver's personal feed dies with the rest of the service */
+  if (!(await gateUser(env, rec.chat_id, await getCfg(env)))) return null;
   const lang = user.lang || 'fa';
   const pcfg = await getPipelineCfg(env); // D9/G2-2 — panel-tunable caps
   const maxLines = Math.max(10, parseInt(pcfg.sub_max_lines, 10) || SUB_MAX_LINES);
@@ -2209,6 +2283,7 @@ async function appGold(env, url, request) {
   if (request && request.method === 'POST') {
     const body = await request.json().catch(() => ({}));
     const tgUser = await verifyInitData(env, body.initData);
+    if (tgUser && !(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3
     if (tgUser) {
       const u = await getUser(env, tgUser.id);
       if (u && u.name) remarkName = cleanName(u.name);
@@ -2237,6 +2312,7 @@ async function appSub(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const chatId = tgUser.id;
   let user = await getUser(env, chatId);
   if (!user) { // smoothest path: auto-profile from Telegram identity, isp=other → full tested list
@@ -2280,6 +2356,7 @@ async function appSubMode(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const mode = String(body.mode || '');
   if (!SUB_MODES.includes(mode)) return Response.json({ error: 'bad_mode' }, { status: 400 });
   const user = await getUser(env, tgUser.id);
@@ -2294,6 +2371,7 @@ async function appPref(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const theme = body.theme === 'light' ? 'light' : 'dark';
   const user = await getUser(env, tgUser.id);
   if (!user) return Response.json({ error: 'no_user' }, { status: 404 });
@@ -2307,6 +2385,7 @@ async function appFavs(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const op = body.op === 'add' ? 'add' : body.op === 'del' ? 'del' : body.op === 'clear' ? 'clear' : 'list';
   const items = await favsGet(env, tgUser.id);
   if (op === 'clear') return Response.json({ ok: true, items: await favsSet(env, tgUser.id, []) });
@@ -2335,6 +2414,7 @@ async function appMark(env, request) { // D4 — ✅/❌ "did it connect for me"
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const hash = String(body.hash || '');
   if (!/^[a-f0-9]{16}$/.test(hash)) return Response.json({ error: 'bad_hash' }, { status: 400 });
   const mark = body.mark === 'ok' ? 1 : body.mark === 'fail' ? 2 : 0;
@@ -2346,6 +2426,7 @@ async function appFeedback(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const hash = String(body.hash || '');
   if (!/^[a-f0-9]{16}$/.test(hash)) return Response.json({ error: 'bad_hash' }, { status: 400 });
   const vote = body.vote === 'up' ? 1 : body.vote === 'down' ? 2 : 0;
@@ -2359,6 +2440,7 @@ async function appHistory(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const op = body.op === 'add' ? 'add' : body.op === 'clear' ? 'clear' : 'list';
   if (op === 'clear') {
     await kvDel(env, 'hist:' + tgUser.id);
@@ -2378,6 +2460,7 @@ async function appMe(env, request) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   const u = await getUser(env, tgUser.id);
   return Response.json({
     ok: true,
@@ -2395,6 +2478,7 @@ async function guardAdmin(env, request, fn) {
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
   if (!(await isAdmin(env, tgUser.id))) return Response.json({ error: 'forbidden' }, { status: 403 });
   return fn(env, body, tgUser);
 }
@@ -2531,7 +2615,7 @@ async function adminPostNow(env, body, tgUser) {
 async function adminTestNotify(env, body, tgUser) {
   const chatId = tgUser.id;
   const kind = body.kind === 'card' ? 'card' : body.kind === 'digest' ? 'digest' : 'watchtower';
-  const s = await getStats(env);
+  const s = await getStats(env, true); // D10.1/B1 — the preview must quote the same run it shows
   if (!s || !s.validation || !s.scoring) return Response.json({ error: 'no_data' }, { status: 503 });
   await audit(env, tgUser, 'test_notify', kind); // D9/G4-5
   const u = await getUser(env, chatId);
@@ -2570,7 +2654,7 @@ async function adminTestNotify(env, body, tgUser) {
     ...bankLines,
   ].join('\n');
   try {
-    const png = (await fetchCardPng()) || (await renderCardPNG(s));
+    const png = (await fetchCardPng(env, s)) || (await renderCardPNG(s));
     const sent = await sendPhotoFile(env, chatId, png, 'ariston-card.png', msg.slice(0, 1024));
     if (sent && sent.ok) return Response.json({ ok: true, kind });
   } catch (_) { /* fall through to the text sample */ }
@@ -3418,7 +3502,7 @@ const MINI_APP_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON ⚡</title>
-<!-- app build: D8.0 — single-sub mode switch · QR · filters · favorites · light/dark · operator chips -->
+<!-- app build: D10.1 — single-sub mode switch · QR · filters · favorites · light/dark · operator chips -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3752,7 +3836,7 @@ body.light .fsearch{background:rgba(255,253,246,.8)}
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D10.0 · V4.3</span>
+    <span>D10.1 · V4.3</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -4715,6 +4799,34 @@ document.getElementById('favClear').addEventListener('click', function(ev){
 document.getElementById('qClose').addEventListener('click', function(){ document.getElementById('qmodal').classList.remove('show'); });
 document.getElementById('qmodal').addEventListener('click', function(ev){ if (ev.target.id === 'qmodal') document.getElementById('qmodal').classList.remove('show'); });
 setInterval(loadStats, 5 * 60 * 1000);
+/* D10.1/B3 — members-only wall: the first 403 «join_required» covers the app.
+   The bot, the feeds and the mini app all stop for leavers — server-side. */
+var JOIN_WALL_SHOWN = false;
+function showJoinWall(){
+  if (JOIN_WALL_SHOWN) return; JOIN_WALL_SHOWN = true;
+  var d = document.createElement('div');
+  d.id = 'joinWall';
+  d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,8,4,.96);backdrop-filter:blur(8px);text-align:center;padding:24px';
+  d.innerHTML = '<div style="font-size:44px">🔒</div>'
+    + '<div style="font-size:17px;font-weight:700;color:#E8C872">عضویت در کانال لازم است</div>'
+    + '<div style="font-size:13px;color:#b8ad93">برای استفاده از آریستون باید عضو کانال رسمی باشی. عضو شو و دکمهٔ بررسی رو بزن.</div>'
+    + '<a href="https://t.me/Ariston_CH" style="display:block;padding:12px 22px;border-radius:12px;background:#E8C872;color:#14110C;font-weight:700;text-decoration:none">🔔 عضویت در @Ariston_CH</a>'
+    + '<button onclick="location.reload()" style="padding:10px 18px;border-radius:12px;border:1px solid #E8C872;background:transparent;color:#E8C872;font-weight:600">✅ عضو شدم — بررسی کن</button>';
+  document.body.appendChild(d);
+}
+(function(){
+  var _f = window.fetch;
+  if (!_f) return;
+  window.fetch = function(){
+    var args = arguments;
+    return _f.apply(this, args).then(function(r){
+      if (r && r.status === 403){
+        try { r.clone().json().then(function(j){ if (j && j.error === 'join_required') showJoinWall(); }).catch(function(){}); } catch (e){}
+      }
+      return r;
+    });
+  };
+})();
 /* D5.2 hotfix — the Telegram script is async now: first paint never waits for
    telegram.org. Attach TG features whenever it arrives (poll ≤ 4s), then refresh personal parts. */
 function tgAttach(){
@@ -4743,7 +4855,7 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D10.0 — phase 3: pipeline filters (tier/protocol/blackwhite/geo/strictness) · settings export-restore · read-only KV browser · selective cleanup · health test · error ring · weekly summary · run-late alert · invite tiers -->
+<!-- panel build: D10.1 — phase 3: pipeline filters (tier/protocol/blackwhite/geo/strictness) · settings export-restore · read-only KV browser · selective cleanup · health test · error ring · weekly summary · run-late alert · invite tiers -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4820,7 +4932,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
 </head>
 <body><div class="wrap">
 <header>
-  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D10.0</span>
+  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D10.1</span>
 </header>
 <div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
 <div id="panel" hidden>
@@ -5050,7 +5162,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div class="row"><div><div class="k">کانال فعلی</div><div class="hint tg" id="chId">—</div></div><div class="hint tg" id="bcStatus">—</div></div>
   </div>
 
-  <div class="foot">ARISTON WORKER · D10.0 · V4.3</div>
+  <div class="foot">ARISTON WORKER · D10.1 · V4.3</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -5088,6 +5200,21 @@ function draw(){
   $('freqChips').innerHTML = ch;
   Array.prototype.forEach.call($('freqChips').querySelectorAll('.chip'), function(b){
     b.onclick = function(){ set('every_hours', parseInt(b.getAttribute('data-h'), 10)); }; });
+  drawStats();
+  drawBank();
+  drawAdmins();
+  drawBc();
+  drawPipe();
+  drawPipe2();
+  drawPipe3();
+  drawNotify();
+  drawTpl();
+  drawCronAge();
+}
+/* D10.1/B2 — the status block owns its own draw so an open panel can refresh
+   it silently every 2 minutes (the old panel stayed frozen on «70 minutes
+   ago» while the bot had already announced the new run). No inputs touched. */
+function drawStats(){
   if (S.stats){ var st = S.stats;
     $('stat').innerHTML = '<div><b data-n="' + st.gold + '">0</b><span>طلایی</span></div>' +
       '<div><b data-n="' + st.alive + '">0</b><span>سالم</span></div>' +
@@ -5099,24 +5226,22 @@ function draw(){
     });
     try { $('statTime').textContent = 'آخرین تست: ' + new Date(st.generated_at).toLocaleString('fa-IR'); }
     catch (e){ $('statTime').textContent = st.generated_at || ''; }
-    /* D8/P5 — current run status from the fresh-run timestamp */
+    /* D8/P5 + D10.1/B2 — run-lag thresholds sized for the half-hour Actions cadence
+       (30 min cron + ~15 min run + jitter → 50 min before «check Actions») */
     var lagMin = 0;
     try { lagMin = Math.max(0, (Date.now() - new Date(st.generated_at).getTime()) / 60000); } catch (e2){}
     var rs = $('runStatus');
     if (lagMin < 12){ rs.textContent = '🟢 دور اخیراً تمام شد — همه‌چیز سر جاش'; rs.style.color = 'var(--ok)'; }
-    else if (lagMin < 38){ rs.textContent = '🔵 دور بعدی احتمالاً در حال اجراست'; rs.style.color = 'var(--gold)'; }
+    else if (lagMin < 50){ rs.textContent = '🔵 دور بعدی احتمالاً در حال اجراست'; rs.style.color = 'var(--gold)'; }
     else { rs.textContent = '🔴 از آخرین دور ' + Math.round(lagMin) + ' دقیقه گذشته — Actions را چک کن'; rs.style.color = 'var(--bad)'; }
   } else { $('stat').innerHTML = '<div style="grid-column:1/-1;color:var(--dim);text-align:center;padding:6px 0">آمار در دسترس نیست</div>'; $('statTime').textContent = ''; $('runStatus').textContent = '—'; }
-  drawBank();
-  drawAdmins();
-  drawBc();
-  drawPipe();
-  drawPipe2();
-  drawPipe3();
-  drawNotify();
-  drawTpl();
-  drawCronAge();
 }
+setInterval(function(){
+  if (!S) return;
+  post('state', {}).then(function(r){
+    if (r && r.stats){ S.stats = r.stats; drawStats(); }
+  }).catch(function(){});
+}, 120000);
 /* D8/P2 — pipeline knobs (cfg:pipeline) */
 function drawPipe(){
   var p = S.pcfg || {};
