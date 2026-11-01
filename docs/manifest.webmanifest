@@ -1,0 +1,20 @@
+{
+  "name": "Ariston — engine-tested configs",
+  "short_name": "Ariston",
+  "description": "Every 30 minutes thousands of public proxy configs are collected, tested with xray-core & sing-box, and only the alive ones are served.",
+  "id": "ariston-pages",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14110C",
+  "theme_color": "#14110C",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

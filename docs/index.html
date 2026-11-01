@@ -13,6 +13,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700;800&family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314110C'/%3E%3Cpath d='M9 22 16 9l7 13' stroke='%23E8C872' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12 17h8' stroke='%23C0C6CC' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='9' r='2.2' fill='%23E8C872'/%3E%3Ccircle cx='9' cy='22' r='1.7' fill='%23B87333'/%3E%3Ccircle cx='23' cy='22' r='1.7' fill='%23B87333'/%3E%3C/svg%3E">
+<!-- D11/U4-3 — PWA: standalone install + offline shell -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
 
@@ -285,5 +291,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
 <script src="assets/app.js" defer></script>
+<script>
+/* D11/U4-3 — PWA registration: https-only, fully fail-safe (a blocked or
+   unsupported worker changes nothing about the site itself) */
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
 </body>
 </html>

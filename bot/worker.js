@@ -2387,13 +2387,15 @@ async function appPref(env, request) {
   const tgUser = await verifyInitData(env, body.initData);
   if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
   if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
-  const theme = body.theme === 'light' ? 'light' : 'dark';
   const user = await getUser(env, tgUser.id);
   if (!user) return Response.json({ error: 'no_user' }, { status: 404 });
-  user.theme = theme;
-  await saveUser(env, tgUser.id, user);
-  return Response.json({ ok: true, theme });
+  /* D11/U4-4 — boot sends {initData} only (read); the theme toggle sends
+     {initData, theme} (write). The response carries the bot-side /lang
+     choice so the mini app follows the bot's language. */
+  if (body.theme === 'light' || body.theme === 'dark') { user.theme = body.theme; await saveUser(env, tgUser.id, user); }
+  return Response.json({ ok: true, theme: user.theme === 'light' ? 'light' : 'dark', lang: (user.lang && APP_LANGS[user.lang]) ? user.lang : null });
 }
+const APP_LANGS = { fa: 1, en: 1, ru: 1, tr: 1, zh: 1 }; // D11/U4-4 — languages the mini app speaks
 
 /* D8/U3 — favorites ⭐ (add / del / clear / list) */
 async function appFavs(env, request) {
@@ -2562,6 +2564,9 @@ const ADMIN_SET_KEYS = {
   watchtower_cap: 'int:5-100', quiet_enabled: 'bool', quiet_start: 'int:0-23', quiet_end: 'int:0-23',
   /* D10/U3 — Friday personal weekly summary */
   weekly_enabled: 'bool',
+  /* D11/U4-2 — «new run» webhook URL ('' = off). api_key/webhook_secret are
+     NOT settable here — they rotate only via /app/api/admin/gen_api */
+  webhook_url: 'url',
 };
 const PCFG_SET_KEYS = {
   bank_ttl_hours: 'num:6-72', pass2_enabled: 'bool', pass2_factor: 'num:1-3',
@@ -2591,6 +2596,9 @@ async function adminSet(env, body, tgUser) {
     if (v.length < 3 || !/[A-Za-z\u0600-\u06FF]/.test(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
   } else if (spec === 'csv') { // D10/G5 — csv knob: '' is valid (= feature off)
     v = sanitizeCsv(v);
+  } else if (spec === 'url') { // D11/U4-2 — webhook URL: '' = off; else http(s), ≤300 chars
+    v = String(v || '').trim();
+    if (v && (!/^https?:\/\/.+/i.test(v) || v.length > 300)) return Response.json({ error: 'bad_value' }, { status: 400 });
   } else {
     const m = spec.match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
     v = Number(v);
@@ -2676,6 +2684,84 @@ async function adminTestNotify(env, body, tgUser) {
   } catch (_) { /* fall through to the text sample */ }
   await sendMessage(env, chatId, msg);
   return Response.json({ ok: true, kind });
+}
+
+/* ─── D11/U4-2 — keyed API + «new run» webhook ──────────────────────────────
+   Both ship OFF: /api/v1/intel answers 403 api_disabled until the panel
+   generates api_key, and the webhook stays silent until webhook_url is
+   saved. Receivers verify authenticity via x-ariston-sign =
+   sha256=HMAC-SHA256(webhook_secret, body). A webhook or API failure never
+   breaks the cron. Quiet hours do NOT apply to the webhook (machine-to-machine). */
+
+async function hmacSha256Hex(secret, message) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function postWebhook(env, url, payload) {
+  const secret = String((await getCfg(env)).webhook_secret || '');
+  const sig = secret ? { 'x-ariston-sign': 'sha256=' + (await hmacSha256Hex(secret, payload)) } : {};
+  return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', ...sig }, body: payload, signal: AbortSignal.timeout(8000) });
+}
+
+/* cron-side dispatcher: one POST per fresh publish, dedupe keyed on the
+   publish stamp; first boot records the baseline and does not fire */
+async function newRunWebhook(env) {
+  const cfg = await getCfg(env);
+  const url = String(cfg.webhook_url || '');
+  if (!url || !/^https?:\/\//i.test(url)) return; // default: off
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring || !s.generated_at) return;
+  if (s.validation.skipped) return; // a skip_test run has no honest numbers
+  const stamp = runStamp(s);
+  const last = await kvGet(env, 'hook:last_stamp');
+  if (last === stamp) return;
+  await kvPut(env, 'hook:last_stamp', stamp, 7 * 86400);
+  if (!last) return; // baseline, don't fire
+  const payload = JSON.stringify({
+    event: 'new_run',
+    bot: '@' + ((await kvGet(env, 'meta:bot_username')) || ''),
+    generated_at: s.generated_at,
+    published_at: s.published_at || null,
+    gold: s.scoring.gold || 0,
+    alive: s.validation.alive || 0,
+    probed: s.validation.probed || 0,
+    p50: Math.round((s.validation.latency_ms || {}).p50 || 0),
+    bank: { size: (s.bank && s.bank.size) || 0, hit_rate: (s.bank && s.bank.hit_rate) != null ? s.bank.hit_rate : null },
+    ts: new Date().toISOString(),
+  });
+  try {
+    const r = await postWebhook(env, url, payload);
+    if (!r.ok) await logErr(env, 'webhook', 'POST → HTTP ' + r.status);
+  } catch (e) {
+    await logErr(env, 'webhook', (e && e.message) || 'fetch failed');
+  }
+}
+
+async function adminGenApi(env, body, tgUser) {
+  const cfg = await getCfg(env);
+  cfg.api_key = crypto.randomUUID();
+  cfg.webhook_secret = crypto.randomUUID().replace(/-/g, '');
+  await putCfg(env, cfg);
+  await audit(env, tgUser, 'gen_api', 'api_key + webhook_secret rotated');
+  return Response.json({ ok: true, api_key: cfg.api_key, webhook_secret: cfg.webhook_secret });
+}
+
+async function adminTestWebhook(env, body, tgUser) {
+  const cfg = await getCfg(env);
+  const url = String(cfg.webhook_url || '');
+  if (!url) return Response.json({ error: 'no_webhook' }, { status: 400 });
+  const payload = JSON.stringify({ event: 'test', ts: new Date().toISOString() });
+  try {
+    const r = await postWebhook(env, url, payload);
+    await audit(env, tgUser, 'test_webhook', 'HTTP ' + r.status);
+    return Response.json({ ok: r.ok, status: r.status });
+  } catch (e) {
+    await audit(env, tgUser, 'test_webhook', 'ERR ' + ((e && e.message) || 'fetch'));
+    return Response.json({ ok: false, error: (e && e.message) || 'fetch_failed' });
+  }
 }
 
 /* D9/G4-1 — the user list, now with search. Numeric q = chat-id match (cheap,
@@ -3223,6 +3309,47 @@ async function rateLimit(env, request) {
   return n <= API_RATE_LIMIT;
 }
 
+/* D11/U4-2 — keyed intel endpoint: everything non-PII in one machine-readable
+   call. 403 api_disabled until the panel generates a key; the key comes via
+   ?key= or Authorization: Bearer. Same best-effort per-IP budget as the open API. */
+async function apiV1Intel(env, url, request) {
+  const cfg = await getCfg(env);
+  if (!cfg.api_key) return jsonRes({ error: 'api_disabled' }, 403);
+  const key = String(url.searchParams.get('key') || (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')).trim();
+  if (!key || key !== cfg.api_key) return jsonRes({ error: 'unauthorized' }, 401);
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring) return jsonRes({ error: 'no_data' }, 503);
+  const v = s.validation, p = v.latency_ms || {};
+  return jsonRes({
+    generated_at: s.generated_at || null,
+    published_at: s.published_at || null,
+    bot: ((await kvGet(env, 'meta:bot_username')) || '') || null,
+    channel_user: cfg.channel_user || null,
+    sources: { ok: s.sources_ok || 0, total: s.sources_total || 0, failed: s.sources_failed || {} },
+    unique: s.unique || 0,
+    validation: {
+      probed: v.probed || 0, alive: v.alive || 0, dead: v.dead || 0, unsupported: v.unsupported || 0,
+      skipped: Boolean(v.skipped),
+      latency_ms: { p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0) },
+      by_protocol_alive: v.by_protocol_alive || {},
+    },
+    scoring: s.scoring || {},
+    bank: {
+      size: (s.bank && s.bank.size) || 0,
+      hit_rate: (s.bank && s.bank.hit_rate) != null ? s.bank.hit_rate : null,
+      avg_streak: (s.bank && s.bank.avg_streak) != null ? s.bank.avg_streak : null,
+      best_streak: (s.bank && s.bank.best_streak) != null ? s.bank.best_streak : null,
+      avg_ms: (s.bank && s.bank.avg_ms) != null ? s.bank.avg_ms : null,
+      rescue: (s.bank && s.bank.rescue) || null,
+    },
+    operators: s.operators || {},
+    health_7d: s.health_7d || [],
+    pipeline_cfg: (await getPipelineCfg(env)) || {},
+    cron_last_tick: (await kvGet(env, 'cron:last_tick')) || null,
+    watch_last_run: (await kvGet(env, 'watch:last_gen')) || null,
+  });
+}
+
 async function apiV1Stats(env) {
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring) return jsonRes({ error: 'no_data' }, 503);
@@ -3307,7 +3434,7 @@ then scored. <b class="k">Only engine-tested configs are served — never dead o
 <p>Latest run summary — sources, validation latency, scoring tiers.</p>
 <pre>curl https://ariston-bot.ariston-vbot.workers.dev/api/v1/stats</pre>
 
-<h2>GET /api/v1/configs</h2>
+    <h2>GET /api/v1/configs</h2>
 <table>
 <tr><th>param</th><th>values</th><th>default</th></tr>
 <tr><td><b class="k">tier</b></td><td>gold · silver · all · validated</td><td>gold</td></tr>
@@ -3320,6 +3447,14 @@ then scored. <b class="k">Only engine-tested configs are served — never dead o
 curl '.../api/v1/configs?operator=irancell&amp;format=txt'   # paste into any client</pre>
 <p class="note">If the operator pool is too thin (&lt;10 alive), the response falls back to the
 tier pool and says so with <code>operator_fallback: true</code>.</p>
+
+<h2>GET /api/v1/intel <span class="k">keyed · off by default</span></h2>
+<p>Full non-PII snapshot (run stamps, bank telemetry, health 7d, pipeline knobs, cron tick)
+for your own automation. Enabled from the admin panel (Generate key); key via
+<code>?key=…</code> or <code>Authorization: Bearer …</code>.</p>
+<pre>curl '.../api/v1/intel?key=…'</pre>
+<p class="note">Webhook: after every publish the worker POSTs <code>{event:\'new_run\',…}</code> to the
+panel-configured URL, signed with <code>x-ariston-sign: sha256=HMAC(secret, body)</code>.</p>
 
 <h2>GET /card.svg</h2>
 <p>Brand “card of the day” (1200×630 SVG) — embed it anywhere.</p>
@@ -4790,12 +4925,31 @@ document.getElementById('histClear').addEventListener('click', function(ev){
 });
 applyTexts();
 initTheme();
-loadStats();
-loadGold(false);
-loadSub();
-loadMe();
-loadHist();
-loadFavs();
+/* D11/U4-4 — the bot's /lang choice (server user.lang) drives the mini app:
+   one boot pref read returns {theme, lang}; the server choice wins over the
+   Telegram client guess, and data loads wait for it so nothing renders in
+   two languages. Fail-open: any error boots exactly like before. */
+var booted = false;
+function finishBoot(){ if (booted) return; booted = true;
+  loadStats(); loadGold(false); loadSub(); loadMe(); loadHist(); loadFavs(); }
+if (initData){
+  fetch('/app/api/pref', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ initData: initData }) })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(p){
+      if (p && p.ok){
+        if (p.theme === 'light' || p.theme === 'dark'){ try { localStorage.setItem('ariston_theme', p.theme); } catch (e2){} applyTheme(p.theme); }
+        if (p.lang && I18N[p.lang] && p.lang !== lang){
+          lang = p.lang; dict = I18N[p.lang];
+          document.documentElement.lang = p.lang;
+          document.documentElement.dir = (p.lang === 'fa') ? 'rtl' : 'ltr';
+          applyTexts();
+        }
+      }
+    })
+    .catch(function(){})
+    .then(finishBoot);
+} else finishBoot();
+setTimeout(finishBoot, 2500); // hard fail-open: the app never hangs on the pref read
 document.getElementById('moreBtn').addEventListener('click', function(){ haptic('light'); loadGold(true); });
 document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); loadGold(false); });
 document.getElementById('heroErr').addEventListener('click', loadStats);
@@ -5070,6 +5224,19 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     </div>
   </div>
 
+  <div class="h2">API کلیددار و وب‌هوک — U4 <span class="n">پیش‌فرض خاموش</span></div>
+  <div class="card">
+    <div class="row"><div><div class="k">کلید API</div><div class="hint mono" id="apiKeyView" style="direction:ltr;text-align:left;word-break:break-all">—</div></div>
+      <div style="display:flex;gap:6px"><button class="mini" id="genApiBtn">تولید</button><button class="mini" id="copyApiBtn">کپی</button></div></div>
+    <div class="row"><div><div class="k">وب‌هوک «ران جدید»</div><div class="hint">بعد از هر انتشار POST با امضای HMAC به این URL — خالی = خاموش</div></div>
+      <input id="hookUrl" style="width:180px;text-align:left;direction:ltr" placeholder="https://example.com/hook"></div>
+    <div style="display:flex;gap:8px;padding:10px 0 2px">
+      <button class="btn" id="saveHook">ذخیرهٔ وب‌هوک</button>
+      <button class="btn ghost" id="testHook">ارسال تست</button>
+    </div>
+    <div class="hint" style="padding:4px 2px 0">امضا: هدر <span class="mono">x-ariston-sign: sha256=HMAC(secret, body)</span> · «تولید» کلید و رمز را باهم عوض می‌کند · ساعات سکوت روی وب‌هوک اعمال نمی‌شود. کلیددار: <span class="mono">/api/v1/intel?key=…</span></div>
+  </div>
+
   <div class="h2">قالب پیام‌های خودکار <span class="n">G2-4</span></div>
   <div class="card">
     <div class="hint" style="padding:8px 0 2px">خالی = متنِ داخلی پیش‌فرض. متغیرها: <span class="mono">{gold} {alive} {p50} {sources_ok} {sources_total} {bank_size} {hit} {streak} {date} {last_run}</span> — HTML مجازه.</div>
@@ -5207,6 +5374,9 @@ function draw(){
   drawTgl($('tglDigest'), S.cfg.digest_enabled !== false);
   drawTgl($('tglWatch'), S.cfg.watchtower_enabled !== false);
   drawTgl($('tglJoin'), S.cfg.force_join !== false);
+  /* D11/U4-2 — keyed API + webhook */
+  $('apiKeyView').textContent = S.cfg.api_key || 'تولید نشده';
+  $('hookUrl').value = S.cfg.webhook_url || '';
   $('refBase').value = S.cfg.ref_base || 10; $('refCap').value = S.cfg.ref_cap || 20;
   $('chName').textContent = S.channel ? ('@' + S.channel.user + ' · id ' + S.channel.id) : '— هنوز ثبت نشده —';
   $('chUserIn').value = '@' + (S.cfg.channel_user || 'Ariston_CH');
@@ -5649,6 +5819,19 @@ $('tglCard').onclick = function(){ if (S) set('card_enabled', S.cfg.card_enabled
 $('tglDigest').onclick = function(){ if (S) set('digest_enabled', S.cfg.digest_enabled === false); };
 $('tglWatch').onclick = function(){ if (S) set('watchtower_enabled', S.cfg.watchtower_enabled === false); };
 $('tglJoin').onclick = function(){ if (S) set('force_join', S.cfg.force_join === false); };
+/* D11/U4-2 — keyed API + «new run» webhook */
+$('genApiBtn').onclick = function(){ post('gen_api', {}).then(function(r){
+  if (r && r.ok){ S.cfg.api_key = r.api_key; S.cfg.webhook_secret = r.webhook_secret; draw(); toast('کلید و رمز وب‌هوک ساخته شد ✓'); }
+  else toast('خطا در تولید کلید'); }).catch(function(){ toast('خطا در تولید کلید'); }); };
+$('copyApiBtn').onclick = function(){ var k = S && S.cfg && S.cfg.api_key; if (!k) return toast('اول کلید بساز');
+  try { navigator.clipboard.writeText(k).then(function(){ toast('کلید کپی شد ✓'); }, function(){ toast('کپی نشد'); }); } catch (e){ toast('کپی نشد'); } };
+$('saveHook').onclick = function(){ if (!S) return; var u = $('hookUrl').value.trim();
+  set('webhook_url', u); toast(u ? 'وب‌هوک ذخیره شد — از ران بعد فعال می‌شود' : 'وب‌هوک خاموش شد'); };
+$('testHook').onclick = function(){ post('test_webhook', {}).then(function(r){
+  if (r && r.ok && r.status) toast('وب‌هوک پاسخ داد: HTTP ' + r.status + ' ✓');
+  else if (r && r.status) toast('پاسخ HTTP ' + r.status + ' — مقصد را چک کن');
+  else if (r && r.error === 'no_webhook') toast('اول URL وب‌هوک را ذخیره کن');
+  else toast('وب‌هوک جواب نداد — URL را چک کن'); }).catch(function(){ toast('وب‌هوک جواب نداد'); }); };
 $('saveRef').onclick = function(){ if (!S) return;
   set('ref_base', parseInt($('refBase').value, 10));
   setTimeout(function(){ set('ref_cap', parseInt($('refCap').value, 10)); }, 350); };
@@ -5990,6 +6173,8 @@ const ROUTES = {
     if (url.pathname === '/app/api/admin/state' && request.method === 'POST') return guardAdmin(env, request, adminState);
     if (url.pathname === '/app/api/admin/set' && request.method === 'POST') return guardAdmin(env, request, adminSet);
     if (url.pathname === '/app/api/admin/post_now' && request.method === 'POST') return guardAdmin(env, request, adminPostNow);
+    if (url.pathname === '/app/api/admin/gen_api' && request.method === 'POST') return guardAdmin(env, request, adminGenApi); // D11/U4-2
+    if (url.pathname === '/app/api/admin/test_webhook' && request.method === 'POST') return guardAdmin(env, request, adminTestWebhook); // D11/U4-2
     if (url.pathname === '/app/api/admin/users' && request.method === 'POST') return guardAdmin(env, request, adminUsers);
     if (url.pathname === '/app/api/admin/feedback' && request.method === 'POST') return guardAdmin(env, request, adminFeedback);
     /* ── D7 admin ops ── */
@@ -6040,6 +6225,10 @@ const ROUTES = {
       if (!(await rateLimit(env, request))) return jsonRes({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
       return apiConfigs(env, url);
     }
+    if (url.pathname === '/api/v1/intel') { // D11/U4-2 — keyed machine API (default off)
+      if (!(await rateLimit(env, request))) return jsonRes({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
+      return apiV1Intel(env, url, request);
+    }
 
     /* ── brand “card of the day” (D3/D4) ── */
     if (url.pathname === '/card.svg') {
@@ -6077,6 +6266,7 @@ const ROUTES = {
     const cfg = await getCfg(env);
     ctx.waitUntil((async () => { try { await kvPut(env, 'cron:last_tick', new Date().toISOString(), 172800); } catch (_) {} })()); // D10/G7
     if (cfg.watchtower_enabled !== false) ctx.waitUntil(broadcastNewRun(env).catch((e) => { console.error('cron error', e && e.message); return logErr(env, 'cron:watch', e && e.message); }));
+    ctx.waitUntil(newRunWebhook(env).catch((e) => { console.error('hook error', e && e.message); return logErr(env, 'cron:hook', e && e.message); })); // D11/U4-2 — independent of the watchtower toggle
     ctx.waitUntil(dailyChannelCard(env).catch((e) => { console.error('card error', e && e.message); return logErr(env, 'cron:card', e && e.message); }));
     ctx.waitUntil(channelDigest(env).catch((e) => { console.error('digest error', e && e.message); return logErr(env, 'cron:digest', e && e.message); }));
     /* D8/P3 — one-shot «اسکن کامل دستی» from the panel: consumed once a run

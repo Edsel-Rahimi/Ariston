@@ -4,10 +4,16 @@ on:
   schedule:
     - cron: "7,37 * * * *"     # every 30 minutes, at :07 and :37
     - cron: "30 20 * * 6"      # D6/C: Saturday 20:30 UTC = شنبه ۲۴:۰۰ تهران — full scan
-  workflow_dispatch: {}        # manual trigger button
+  workflow_dispatch:            # manual trigger button
+    inputs:
+      restore_bank_run:         # U4-1 — run-id whose bank-backup artifact
+        description: "Run ID whose bank-backup artifact replaces the live bank.json for this run (empty = live bank)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
+  actions: read                 # U4-1 — needed to download another run's backup artifact
 
 concurrency:
   group: pipeline
@@ -45,6 +51,28 @@ jobs:
             -o dist/bank.json || echo "no bank yet — first run"
           curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/sources-health.json?t=$(date +%s)" \
             -o dist/sources-health.json || true
+
+      # U4-1 — bank restore path: dispatch with restore_bank_run=<run-id> to
+      # rebuild today's run from an older bank snapshot (e.g. after a bad
+      # merge or an accidental quarantine wave). Missing artifact → live bank.
+      - name: Restore bank from a previous run's backup
+        if: ${{ inputs.restore_bank_run != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID="${{ inputs.restore_bank_run }}"
+          API="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?name=bank-backup"
+          URL=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "$API" \
+            | python3 -c 'import json,sys; a=json.load(sys.stdin).get("artifacts",[]); print(a[0]["archive_download_url"] if a else "")') \
+            || URL=""
+          if [ -n "$URL" ]; then
+            curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "$URL" -o /tmp/bank.zip \
+              && unzip -oq /tmp/bank.zip -d dist/ \
+              && echo "bank restored from run $RUN_ID: $(wc -c < dist/bank.json) bytes" \
+              || echo "::warning::artifact download failed — continuing with the live bank"
+          else
+            echo "::warning::no bank-backup artifact on run $RUN_ID — continuing with the live bank"
+          fi
 
       # D8/H — prefetch the previous snapshot's user-facing exports.  In a
       # normal run the pipeline overwrites them; in a panel «skip_test»
@@ -201,6 +229,19 @@ jobs:
           name: dist
           path: dist
           retention-days: 5
+
+      # U4-1 — dedicated 30-day bank backup: bank.json + source health from
+      # every run, restorable via workflow_dispatch → restore_bank_run.
+      - name: Upload bank backup artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bank-backup
+          path: |
+            dist/bank.json
+            dist/sources-health.json
+          retention-days: 30
+          if-no-files-found: ignore
 
       # OPTIONAL: mirror the data branch to any extra git remote (GitLab /
       # Codeberg / ...) — activates only when MIRROR_URL secret exists.
