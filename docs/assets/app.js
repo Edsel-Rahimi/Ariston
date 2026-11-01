@@ -48,6 +48,7 @@ const I18N = {
     kpiAliveFoot: 'هر دو موتور تأییدشون کردن', kpiGoldFoot: 'سریع‌ترین و پایدارترین‌ها', kpiUniqueFoot: 'بعد از حذف تکراری‌ها', kpiSourcesFoot: 'توی آخرین دور بدون مشکل بودن',
     bankTitle: 'بانک کانفیگ', bankSub: 'حافظهٔ خط تولید بین اجراها — TTL ۲۸ ساعت',
     bankKnown: 'خوش‌سابقه', bankHit: 'نرخ بازگشت', bankStreak: 'میانگین سابقه', bankPass2: 'نجات دور دوم',
+    healthTitle: 'سلامت ۷ روز اخیر — نرخ بازگشت بانک',
     bankHealthy: 'منبع سالم', bankSuspect: 'مشکوک', bankQ: 'قرنطینه', bankFull: 'اسکن کامل شنبه',
     pipelineTitle: 'خط تولید ', pipelineDesc: 'مسیر زندهٔ گره‌ها — هر ذرهٔ نور یه گرهٔ واقعیه.',
     analyticsTitle: 'تحلیل شبکه ', analyticsDesc: 'عددهای همین دور، دست‌نخورده.',
@@ -92,6 +93,7 @@ const I18N = {
     kpiAliveFoot: 'verified by both engines', kpiGoldFoot: 'fastest & most stable', kpiUniqueFoot: 'after full dedup', kpiSourcesFoot: 'no errors in last run',
     bankTitle: 'Config bank', bankSub: 'pipeline memory between runs — TTL 28h',
     bankKnown: 'known-good', bankHit: 'hit rate', bankStreak: 'avg streak', bankPass2: 'pass-2 rescued',
+    healthTitle: 'Last 7 days — bank hit rate',
     bankHealthy: 'healthy sources', bankSuspect: 'suspect', bankQ: 'quarantined', bankFull: 'Saturday full scan',
     pipelineTitle: 'The Pipeline ', pipelineDesc: 'The live data path — light particles are real nodes.',
     analyticsTitle: 'Network analytics ', analyticsDesc: 'This run, measured — nothing in between.',
@@ -983,8 +985,23 @@ function renderBank() {
     `<span class="bank__dot bank__dot--q"><i></i>${fmt(src.quarantined ?? 0)} ${t('bankQ')}</span>` +
     (b.full_scan ? `<span class="bank__dot"><i></i>${t('bankFull')}</span>` : '') + hit;
 }
+/* D9/U2 — 7-day health sparkline inside the bank panel (absent → hidden) */
+function renderHealth() {
+  const el = $('#healthStrip');
+  if (!el) return;
+  const log = Array.isArray(S.health_7d) ? S.health_7d.slice(-7) : [];
+  if (!log.length) { el.hidden = true; return; }
+  el.hidden = false;
+  $('#healthTitle').textContent = t('healthTitle');
+  $('#healthBars').innerHTML = log.map(d => {
+    const hit = d.hit == null ? null : Math.max(0, Math.min(100, Number(d.hit)));
+    const h = hit == null ? 6 : Math.max(6, Math.round(hit * 0.5));
+    return `<div class="health__bar"><i style="height:${h}px"${hit == null ? ' class="na"' : ''}></i>` +
+      `<span>${String(d.d || '').slice(8)}</span><b>${hit == null ? '—' : hit + '%'}</b></div>`;
+  }).join('');
+}
 function renderDynamic() {
-  renderKPIs(); renderTicker(); renderBank(); renderPipeline(); renderDonut(); renderBars();
+  renderKPIs(); renderTicker(); renderBank(); renderHealth(); renderPipeline(); renderDonut(); renderBars();
   renderLatency(); renderEngines(); renderISP(); renderImport(); renderWire(); renderSources();
   renderDownload(); observeReveals();
 }

@@ -157,6 +157,7 @@ const T = {
     btn_best: '⚡ بلیت طلایی', btn_app: '👑 داشبورد',
     best_title: '⚡ بلیت طلایی — سریع‌ترین کانفیگ سالمِ الان',
     watchtower: '🔔 <b>تست جدید تموم شد!</b>\n\n🥇 طلایی: {gold}\n❤️ سالم: {alive}\n⚡ پینگ p50: {p50}ms',
+    fav_dead: '💔 <b>محبوبت از بانک افتاد</b>\n\n⭐ یکی از کانفیگ‌های ستاره‌دارِ تو توی تست‌های امروز زنده نبود.\n🔮 شبیه‌ترین جایگزین توی مینی‌اپ منتظرته — برو توی «طلایی‌ها» بردارش:',
     inline_foot: 'کانفیگ‌های تازه هر نیم‌ساعت → {bot}', inline_none: 'ربات رو باز کن',
     help_inline: '💡 توی هر چتی می‌تونی بنویسی: {bot} irancell vless',
     daily_title: '👑 <b>کارتِ امروز آریستون</b>', daily_best: '⚡ بهترینِ امروز:', daily_svg: '🛰 کارت امروز (SVG)',
@@ -223,6 +224,7 @@ const T = {
     btn_best: '⚡ Gold ticket', btn_app: '👑 Dashboard',
     best_title: 'Gold ticket — lowest-latency alive config',
     watchtower: '🔔 <b>New run finished!</b>\n\n🥇 Gold: {gold}\n❤️ Alive: {alive}\n⚡ p50: {p50}ms',
+    fav_dead: '💔 <b>Your favorite dropped out</b>\n\n⭐ One of your starred configs did not survive today\'s tests.\n🔮 The closest look-alike is waiting in the mini-app — grab it from “Gold”:',
     inline_foot: 'fresh configs every 30 min → {bot}', inline_none: 'Open the bot',
     help_inline: 'inline in any chat: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — card of the day</b>', daily_best: '⚡ Best of the day:', daily_svg: '🛰 Card of the day (SVG)',
@@ -289,6 +291,7 @@ const T = {
     btn_best: '⚡ Золотой билет', btn_app: '👑 Панель',
     best_title: 'Золотой билет — самый быстрый живой конфиг',
     watchtower: '🔔 <b>Новый прогон завершён!</b>\n\n🥇 Gold: {gold}\n❤️ Живых: {alive}\n⚡ p50: {p50}ms',
+    fav_dead: '💔 <b>Ваш избранный отпал</b>\n\n⭐ Одна из конфигураций со звездой не прошла сегодняшние тесты.\n🔮 Самая похожая замена ждёт в мини-приложении — заберите её в «Gold»:',
     inline_foot: 'свежие конфиги каждые 30 мин → {bot}', inline_none: 'Открыть бота',
     help_inline: 'инлайн в любом чате: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — карточка дня</b>', daily_best: '⚡ Лучший за день:', daily_svg: '🛰 Карточка дня (SVG)',
@@ -355,6 +358,7 @@ const T = {
     btn_best: '⚡ Altın bilet', btn_app: '👑 Panel',
     best_title: 'Altın bilet — en düşük gecikmeli çalışan yapılandırma',
     watchtower: '🔔 <b>Yeni çalışma tamamlandı!</b>\n\n🥇 Gold: {gold}\n❤️ Çalışan: {alive}\n⚡ p50: {p50}ms',
+    fav_dead: '💔 <b>Favorin düştü</b>\n\n⭐ Yıldızlı yapılandırmalarından biri bugünün testlerini geçemedi.\n🔮 En benzer alternatif mini uygulamada sizi bekliyor — “Gold” bölümünden alın:',
     inline_foot: 'güncel yapılandırmalar her 30 dakika → {bot}', inline_none: 'Botu aç',
     help_inline: 'herhangi bir sohbette inline: {bot} irancell vless',
     daily_title: '👑 <b>Ariston — günün kartı</b>', daily_best: "⚡ Günün en iyisi:", daily_svg: '🛰 Günün kartı (SVG)',
@@ -421,6 +425,7 @@ const T = {
     btn_best: '⚡ 金牌票', btn_app: '👑 仪表盘',
     best_title: '金牌票 — 延迟最低的可用配置',
     watchtower: '🔔 <b>新一轮运行完成！</b>\n\n🥇 金牌：{gold}\n❤️ 可用：{alive}\n⚡ p50：{p50}ms',
+    fav_dead: '💔 <b>你的收藏掉队了</b>\n\n⭐ 你收藏的某个配置没能通过今天的测试。\n🔮 最相似的替代品已在小程序里等着——去「金牌」里领取：',
     inline_foot: '每 30 分钟更新可用配置 → {bot}', inline_none: '打开机器人',
     help_inline: '任意聊天内联使用：{bot} irancell vless',
     daily_title: '👑 <b>Ariston 每日卡片</b>', daily_best: '⚡ 今日最佳：', daily_svg: '🛰 今日卡片 (SVG)',
@@ -702,13 +707,23 @@ const PCFG_DEFAULT = {
   min_streak_priority: 1,
   rescue_enabled: true, rescue_min_streak: 5, rescue_max: 1500,
   skip_test: false, force_full_scan: false,
+  /* D9/G2 — panel phase 2: remark template · sub caps · export selection · smart TTL */
+  remark_tpl: 'Ariston{-GOLD}-{ping}ms',
+  sub_max_lines: 300, sub_min_op_lines: 10,
+  exports_mihomo: true, exports_singbox: true, exports_base64: true,
+  smart_ttl: true,
 };
 const PCFG_RANGE = {
   bank_ttl_hours: [6, 72], pass2_factor: [1, 3], suspect_after: [1, 10],
   quarantine_after: [2, 20], quarantine_days: [1, 30], min_streak_priority: [1, 10],
   rescue_min_streak: [2, 20], rescue_max: [0, 5000],
+  sub_max_lines: [50, 500], sub_min_op_lines: [3, 50],
 };
-const PCFG_BOOLS = ['pass2_enabled', 'rescue_enabled', 'skip_test', 'force_full_scan'];
+const PCFG_BOOLS = ['pass2_enabled', 'rescue_enabled', 'skip_test', 'force_full_scan', 'exports_mihomo', 'exports_singbox', 'exports_base64', 'smart_ttl'];
+const PCFG_STRINGS = ['remark_tpl'];
+const sanitizeTpl = (v) => String(v == null ? '' : v).replace(/[#\r\n\t]/g, ' ').trim().slice(0, 48);
+/* same truthy set as the pipeline's clamp (bank.py) → the two layers never disagree */
+const boolish = (v) => v === true || v === 1 || (typeof v === 'string' && ['1', 'true', 'yes', 'on'].includes(v.toLowerCase()));
 
 async function getPipelineCfg(env) {
   const out = { ...PCFG_DEFAULT };
@@ -716,7 +731,8 @@ async function getPipelineCfg(env) {
   if (c && typeof c === 'object') {
     for (const k of Object.keys(PCFG_DEFAULT)) {
       if (!(k in c)) continue;
-      if (PCFG_BOOLS.includes(k)) { out[k] = Boolean(c[k]); continue; }
+      if (PCFG_BOOLS.includes(k)) { out[k] = boolish(c[k]); continue; }
+      if (PCFG_STRINGS.includes(k)) { const s = sanitizeTpl(c[k]); if (s.length >= 3 && /[A-Za-z\u0600-\u06FF]/.test(s)) out[k] = s; continue; }
       const n = Number(c[k]);
       const r = PCFG_RANGE[k];
       if (isFinite(n)) out[k] = r ? Math.min(r[1], Math.max(r[0], n)) : n;  // clamp, never pass junk
@@ -756,12 +772,62 @@ async function isAdmin(env, chatId, cfg) {
   return owner !== null && owner === String(chatId);
 }
 
+/* ── D9/G4-3 — user blocking: KV `blocked:<id>` gates every bot interaction.
+   Fail-safe: a KV hiccup = the user is NOT blocked (the bot keeps serving). ── */
+async function isBlocked(env, chatId) {
+  try { return Boolean(await kvGet(env, 'blocked:' + chatId)); } catch (_) { return false; }
+}
+
+/* ── D9/G4-5 — admin activity log (append-only, last 100, fail-safe) ── */
+async function audit(env, tgUser, act, detail) {
+  try {
+    const log = (await kvGet(env, 'audit:log', 'json')) || [];
+    if (!Array.isArray(log)) return;
+    log.unshift({
+      ts: new Date().toISOString(),
+      id: tgUser && tgUser.id ? tgUser.id : null,
+      name: tgUser ? (tgUser.first_name || tgUser.username || '') : '',
+      act, d: String(detail == null ? '' : detail).slice(0, 120),
+    });
+    await kvPut(env, 'audit:log', JSON.stringify(log.slice(0, 100)));
+  } catch (_) { /* audit must never break the admin action itself */ }
+}
+
+/* ── D9/G2-4 — editable automated-message templates (KV `cfg:templates`).
+   Empty = the classic built-in text (fail-safe default). Vars: {gold} {alive}
+   {p50} {sources_ok} {sources_total} {bank_size} {hit} {streak} {date} {last_run}. ── */
+const TPL_DEFAULT = { watchtower: '', card: '', digest: '' };
+async function getTemplates(env) {
+  const t = await kvGet(env, 'cfg:templates', 'json');
+  const out = { ...TPL_DEFAULT };
+  if (t && typeof t === 'object') for (const k of Object.keys(TPL_DEFAULT)) {
+    const s = String(t[k] == null ? '' : t[k]).slice(0, 900);
+    if (s.trim()) out[k] = s;   // empty/whitespace = back to the default text
+  }
+  return out;
+}
+function renderTpl(tpl, vars) {
+  if (!tpl || typeof tpl !== 'string' || !tpl.trim()) return null; // no template → caller's default
+  try {
+    const out = tpl.replace(/\{([a-z_0-9]+)\}/g, (_, k) => (vars && k in vars ? String(vars[k] ?? '') : '')).trim();
+    return out || null;
+  } catch (_) { return null; }
+}
+
 /* plan B (escalating): ref 1–2 → +1 each · ref 3–5 → +2 each · ref 6+ → +3 each */
 function refQuota(refs, cfg) {
   const base = (cfg && cfg.ref_base) || REF_BASE;
   const cap = (cfg && cfg.ref_cap) || REF_CAP;
   const bonus = Math.min(refs, 2) + Math.min(Math.max(refs - 2, 0), 3) * 2 + Math.max(refs - 5, 0) * 3;
   return Math.min(cap, base + bonus);
+}
+
+/* D9/G4-4 — per-user quota override (admin panel): when set, it replaces the
+   referral formula entirely (clamped 0..50). null/undefined = classic behavior. */
+function resolveQuota(user, cfg) {
+  const ovr = user && user.quota_ovr;
+  if (ovr == null || !isFinite(Number(ovr))) return refQuota((user && user.ref_count) || 0, cfg);
+  return Math.min(50, Math.max(0, Math.round(Number(ovr))));
 }
 
 /* ─────────────────── forced join (official channel gate) ────────────── */
@@ -870,13 +936,15 @@ async function getOperatorMap(env) {
   return map && typeof map === 'object' ? map : {};
 }
 
-/* same golden-rule pool as the old subscription (operator → gold+silver → validated) */
-async function buildPool(env, user) {
+/* same golden-rule pool as the old subscription (operator → gold+silver → validated).
+   D9/G2-2 — the «operator file too small» threshold is panel-tunable. */
+async function buildPool(env, user, pcfg) {
   let lines = [], usedFallback = false;
+  const minOp = Math.max(1, parseInt((pcfg && pcfg.sub_min_op_lines) || SUB_MIN_OP_LINES, 10) || SUB_MIN_OP_LINES);
   if (user.isp && user.isp !== 'other') {
     lines = toLines(await fetchTextCached(env, 'by-operator/' + user.isp + '.txt', FILE_TTL_SEC));
   }
-  if (lines.length < SUB_MIN_OP_LINES) {
+  if (lines.length < minOp) {
     const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC));
     const silver = toLines(await fetchTextCached(env, 'silver.txt', FILE_TTL_SEC));
     lines = [...new Set([...gold, ...silver])];
@@ -893,10 +961,11 @@ async function buildPool(env, user) {
  * a different slice of the quality-ordered pool (rank + seeded jitter window),
  * so load spreads over many configs instead of hammering the same top-10.
  */
-async function allocateSub(env, user) {
+async function allocateSub(env, user, chatId) {
   const rot = user.rotation === 'run' ? 'run' : 'day';
   const cfg = await getCfg(env);
-  const quota = refQuota(user.ref_count || 0, cfg); // 10 base → up to 20 via referrals
+  const pcfg = await getPipelineCfg(env);
+  const quota = resolveQuota(user, cfg); // D9/G4-4: override wins, else referral formula
   let period;
   if (rot === 'run') { const s = await getStats(env); period = (s && s.generated_at) || tehranDate(); }
   else period = tehranDate();
@@ -904,7 +973,7 @@ async function allocateSub(env, user) {
   if (prev && prev.period === period && Array.isArray(prev.items) && prev.items.length === quota) {
     return { ...prev, rotation: rot };
   }
-  const { lines, usedFallback } = await buildPool(env, user);
+  const { lines, usedFallback } = await buildPool(env, user, pcfg);
   if (!lines.length) return null;
   const latmap = await getLatencyMap(env);
   const scored = [];
@@ -919,6 +988,21 @@ async function allocateSub(env, user) {
   const rnd = mulberry32(fnv(String(user.token) + '|' + period));
   const keyed = order.map((idx, rank) => ({ idx, key: rank + Math.floor(rnd() * spread) }));
   keyed.sort((a, b) => a.key - b.key);
+  /* D9/U2 — personalization: the user's own ✅/❌ marks re-weight the draw.
+     ✅-marked configs float ~14 ranks up, ❌-marked sink ~14 ranks down (the
+     seeded jitter window is ≤50). No marks at all → bit-identical to before. */
+  if (chatId != null) {
+    const marks = await marksGet(env, chatId);
+    if (marks && Object.keys(marks).length) {
+      let touched = false;
+      for (const k of keyed) {
+        const m = marks[scored[k.idx].hash];
+        if (m === 1) { k.key -= 14; touched = true; }
+        else if (m === 2) { k.key += 14; touched = true; }
+      }
+      if (touched) keyed.sort((a, b) => a.key - b.key);
+    }
+  }
   const items = keyed.slice(0, quota).map((k) => scored[k.idx]);
   const out = { period, rotation: rot, created: new Date().toISOString(), usedFallback, items };
   await kvPut(env, 'alloc:' + user.token, JSON.stringify(out), 172800);
@@ -972,6 +1056,9 @@ async function broadcastNewRun(env) {
   const cap = Math.min(100, Math.max(1, parseInt(cfg.watchtower_cap, 10) || 20));
   const idx = ((await kvGet(env, 'users:index', 'json')) || []).slice(-cap); // free-plan subrequest budget
   const v = s.validation, p = v.latency_ms || {};
+  /* D9/G2-4 — panel template override (empty = the built-in text) */
+  const tpl = (await getTemplates(env)).watchtower;
+  const custom = renderTpl(tpl, { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) });
   for (const chatId of idx) {
     try {
       const u = await getUser(env, chatId);
@@ -979,12 +1066,73 @@ async function broadcastNewRun(env) {
       const rows = [];
       if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
       rows.push([{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }]);
-      await sendMessage(env, chatId, t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
+      await sendMessage(env, chatId, custom || t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
     } catch (_) { /* keep broadcasting */ }
   }
 }
 
 /* ─────────────────── daily channel card (official channel) ────────────────── */
+
+/* ─────── D9/U2 — «محبوبت مُرد»: a starred config died → tell its fan.
+   Detection: the fav's hash is neither in gold nor alive in results.json.
+   Suggestion: the closest gold config (same protocol first, then best ping).
+   Budget: 12 users per cron tick (cursor loops the user index), one message
+   per dead fav per week (KV guard, 7d TTL), quiet hours respected. ─────── */
+const FAVSCAN_CHUNK = 12;
+async function favDeathScan(env) {
+  const cfg = await getCfg(env);
+  if (inQuietHours(cfg)) return;
+  const s = await getStats(env);
+  if (!s || !s.validation || !s.scoring || s.validation.skipped) return;
+  const origin = await kvGet(env, 'meta:origin');
+  if (!origin) return;
+  /* the gold shelf + results.json = the «is it really gone» evidence */
+  const gold = await getEnrichedGold(env);
+  if (!gold.length) return;
+  const goldHashes = new Set(gold.map((g) => g.hash));
+  let res = {};
+  try { res = JSON.parse((await fetchTextCached(env, 'results.json', 1800)) || '{}') || {}; } catch (_) {}
+  const isDead = (h) => !goldHashes.has(h) && (!res[h] || !res[h].last_ok
+    || (Date.now() - Date.parse(res[h].last_ok)) > 12 * 3600e3);
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  const total = idx.length;
+  if (!total) return;
+  let cursor = parseInt((await kvGet(env, 'favscan:cursor')) || '0', 10) || 0;
+  if (cursor >= total) cursor = 0; // wrapped around — start a fresh lap
+  let sent = 0;
+  const end = Math.min(total, cursor + FAVSCAN_CHUNK);
+  for (; cursor < end && sent < FAVSCAN_CHUNK; cursor++) {
+    const chatId = idx[total - 1 - cursor]; // newest users first
+    if (chatId == null) continue;
+    try {
+      if (await isBlocked(env, chatId)) continue;
+      const favs = await favsGet(env, chatId);
+      if (!favs.length) continue;
+      const dead = favs.find((f) => f && f.h && isDead(f.h));
+      if (!dead) continue;
+      const guard = 'favdead:' + chatId + ':' + dead.h;
+      if (await kvGet(env, guard)) continue; // already mourned this one
+      /* closest look-alike: same protocol first, then the lowest ping */
+      const pool = dead.p ? gold.filter((g) => String(g.uri).startsWith(dead.p + '://')) : [];
+      const cand = (pool.length ? pool : gold)
+        .filter((g) => g.hash !== dead.h)
+        .sort((a, b) => (a.latency_ms ?? 9e9) - (b.latency_ms ?? 9e9))[0];
+      if (!cand) continue;
+      const u = await getUser(env, chatId);
+      const lang = (u && u.lang) || 'fa';
+      const rows = [];
+      if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+      rows.push([{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }]);
+      const lat = cand.latency_ms != null ? Math.round(cand.latency_ms) + 'ms' : '—';
+      await sendMessage(env, chatId,
+        t(lang, 'fav_dead') + '\n⚡ ' + t(lang, 'btn_best') + ': ~' + lat,
+        { reply_markup: { inline_keyboard: rows } });
+      await kvPut(env, guard, '1', 7 * 86400); // one eulogy per fav per week
+      sent++;
+    } catch (_) { /* keep scanning */ }
+  }
+  await kvPut(env, 'favscan:cursor', String(cursor >= total ? 0 : cursor), 172800);
+}
 
 async function dailyChannelCard(env, force = false) {
   const cfg = await getCfg(env);
@@ -1023,7 +1171,13 @@ async function dailyChannelCard(env, force = false) {
 
   const origin = await kvGet(env, 'meta:origin');
   const bot = (await kvGet(env, 'meta:bot_username')) || null;
-  const msg = [
+  const tplV = { date: dateStr, gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0),
+    sources_ok: fmt(s.sources_ok), sources_total: fmt(s.sources_total),
+    bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
+    hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
+    streak: s.bank && s.bank.avg_streak != null ? s.bank.avg_streak : '—' };
+  const tplMsg = renderTpl((await getTemplates(env)).card, tplV);
+  const msg = tplMsg || [
     t(lang, 'daily_title'),
     '🗓 ' + dateStr, '',
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
@@ -1076,7 +1230,14 @@ async function channelDigest(env) {
   if (s.validation.skipped) return; // D8/H — no honest numbers in a skip_test run
   const lang = (await kvGet(env, 'meta:channel_lang')) || 'fa';
   const v = s.validation, p = v.latency_ms || {};
-  const msg = [
+  const tplV = { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0),
+    sources_ok: fmt(s.sources_ok), sources_total: fmt(s.sources_total),
+    last_run: relTime(s.generated_at, lang),
+    bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
+    hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
+    streak: s.bank && s.bank.avg_streak != null ? s.bank.avg_streak : '—' };
+  const tplMsg = renderTpl((await getTemplates(env)).digest, tplV);
+  const msg = tplMsg || [
     t(lang, 'digest_title'),
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
@@ -1536,6 +1697,13 @@ async function cmdBest(env, chatId, lang, origin) {
 /* ─────────────────────────── update router (webhook) ──────────────────────── */
 
 async function handleUpdate(env, update, origin) {
+  /* D9/G4-3 — blocked users are silently ignored (message · callback · inline).
+     Fail-safe: a KV error above already treats them as not-blocked. */
+  const blkId = (update.message && update.message.chat && update.message.chat.id)
+    || (update.callback_query && update.callback_query.message && update.callback_query.message.chat && update.callback_query.message.chat.id)
+    || (update.inline_query && update.inline_query.from && update.inline_query.from.id);
+  if (blkId != null && await isBlocked(env, blkId)) return;
+
   const iq = update.inline_query;
   if (iq) {
     try { return await handleInline(env, iq); }
@@ -1703,6 +1871,8 @@ async function buildSubscription(env, token, modeParam) {
   const user = await getUser(env, rec.chat_id);
   if (!user) return null;
   const lang = user.lang || 'fa';
+  const pcfg = await getPipelineCfg(env); // D9/G2-2 — panel-tunable caps
+  const maxLines = Math.max(10, parseInt(pcfg.sub_max_lines, 10) || SUB_MAX_LINES);
   const mode = SUB_MODES.includes(modeParam) ? modeParam
     : (SUB_MODES.includes(user.sub_mode) ? user.sub_mode : 'mix');
   const name = cleanName(user.name);
@@ -1713,7 +1883,7 @@ async function buildSubscription(env, token, modeParam) {
   ].join('\n');
 
   const goldOnly = async () => {
-    const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC)).slice(0, SUB_MAX_LINES);
+    const gold = toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC)).slice(0, maxLines);
     if (!gold.length) return null;
     const title = 'ARISTON ⭐ GOLD';
     return { body: b64(mkHeader(title) + '\n' + gold.join('\n')), title, count: gold.length, mode };
@@ -1722,7 +1892,7 @@ async function buildSubscription(env, token, modeParam) {
   if (mode === 'gold') return goldOnly();
 
   /* D4: personalized picks (stable per rotation period) with brand remarks */
-  const alloc = await allocateSub(env, user);
+  const alloc = await allocateSub(env, user, rec.chat_id);
   if (!alloc || !alloc.items || !alloc.items.length) {
     if (mode === 'mine') return null;      // classic behavior preserved
     return goldOnly();                     // mix with an empty personal shelf → gold
@@ -1733,7 +1903,7 @@ async function buildSubscription(env, token, modeParam) {
   if (mode === 'mix') {
     const seen = new Set(lines.map((l) => l.split('#')[0]));
     for (const g of toLines(await fetchTextCached(env, 'gold.txt', FILE_TTL_SEC))) {
-      if (count >= SUB_MAX_LINES) break;
+      if (count >= maxLines) break;
       const base = g.split('#')[0];
       if (!base || seen.has(base)) continue;
       seen.add(base);
@@ -1817,6 +1987,8 @@ async function appStats(env) {
       sources: s.bank.sources || null,
       full_scan: Boolean(s.bank.full_scan),
     } : null,
+    /* D9/U2 — 7-day health log for the mini-app sparkline (absent → hidden) */
+    health_7d: Array.isArray(s.health_7d) ? s.health_7d.slice(-8) : null,
     bot: (await kvGet(env, 'meta:bot_username')) || null,
     stale,
   });
@@ -1882,7 +2054,7 @@ async function appSub(env, request) {
   const uname = cleanName(user.name); // D5: the name saved in the bot travels onto every copy
   let items = [];
   try { // D4: the personalized picks + the user's own connect marks
-    const alloc = await allocateSub(env, user);
+    const alloc = await allocateSub(env, user, chatId);
     if (alloc && Array.isArray(alloc.items)) {
       const marks = await marksGet(env, chatId);
       items = alloc.items.map((it) => ({
@@ -2044,6 +2216,9 @@ async function adminState(env) {
     owner: owner || null,
     admins,
     bc,
+    /* D9/G2-4 — the editable message templates + the audit log size */
+    tpl: await getTemplates(env),
+    audit_n: ((await kvGet(env, 'audit:log', 'json')) || []).length || 0,
     /* D8/P1 — the pipeline knobs, exactly what /api/pipeline-cfg serves */
     pcfg: await getPipelineCfg(env),
     now: new Date().toISOString(), // client computes run-lag from this
@@ -2084,9 +2259,12 @@ const PCFG_SET_KEYS = {
   min_streak_priority: 'int:1-10', rescue_enabled: 'bool',
   rescue_min_streak: 'int:2-20', rescue_max: 'int:0-5000',
   skip_test: 'bool', force_full_scan: 'bool',
+  /* D9/G2 — panel phase 2 */
+  remark_tpl: 'tpl', sub_max_lines: 'int:50-500', sub_min_op_lines: 'int:3-50',
+  exports_mihomo: 'bool', exports_singbox: 'bool', exports_base64: 'bool', smart_ttl: 'bool',
 };
 
-async function adminSet(env, body) {
+async function adminSet(env, body, tgUser) {
   const key = String(body.key || '');
   const spec = ADMIN_SET_KEYS[key] || PCFG_SET_KEYS[key];
   if (!spec) return Response.json({ error: 'bad_key' }, { status: 400 });
@@ -2095,6 +2273,9 @@ async function adminSet(env, body) {
   else if (spec === 'handle') {
     v = String(v || '').replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '');
     if (v.length < 4) return Response.json({ error: 'bad_value' }, { status: 400 });
+  } else if (spec === 'tpl') { // D9/G2-1 — remark template: no '#', 3..48 chars, must contain a letter
+    v = sanitizeTpl(v);
+    if (v.length < 3 || !/[A-Za-z\u0600-\u06FF]/.test(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
   } else {
     const m = spec.match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
     v = Number(v);
@@ -2111,19 +2292,22 @@ async function adminSet(env, body) {
     const pc = await getPipelineCfg(env);
     pc[key] = v;
     await putPipelineCfg(env, pc);
+    await audit(env, tgUser, 'set:' + key, v); // D9/G4-5
     return Response.json({ ok: true, key, value: v });
   }
   const cfg = await getCfg(env);
   cfg[key] = v;
   await putCfg(env, cfg);
   if (key === 'channel_user') await kvDel(env, 'meta:channel'); // force re-resolve
+  await audit(env, tgUser, 'set:' + key, v); // D9/G4-5
   return Response.json({ ok: true, key, value: v });
 }
 
-async function adminPostNow(env, body) {
+async function adminPostNow(env, body, tgUser) {
   const kind = body.kind === 'digest' ? 'digest' : 'card';
   if (kind === 'card') await dailyChannelCard(env, true);
   else { await kvDel(env, 'ch:last_post'); await channelDigest(env); }
+  await audit(env, tgUser, 'post_now', kind); // D9/G4-5
   return Response.json({ ok: true, kind });
 }
 
@@ -2134,6 +2318,7 @@ async function adminTestNotify(env, body, tgUser) {
   const kind = body.kind === 'card' ? 'card' : body.kind === 'digest' ? 'digest' : 'watchtower';
   const s = await getStats(env);
   if (!s || !s.validation || !s.scoring) return Response.json({ error: 'no_data' }, { status: 503 });
+  await audit(env, tgUser, 'test_notify', kind); // D9/G4-5
   const u = await getUser(env, chatId);
   const lang = (u && u.lang) || 'fa';
   const v = s.validation, p = v.latency_ms || {};
@@ -2142,7 +2327,9 @@ async function adminTestNotify(env, body, tgUser) {
     const rows = [];
     if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
     rows.push([{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }]);
-    await sendMessage(env, chatId, '🧪 ' + t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
+    /* D9/G2-4 — the template (when set) IS the preview; 🧪 marks the sample */
+    const custom = renderTpl((await getTemplates(env)).watchtower, { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) });
+    await sendMessage(env, chatId, '🧪 ' + (custom || t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) })), { reply_markup: { inline_keyboard: rows } });
     return Response.json({ ok: true, kind });
   }
   const bankLines = s.bank && s.bank.size != null ? [
@@ -2151,7 +2338,18 @@ async function adminTestNotify(env, body, tgUser) {
   ] : [];
   const head = kind === 'card' ? [t(lang, 'daily_title'), '🧪 ' + (u && u.lang === 'fa' ? 'نمونهٔ تستی' : 'test preview'), '']
                               : [t(lang, 'digest_title'), '🧪 ' + (u && u.lang === 'fa' ? 'نمونهٔ تستی' : 'test preview'), ''];
-  const msg = [...head,
+  /* D9/G2-4 — preview the saved template when there is one, else the classic text */
+  const tpls = await getTemplates(env);
+  const custom = renderTpl(kind === 'card' ? tpls.card : tpls.digest, {
+    date: (() => { try { return new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Tehran' }).format(new Date()); } catch (_) { return ''; } })(),
+    gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0),
+    sources_ok: fmt(s.sources_ok), sources_total: fmt(s.sources_total),
+    bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
+    hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
+    streak: s.bank && s.bank.avg_streak != null ? s.bank.avg_streak : '—',
+    last_run: relTime(s.generated_at, lang),
+  });
+  const msg = custom ? '🧪 ' + custom : [...head,
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     ...bankLines,
@@ -2165,22 +2363,158 @@ async function adminTestNotify(env, body, tgUser) {
   return Response.json({ ok: true, kind });
 }
 
+/* D9/G4-1 — the user list, now with search. Numeric q = chat-id match (cheap,
+   index-only). Text q = newest-first scan, 30 records per call (free-plan
+   subrequest budget) with a server-side cursor the panel keeps pulling. */
 async function adminUsers(env, body) {
   const idx = (await kvGet(env, 'users:index', 'json')) || [];
   const total = Array.isArray(idx) ? idx.length : 0;
-  const off = Math.max(parseInt(body.offset, 10) || 0, 0);
+  const q = String(body.q || '').trim().toLowerCase();
   const limit = Math.min(Math.max(parseInt(body.limit, 10) || 30, 1), 100);
+  const mk = (id, u) => ({
+    chat_id: String(id), name: (u && u.name) || null, tg: (u && u.tg) || null,
+    lang: (u && u.lang) || '—', isp: (u && u.isp) || '—', client: (u && u.client) || '—',
+    refs: (u && u.ref_count) || 0, since: (u && u.created) || null,
+    blocked: Boolean(u && u.blocked), quota_ovr: (u && u.quota_ovr != null) ? u.quota_ovr : null,
+  });
+  if (q && /^\d+$/.test(q)) { // id search — pure index scan, no extra KV reads
+    const hits = idx.filter((id) => String(id).includes(q));
+    const off = Math.max(parseInt(body.offset, 10) || 0, 0);
+    const slice = hits.slice(off, off + limit);
+    const items = [];
+    for (const id of slice) items.push(mk(id, await getUser(env, id)));
+    return Response.json({ total: hits.length, offset: off, items, q });
+  }
+  if (q) { // name / username search — cursor scan, 30 records max per call
+    const from = Math.min(Math.max(parseInt(body.scan_from, 10) || total, 0), total); // start at the newest
+    const scanN = Math.min(30, from);
+    const items = [];
+    let i = from - 1;
+    for (; i >= from - scanN && i >= 0; i--) {
+      const id = idx[i];
+      const u = await getUser(env, id);
+      const name = String((u && (u.name || u.tg)) || '').toLowerCase();
+      if (name.includes(q)) items.push(mk(id, u));
+      if (items.length >= limit) break;
+    }
+    return Response.json({ total, offset: 0, items, q, scanned_to: i + 1, next: i + 1 > 0 && items.length < limit });
+  }
+  const off = Math.max(parseInt(body.offset, 10) || 0, 0);
   const slice = idx.slice(Math.max(0, total - off - limit), Math.max(0, total - off)).reverse(); // newest first
   const items = [];
   for (const id of slice) {
-    const u = await getUser(env, id);
-    items.push({
-      chat_id: id, name: (u && u.name) || null, tg: (u && u.tg) || null,
-      lang: (u && u.lang) || '—', isp: (u && u.isp) || '—', client: (u && u.client) || '—',
-      refs: (u && u.ref_count) || 0, since: (u && u.created) || null,
-    });
+    items.push(mk(id, await getUser(env, id)));
   }
   return Response.json({ total, offset: off, items });
+}
+
+/* ─────── D9/G4 — user management: profile · block · quota · group reset ────── */
+
+/* G4-2 — full profile: identity · prefs · quota · history/votes/favs counters */
+async function adminUserProfile(env, body) {
+  const id = String(body.id || '').replace(/\D/g, '');
+  if (!id) return Response.json({ error: 'bad_id' }, { status: 400 });
+  const u = await getUser(env, id);
+  if (!u) return Response.json({ error: 'no_user' }, { status: 404 });
+  const cfg = await getCfg(env);
+  const [marks, favs, hist, blocked] = await Promise.all([
+    marksGet(env, id), favsGet(env, id), historyGet(env, id), kvGet(env, 'blocked:' + id, 'json'),
+  ]);
+  const mvals = Object.values(marks || {});
+  return Response.json({
+    chat_id: id, name: u.name || null, tg: u.tg || null,
+    lang: u.lang || 'fa', isp: u.isp || '—', client: u.client || '—',
+    ref_count: u.ref_count || 0, quota: resolveQuota(u, cfg), quota_ovr: u.quota_ovr != null ? u.quota_ovr : null,
+    rotation: u.rotation === 'run' ? 'run' : 'day', sub_mode: u.sub_mode || 'mix',
+    theme: u.theme || null, created: u.created || null, token: u.token || null,
+    marks_ok: mvals.filter((v) => v === 1).length, marks_fail: mvals.filter((v) => v === 2).length,
+    favs: Array.isArray(favs) ? favs.length : 0, hist: Array.isArray(hist) ? hist.length : 0,
+    blocked: blocked ? { ts: blocked.ts || null, reason: blocked.reason || '' } : null,
+    last_alloc: (u.token ? (await kvGet(env, 'alloc:' + u.token, 'json')) || null : null)?.created || null,
+  });
+}
+
+/* G4-3 — block / unblock. Admins and the owner can never be blocked. */
+async function adminUserBlock(env, body, tgUser) {
+  const id = String(body.id || '').replace(/\D/g, '');
+  if (!id) return Response.json({ error: 'bad_id' }, { status: 400 });
+  if (await isAdmin(env, id)) return Response.json({ error: 'is_admin' }, { status: 400 });
+  const on = body.on !== false;
+  if (on) {
+    await kvPut(env, 'blocked:' + id, JSON.stringify({ ts: new Date().toISOString(), by: tgUser ? tgUser.id : null, reason: String(body.reason || '').slice(0, 140) }));
+  } else {
+    await kvDel(env, 'blocked:' + id);
+  }
+  const u = await getUser(env, id); // display flag only — the KV key above is the gate
+  if (u) { u.blocked = on; await saveUser(env, id, u); }
+  await audit(env, tgUser, on ? 'block' : 'unblock', id);
+  return Response.json({ ok: true, id, blocked: on });
+}
+
+/* G4-4 — personal quota override (value = null → back to the referral formula) */
+async function adminUserQuota(env, body, tgUser) {
+  const id = String(body.id || '').replace(/\D/g, '');
+  if (!id) return Response.json({ error: 'bad_id' }, { status: 400 });
+  const u = await getUser(env, id);
+  if (!u) return Response.json({ error: 'no_user' }, { status: 404 });
+  if (body.value == null || body.value === '') delete u.quota_ovr;
+  else {
+    const n = Math.round(Number(body.value));
+    if (!isFinite(n)) return Response.json({ error: 'bad_value' }, { status: 400 });
+    u.quota_ovr = Math.min(50, Math.max(0, n));
+  }
+  await saveUser(env, id, u);
+  if (u.token) await kvDel(env, 'alloc:' + u.token); // new quota applies on the next pull
+  await audit(env, tgUser, 'quota', id + ' → ' + (u.quota_ovr != null ? u.quota_ovr : 'auto'));
+  return Response.json({ ok: true, id, quota_ovr: u.quota_ovr != null ? u.quota_ovr : null });
+}
+
+/* G4-4 — group reset: clear EVERY user's quota override (chunked cursor job —
+   free-plan subrequest budget, same pattern as the broadcast sender). */
+async function adminQuotaReset(env, body, tgUser) {
+  const op = String(body.op || 'step');
+  if (op === 'cancel') { await kvDel(env, 'qr:cursor'); await kvPut(env, 'qr:active', '0'); return Response.json({ ok: true, active: false }); }
+  if (op === 'status') return Response.json({ ok: true, active: (await kvGet(env, 'qr:active')) === '1', cursor: parseInt((await kvGet(env, 'qr:cursor')) || '0', 10) });
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  const total = Array.isArray(idx) ? idx.length : 0;
+  if (op === 'start') { await kvPut(env, 'qr:cursor', '0'); await kvPut(env, 'qr:active', '1'); await audit(env, tgUser, 'quota_reset', 'start · ' + total + ' users'); }
+  if ((await kvGet(env, 'qr:active')) !== '1') return Response.json({ ok: true, active: false, cursor: 0, total });
+  let cursor = Math.max(parseInt((await kvGet(env, 'qr:cursor')) || '0', 10), 0);
+  let cleared = 0, examined = 0;
+  const CH = 30;
+  while (cursor < total && examined < CH) {
+    const id = idx[total - 1 - cursor]; // newest first
+    if (id != null) {
+      const u = await getUser(env, id);
+      if (u && u.quota_ovr != null) { delete u.quota_ovr; await saveUser(env, id, u); cleared++; }
+    }
+    cursor++; examined++;
+  }
+  await kvPut(env, 'qr:cursor', String(cursor));
+  if (cursor >= total) { await kvPut(env, 'qr:active', '0'); await audit(env, tgUser, 'quota_reset', 'done · ' + total + ' users'); }
+  return Response.json({ ok: true, active: cursor < total, cursor, total, cleared, examined });
+}
+
+/* G4-5 — read the audit log (newest first) */
+async function adminAudit(env, body) {
+  const log = (await kvGet(env, 'audit:log', 'json')) || [];
+  const n = Math.min(Math.max(parseInt(body.limit, 10) || 30, 1), 100);
+  return Response.json({ ok: true, total: Array.isArray(log) ? log.length : 0, items: (Array.isArray(log) ? log : []).slice(0, n) });
+}
+
+/* G2-4 — save the editable message templates (empty string = built-in text) */
+async function adminTemplates(env, body, tgUser) {
+  const cur = await getTemplates(env);
+  const next = { ...cur };
+  for (const k of Object.keys(TPL_DEFAULT)) {
+    if (k in body) {
+      const s = String(body[k] == null ? '' : body[k]).slice(0, 900);
+      next[k] = s.trim() ? s : '';   // empty = back to the built-in text
+    }
+  }
+  await kvPut(env, 'cfg:templates', JSON.stringify(next));
+  await audit(env, tgUser, 'templates', Object.keys(body).filter((k) => k in TPL_DEFAULT).join(','));
+  return Response.json({ ok: true, tpl: await getTemplates(env) });
 }
 
 /* ─── D7 — admin ops: admins · broadcast · purge · scoped commands ───────── */
@@ -2215,7 +2549,7 @@ async function syncAdminCommands(env) {
   return { global: Boolean(glob && glob.ok), admins: scopes };
 }
 
-async function adminAdmins(env, body) {
+async function adminAdmins(env, body, tgUser) {
   const cfg = await getCfg(env);
   const owner = await kvGet(env, 'meta:owner');
   const id = String(body.id || '').trim();
@@ -2223,10 +2557,11 @@ async function adminAdmins(env, body) {
     if (id === String(owner)) return Response.json({ error: 'owner' }, { status: 400 });
     cfg.admin_ids = (cfg.admin_ids || []).filter((x) => String(x) !== id);
     await putCfg(env, cfg);
+    await audit(env, tgUser, 'admin_remove', id); // D9/G4-5
   } else {
     if (!/^\d{3,20}$/.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 });
     cfg.admin_ids = cfg.admin_ids || [];
-    if (!cfg.admin_ids.map(String).includes(id)) { cfg.admin_ids.push(Number(id)); await putCfg(env, cfg); }
+    if (!cfg.admin_ids.map(String).includes(id)) { cfg.admin_ids.push(Number(id)); await putCfg(env, cfg); await audit(env, tgUser, 'admin_add', id); }
   }
   await syncAdminCommands(env); // the menu updates right away
   const admins = [];
@@ -2238,11 +2573,12 @@ async function adminAdmins(env, body) {
 /* D7 — chunked broadcast: sends BC_CHUNK messages per call, the panel loops
    until remaining === 0.  Progress lives in KV, so it survives reloads. */
 const BC_CHUNK = 25;
-async function adminBroadcast(env, body) {
+async function adminBroadcast(env, body, tgUser) {
   const op = body.op === 'start' ? 'start' : body.op === 'cancel' ? 'cancel' : body.op === 'status' ? 'status' : 'step';
   if (op === 'cancel') {
     await kvDel(env, 'bc:active');
     await kvDel(env, 'bc:text');
+    await audit(env, tgUser, 'broadcast', 'cancel');
     const total = parseInt((await kvGet(env, 'bc:total')) || '0', 10);
     const cursor = parseInt((await kvGet(env, 'bc:cursor')) || '0', 10);
     const fails = parseInt((await kvGet(env, 'bc:fails')) || '0', 10);
@@ -2258,6 +2594,7 @@ async function adminBroadcast(env, body) {
     await kvPut(env, 'bc:cursor', '0', 86400);
     await kvPut(env, 'bc:fails', '0', 86400);
     await kvPut(env, 'bc:active', '1', 86400);
+    await audit(env, tgUser, 'broadcast', 'start · ' + text.length + ' chars');
   }
   if (op === 'status') {
     const total = parseInt((await kvGet(env, 'bc:total')) || '0', 10);
@@ -2287,7 +2624,7 @@ async function adminBroadcast(env, body) {
 }
 
 /* D7 — drop the data-branch caches so everything re-fetches fresh */
-async function adminPurge(env) {
+async function adminPurge(env, body, tgUser) {
   let purged = 0;
   try {
     for (const prefix of ['file:', 'rich:']) {
@@ -2299,11 +2636,13 @@ async function adminPurge(env) {
       } while (cursor && purged < 500);
     }
   } catch (_) { /* KV hiccup → whatever we collected */ }
+  await audit(env, tgUser, 'purge', purged + ' keys'); // D9/G4-5
   return Response.json({ ok: true, purged });
 }
 
-async function adminSyncCmds(env) {
+async function adminSyncCmds(env, body, tgUser) {
   const r = await syncAdminCommands(env);
+  await audit(env, tgUser, 'sync_cmds', r && r.admins != null ? r.admins + ' scopes' : ''); // D9/G4-5
   return Response.json({ ok: true, ...r });
 }
 
@@ -2731,6 +3070,14 @@ background:linear-gradient(120deg,rgba(232,200,114,.09),rgba(201,162,74,.03));pa
 .bdot.h{background:var(--ok);box-shadow:0 0 7px rgba(126,201,126,.7);animation:pulse2 2.6s infinite}
 .bdot.s{background:var(--bronze)}
 .bdot.q{background:var(--bad)}
+/* D9/U2 — 7-day health sparkline */
+.hstrip{margin:10px 2px 0;padding:10px 12px;border:1px solid rgba(232,200,114,.14);border-radius:14px;background:rgba(0,0,0,.22);animation:up .5s ease both}
+.hstrip .ht{font-size:11.5px;color:var(--dim);margin-bottom:8px}
+.hbars{display:flex;gap:6px;align-items:flex-end;height:56px}
+.hbar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+.hbar i{display:block;width:100%;max-width:26px;background:linear-gradient(180deg,#F5DFA0,#C9A24A);border-radius:4px 4px 2px 2px;min-height:5px}
+.hbar i.na{background:rgba(232,200,114,.15)}
+.hbar span{font-size:8.5px;color:var(--dim);font-family:var(--mono)}
 @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.45}}
 /* ───── sections ───── */
 .sec{display:flex;align-items:center;gap:10px;margin:26px 2px 4px;animation:up .5s .14s ease both}
@@ -2920,6 +3267,11 @@ body.light .fsearch{background:rgba(255,253,246,.8)}
     <div class="bdots"><span class="bdot h"></span><span class="bdot s"></span><span class="bdot q"></span></div>
   </div>
 
+  <div class="hstrip" id="healthStrip" style="display:none">
+    <div class="ht" id="healthTitle">…</div>
+    <div class="hbars" id="healthBars"></div>
+  </div>
+
   <div class="sec" id="histSec" style="display:none"><h2 id="histTitle">…</h2><div class="rule"></div><button class="hclear" id="histClear">🗑</button></div>
   <div class="hint" id="histHint" style="display:none"></div>
   <div id="histList"></div>
@@ -2963,7 +3315,7 @@ body.light .fsearch{background:rgba(255,253,246,.8)}
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D8.0 · V4.3</span>
+    <span>D9.0 · V4.3</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -2976,6 +3328,7 @@ var I18N = {
     st_online:'ONLINE', st_fast:'FAST', st_alive:'کانفیگ سالم تایید شده', st_p50:'میانگین پینگ شبکه',
     st_src:'منابع فعال و اسکن‌شده', st_run:'آخرین پایش و تست',
     bank_t1:'بانک کانفیگ: {n} خوش‌سابقه', bank_t2:'HIT {hit}% · PASS2 +{p2} · سابقه {streak}x',
+    health_t:'📈 سلامت ۷ روز اخیر — نرخ بازگشت بانک',
     sort_fast:'⚡ سریع‌ترین پینگ', sort_ok:'✅ بهترین نرخ', sort_vote:'👍 محبوب‌ترین',
     rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
     gold_t:'کانفیگ‌های طلایی', gold_st:'برترین‌ها بر اساس پینگ و تست‌ها', gold_hint:'روی کارت بزن تا کپی بشه · 👍 یعنی برات کار کرد',
@@ -2998,6 +3351,7 @@ var I18N = {
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Alive configs verified', st_p50:'Network avg ping',
     st_src:'Active scanned sources', st_run:'Last scan & test',
     bank_t1:'Config bank: {n} known-good', bank_t2:'HIT {hit}% · PASS2 +{p2} · streak {streak}x',
+    health_t:'📈 Last 7 days — bank hit rate',
     sort_fast:'⚡ Fastest ping', sort_ok:'✅ Best rate', sort_vote:'👍 Most voted',
     rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
     gold_t:'Gold configs', gold_st:'ranked by ping & test results', gold_hint:'tap a card to copy · 👍 = it worked for you',
@@ -3020,6 +3374,7 @@ var I18N = {
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Проверенных конфигов', st_p50:'Средний пинг сети',
     st_src:'Активных источников', st_run:'Последняя проверка',
     bank_t1:'Банк конфигов: {n} надёжных', bank_t2:'HIT {hit}% · PASS2 +{p2} · серия {streak}x',
+    health_t:'📈 Последние 7 дней — попадания банка',
     sort_fast:'⚡ Быстрейший пинг', sort_ok:'✅ Лучший рейтинг', sort_vote:'👍 Популярные',
     rel_min:'{n} мин назад', rel_hour:'{n} ч назад', rel_day:'{n} дн назад',
     gold_t:'Золотые конфиги', gold_st:'рейтинг по пингу и тестам', gold_hint:'нажми на карточку — копировать · 👍 = работает',
@@ -3042,6 +3397,7 @@ var I18N = {
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Onaylanan çalışan yapılandırma', st_p50:'Ağ ortalama ping',
     st_src:'Aktif taranan kaynak', st_run:'Son tarama ve test',
     bank_t1:'Yapılandırma bankası: {n} güvenilir', bank_t2:'HIT {hit}% · PASS2 +{p2} · seri {streak}x',
+    health_t:'📈 Son 7 gün — banka isabet oranı',
     sort_fast:'⚡ En hızlı ping', sort_ok:'✅ En iyi oran', sort_vote:'👍 En popüler',
     rel_min:'{n} dk önce', rel_hour:'{n} sa önce', rel_day:'{n} gün önce',
     gold_t:'Altın yapılandırmalar', gold_st:'ping ve test sonuçlarına göre', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
@@ -3064,6 +3420,7 @@ var I18N = {
     st_online:'ONLINE', st_fast:'FAST', st_alive:'已验证可用配置', st_p50:'网络平均延迟',
     st_src:'活跃扫描源', st_run:'最近扫描测试',
     bank_t1:'配置银行：{n} 个优等', bank_t2:'HIT {hit}% · PASS2 +{p2} · 连击 {streak}x',
+    health_t:'📈 近7天 — 银行命中率',
     sort_fast:'⚡ 最快延迟', sort_ok:'✅ 最佳成功率', sort_vote:'👍 最多好评',
     rel_min:'{n} 分钟前', rel_hour:'{n} 小时前', rel_day:'{n} 天前',
     gold_t:'金牌配置', gold_st:'按延迟与测试结果排名', gold_hint:'点卡片即复制 · 👍 = 对我有用',
@@ -3504,6 +3861,21 @@ function loadStats(){
         hit: (s.bank.hit_rate != null ? s.bank.hit_rate : '—'),
         p2: fmtN(p2), streak: (s.bank.avg_streak != null ? s.bank.avg_streak : '—')});
     } else { bank.style.display = 'none'; }
+    /* D9/U2 — 7-day health sparkline (absent data → section stays hidden) */
+    var hs = document.getElementById('healthStrip');
+    if (hs && Array.isArray(s.health_7d) && s.health_7d.length){
+      hs.style.display = 'block';
+      document.getElementById('healthTitle').textContent = T('health_t');
+      var data = s.health_7d.slice(-7), bars = '';
+      for (var hi = 0; hi < data.length; hi++){
+        var d = data[hi];
+        var hit = (d.hit == null) ? null : Math.max(0, Math.min(100, Number(d.hit)));
+        var hgt = hit == null ? 7 : Math.max(7, Math.round(hit * 0.42));
+        bars += '<div class="hbar"><i style="height:' + hgt + 'px"' + (hit == null ? ' class="na"' : '') +
+          '></i><span>' + esc(String(d.d || '').slice(8)) + '</span></div>';
+      }
+      document.getElementById('healthBars').innerHTML = bars;
+    } else if (hs){ hs.style.display = 'none'; }
   }).catch(function(){
     var he = document.getElementById('heroErr'); if (he) he.style.display = 'block';
     toast(T('fail'));
@@ -3934,7 +4306,7 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D8.0 — phase 1: pipeline knobs · manual full scan · quiet hours · test-send · two-step confirm -->
+<!-- panel build: D9.0 — phase 2: remark template · sub caps · export selection · message templates · user search/profile/block/quota · group reset · audit log -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4011,7 +4383,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
 </head>
 <body><div class="wrap">
 <header>
-  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D8.0</span>
+  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D9.0</span>
 </header>
 <div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
 <div id="panel" hidden>
@@ -4045,6 +4417,19 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div class="row"><div><div class="k">⚠ فقط جمع‌آوری، بدون تست</div><div class="hint">کلید اضطراری: خروجی‌ها منجمد می‌مانند، بانک دست‌نخورده</div></div><button class="tgl" id="tglSkip"></button></div>
   </div>
 
+  <div class="h2">خروجی‌ها و ساب — فاز ۲ <span class="n">دور بعد اعمال می‌شود</span></div>
+  <div class="card">
+    <div class="row"><div><div class="k">قالب ریمارک</div><div class="hint">{ping} = پینگ · {-GOLD} = فقط طلایی — مثال: <span class="mono">Ariston{-GOLD}-{ping}ms</span></div></div>
+      <input id="pRemark" style="width:150px;text-align:left" maxlength="48" placeholder="Ariston{-GOLD}-{ping}ms"></div>
+    <div class="row"><div><div class="k">سقف خطوط ساب</div><div class="hint">حداکثر خط هر لینک ساب (۵۰ تا ۵۰۰)</div></div><input id="pSubMax" type="number" min="50" max="500"></div>
+    <div class="row"><div><div class="k">حداقل خط فایل اپراتور</div><div class="hint">کمتر از این → برگشت به طلایی+نقره‌ای (۳ تا ۵۰)</div></div><input id="pSubMin" type="number" min="3" max="50"></div>
+    <div class="row"><div><div class="k">خروجی mihomo.yaml</div><div class="hint">اگه خاموش بشه لینکش ۴۰۴ می‌شه</div></div><button class="tgl" id="tglExpMih"></button></div>
+    <div class="row"><div><div class="k">خروجی singbox.json</div><div class="hint">اگه خاموش بشه لینکش ۴۰۴ می‌شه</div></div><button class="tgl" id="tglExpSb"></button></div>
+    <div class="row"><div><div class="k">نسخه‌های Base64</div><div class="hint">فایل‌های .b64 کنار .txt هر لیست</div></div><button class="tgl" id="tglExpB64"></button></div>
+    <div class="row"><div><div class="k">TTL هوشمند بانک</div><div class="hint">سابقهٔ بالا → عمر طولانی‌تر (تا سقف ۷۲ ساعت)</div></div><button class="tgl" id="tglSmartTtl"></button></div>
+    <div style="padding:10px 0 8px"><button class="btn" id="savePipe2">ذخیرهٔ فاز ۲</button></div>
+  </div>
+
   <div class="h2">کانال</div>
   <div class="card">
     <div class="row"><div><div class="k">کانال رسمی</div><div class="hint tg" id="chName">—</div></div></div>
@@ -4072,6 +4457,22 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
       <button class="btn ghost" id="testCard">🖼 کارت</button>
       <button class="btn ghost" id="testDigest">📊 گزارش</button>
     </div>
+  </div>
+
+  <div class="h2">قالب پیام‌های خودکار <span class="n">G2-4</span></div>
+  <div class="card">
+    <div class="hint" style="padding:8px 0 2px">خالی = متنِ داخلی پیش‌فرض. متغیرها: <span class="mono">{gold} {alive} {p50} {sources_ok} {sources_total} {bank_size} {hit} {streak} {date} {last_run}</span> — HTML مجازه.</div>
+    <div class="k" style="padding:8px 0 2px">🔔 واچ‌تاور (پیام «تست جدید»)</div>
+    <textarea id="tplWatch" style="min-height:64px" maxlength="900" placeholder="خالی = پیش‌فرض"></textarea>
+    <div class="k" style="padding:8px 0 2px">🖼 کپشن کارت روزانه</div>
+    <textarea id="tplCard" style="min-height:64px" maxlength="900" placeholder="خالی = پیش‌فرض"></textarea>
+    <div class="k" style="padding:8px 0 2px">📊 گزارش دوره‌ای کانال</div>
+    <textarea id="tplDigest" style="min-height:64px" maxlength="900" placeholder="خالی = پیش‌فرض"></textarea>
+    <div style="display:flex;gap:8px;padding:10px 0 10px">
+      <button class="btn" id="saveTpl">💾 ذخیرهٔ قالب‌ها</button>
+      <button class="btn ghost" id="resetTpl">↺ پاک‌کردن همه</button>
+    </div>
+    <div class="hint" style="padding:0 0 8px">بعد از ذخیره، «ارسال تستی» بالا نمونهٔ واقعیِ همین قالب‌ها را برای خودت می‌فرستد.</div>
   </div>
 
   <div class="h2">رفتار ربات</div>
@@ -4108,10 +4509,44 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
   </div>
 
   <div class="h2">کاربرها <span class="n" id="uTotal"></span></div>
+  <div class="card">
+    <div class="row" style="border-bottom:none">
+      <input id="uSearch" placeholder="جستجو: id یا اسم…" style="flex:1;text-align:left;direction:ltr">
+      <button class="tgl" id="uFind">🔍 جستجو</button>
+    </div>
+    <div class="hint" id="uSearchStat" style="padding:0 2px 8px;display:none"></div>
+  </div>
   <div class="card" id="users"><div class="hint">—</div></div>
   <div class="pager">
     <button class="btn ghost" id="uPrev">→ قبلی</button>
     <button class="btn ghost" id="uNext">بعدی ←</button>
+  </div>
+
+  <div class="card" id="uprof" style="display:none">
+    <div class="row" style="border-bottom:none"><div class="k mono" id="upTitle">—</div><button class="mini" id="upClose">✕ بستن</button></div>
+    <div class="hint" id="upBody" style="line-height:2;padding-bottom:6px">—</div>
+    <div class="row"><div><div class="k">سهمیهٔ دستی</div><div class="hint">خالی = فرمول دعوت‌ها · ۰ تا ۵۰</div></div>
+      <div style="display:flex;gap:6px;align-items:center"><input id="upQuota" type="number" min="0" max="50" style="width:70px"><button class="tgl" id="upQuotaSet">ثبت</button><button class="mini" id="upQuotaClear">پاک</button></div></div>
+    <div style="display:flex;gap:8px;padding:10px 0 6px">
+      <button class="btn warn" id="upBlock">🚫 مسدودسازی</button>
+      <button class="btn ghost" id="upUnblock">♻️ رفع مسدودی</button>
+    </div>
+  </div>
+
+  <div class="h2">بازنشانی گروهی <span class="n">G4-4</span></div>
+  <div class="card">
+    <div class="row"><div><div class="k">حذف همهٔ سهمیه‌های دستی</div><div class="hint">همه برگردند به فرمول دعوت — ترتیبی و بی‌وقفه</div></div>
+      <button class="btn warn" id="qrBtn" style="flex:0 0 auto;padding:9px 14px">🧹 اجرا</button></div>
+    <div class="bar" id="qrBarWrap" style="display:none"><i id="qrBar"></i></div>
+    <div class="hint" id="qrStat" style="padding-bottom:4px"></div>
+  </div>
+
+  <div class="h2">گزارش فعالیت <span class="n" id="auTotal"></span></div>
+  <div class="card">
+    <div id="audit"><div class="hint">برای دیدن، دکمه را بزن</div></div>
+    <div style="display:flex;gap:8px;padding:10px 0 8px">
+      <button class="btn ghost" id="loadAudit">📜 بارگذاری</button>
+    </div>
   </div>
 
   <div class="h2">رأی کاربرها <span class="n" id="fbTotal"></span></div>
@@ -4130,7 +4565,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div class="row"><div><div class="k">کانال فعلی</div><div class="hint tg" id="chId">—</div></div><div class="hint tg" id="bcStatus">—</div></div>
   </div>
 
-  <div class="foot">ARISTON WORKER · D8.0 · V4.3</div>
+  <div class="foot">ARISTON WORKER · D9.0 · V4.3</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -4144,6 +4579,7 @@ function post(path, body){
   return fetch('/app/api/admin/' + path, { method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify(Object.assign({ initData: initData }, body || {})) }).then(function(r){ return r.json(); }); }
 function fmt(n){ return (n || 0).toLocaleString('en-US'); }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function drawTgl(el, on){ el.textContent = on ? '✅ روشن' : '⛔ خاموش';
   el.classList.toggle('on', !!on); el.classList.toggle('off', !on); }
 function countUp(el, to){ var t0 = null, dur = 800;
@@ -4190,7 +4626,9 @@ function draw(){
   drawAdmins();
   drawBc();
   drawPipe();
+  drawPipe2();
   drawNotify();
+  drawTpl();
 }
 /* D8/P2 — pipeline knobs (cfg:pipeline) */
 function drawPipe(){
@@ -4221,6 +4659,24 @@ function drawNotify(){
   $('qStart').value = S.cfg.quiet_start != null ? S.cfg.quiet_start : 2;
   $('qEnd').value = S.cfg.quiet_end != null ? S.cfg.quiet_end : 8;
   drawTgl($('tglQuiet'), S.cfg.quiet_enabled === true);
+}
+/* D9/G2 — phase 2: remark template · sub caps · export selection · smart TTL (cfg:pipeline) */
+function drawPipe2(){
+  var p = S.pcfg || {};
+  $('pRemark').value = p.remark_tpl || 'Ariston{-GOLD}-{ping}ms';
+  $('pSubMax').value = p.sub_max_lines != null ? p.sub_max_lines : 300;
+  $('pSubMin').value = p.sub_min_op_lines != null ? p.sub_min_op_lines : 10;
+  drawTgl($('tglExpMih'), p.exports_mihomo !== false);
+  drawTgl($('tglExpSb'), p.exports_singbox !== false);
+  drawTgl($('tglExpB64'), p.exports_base64 !== false);
+  drawTgl($('tglSmartTtl'), p.smart_ttl !== false);
+}
+/* D9/G2-4 — editable message templates (cfg:templates) */
+function drawTpl(){
+  var t = S.tpl || {};
+  $('tplWatch').value = t.watchtower || '';
+  $('tplCard').value = t.card || '';
+  $('tplDigest').value = t.digest || '';
 }
 function drawBank(){
   var b = S.bank, g = $('bankGrid'), src = $('bankSrc'), p2 = $('bankPass2'), fl = $('bankFlag');
@@ -4302,12 +4758,146 @@ function loadUsers(){
     if (!d.items.length){ $('users').innerHTML = '<div class="hint">هنوز کاربری ثبت نشده</div>'; return; }
     var h = '';
     for (var i = 0; i < d.items.length; i++){ var u = d.items[i];
-      h += '<div class="u"><span>' + (u.name ? '✍️ ' + u.name : (u.tg || '👤')) +
+      h += '<div class="u" data-id="' + u.chat_id + '" style="cursor:pointer" onclick="openProfile(\\'' + u.chat_id + '\\')"><span>' +
+        (u.blocked ? '🚫 ' : '') + (u.quota_ovr != null ? '🎯 ' : '') + (u.name ? '✍️ ' + u.name : (u.tg || '👤')) +
         ' <span style="color:var(--dim);font-family:var(--mono);font-size:10.5px">' + u.lang + '</span></span>' +
-        '<span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + u.chat_id + ' · ' + u.isp + ' · 👥' + u.refs + '</span></div>'; }
+        '<span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + u.chat_id + ' · ' + u.isp + ' · 👥' + u.refs +
+        (u.quota_ovr != null ? ' · ⚡' + u.quota_ovr : '') + '</span></div>'; }
     $('users').innerHTML = h;
   }).catch(function(){});
 }
+/* ─── D9/G4 — user search · profile · block · quota · group reset · audit ─── */
+var upId = null;
+function openProfile(id){
+  post('user', { id: id }).then(function(p){
+    if (!p || p.error){ toast(p && p.error === 'no_user' ? 'کاربر پیدا نشد' : 'خطا'); return; }
+    upId = String(p.chat_id);
+    $('upTitle').textContent = '👤 ' + upId;
+    $('upBody').innerHTML =
+      'نام: ' + (p.name ? esc(p.name) : '—') + ' · یوزرنیم: ' + (p.tg ? '@' + esc(p.tg) : '—') + ' · زبان: ' + p.lang +
+      '<br>اپراتور: ' + esc(p.isp) + ' · اپ: ' + esc(p.client) + ' · از: ' + esc(p.created || '—') +
+      '<br>سهمیه: <b>' + p.quota + '</b>' + (p.quota_ovr != null ? ' (دستی ' + p.quota_ovr + ')' : ' (فرمول دعوت)') +
+      ' · دعوت‌ها: ' + p.ref_count + ' · چرخش: ' + (p.rotation === 'run' ? 'هر ران' : 'روزانه') + ' · حالت ساب: ' + p.sub_mode +
+      '<br>✅ ' + p.marks_ok + ' · ❌ ' + p.marks_fail + ' · ⭐ ' + p.favs + ' · 🕘 ' + p.hist +
+      (p.token ? '<br><span class="mono" style="font-size:10px">sub: ' + p.token.slice(0, 8) + '…</span>' : '') +
+      (p.blocked ? '<br><span style="color:var(--bad)">🚫 مسدود' + (p.blocked.ts ? ' · ' + esc(p.blocked.ts).slice(0, 10) : '') + '</span>' : '');
+    $('upQuota').value = p.quota_ovr != null ? p.quota_ovr : '';
+    $('upBlock').style.display = p.blocked ? 'none' : '';
+    $('upUnblock').style.display = p.blocked ? '' : 'none';
+    $('uprof').style.display = 'block';
+    try { $('uprof').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e2){}
+  }).catch(function(){ toast('خطا'); });
+}
+$('upClose').onclick = function(){ $('uprof').style.display = 'none'; upId = null; };
+$('upBlock').onclick = function(){
+  if (!upId) return;
+  confirm2($('upBlock'), function(){
+    post('user_block', { id: upId, on: true }).then(function(r){
+      if (r && r.ok){ toast('مسدود شد 🚫'); openProfile(upId); loadUsers(); } else toast((r && r.error === 'is_admin') ? 'مدیر مسدود نمی‌شه' : 'خطا');
+    }).catch(function(){ toast('خطا'); });
+  });
+};
+$('upUnblock').onclick = function(){
+  if (!upId) return;
+  post('user_block', { id: upId, on: false }).then(function(r){
+    if (r && r.ok){ toast('رفع مسدودی ✓'); openProfile(upId); loadUsers(); } else toast('خطا');
+  }).catch(function(){ toast('خطا'); });
+};
+$('upQuotaSet').onclick = function(){
+  if (!upId) return;
+  var v = parseInt($('upQuota').value, 10);
+  if (!isFinite(v)){ toast('یه عدد بین ۰ تا ۵۰ بده'); return; }
+  post('user_quota', { id: upId, value: v }).then(function(r){
+    if (r && r.ok){ toast('ثبت شد ✓'); openProfile(upId); loadUsers(); } else toast('خطا');
+  }).catch(function(){ toast('خطا'); });
+};
+$('upQuotaClear').onclick = function(){
+  if (!upId) return;
+  post('user_quota', { id: upId, value: null }).then(function(r){
+    if (r && r.ok){ toast('برگشت به فرمول دعوت ✓'); openProfile(upId); loadUsers(); } else toast('خطا');
+  }).catch(function(){ toast('خطا'); });
+};
+/* G4-1 — search: numeric = id match, text = cursor scan (auto-continues) */
+var uSearchTimer = null;
+function uSearchRun(q, scanFrom, found, scanned){
+  post('users', { q: q, scan_from: scanFrom, limit: 30 }).then(function(d){
+    if (!d || d.error){ toast('خطا'); return; }
+    found = (found || []).concat(d.items || []);
+    scanned = scanned || 0;
+    if (d.scanned_to != null) scanned = Math.max(scanned, d.total - (d.scanned_to || 0));
+    $('uTotal').textContent = '· ' + fmt(found.length) + ' نتیجه';
+    $('uSearchStat').style.display = 'block';
+    $('uSearchStat').textContent = 'جستجو… ' + fmt(scanned) + ' بررسی‌شده';
+    renderUserHits(found);
+    if (d.next && found.length < 50){
+      uSearchTimer = setTimeout(function(){ uSearchRun(q, d.scanned_to, found, scanned); }, 250);
+    } else {
+      $('uSearchStat').textContent = 'تمام — ' + fmt(found.length) + ' نتیجه از ' + fmt(scanned) + ' بررسی';
+      if (!found.length) $('users').innerHTML = '<div class="hint">چیزی پیدا نشد</div>';
+    }
+  }).catch(function(){ toast('خطا'); });
+}
+function renderUserHits(items){
+  if (!items.length) return;
+  var h = '';
+  for (var i = 0; i < items.length; i++){ var u = items[i];
+    h += '<div class="u" style="cursor:pointer" onclick="openProfile(\\'' + u.chat_id + '\\')"><span>' +
+      (u.blocked ? '🚫 ' : '') + (u.name ? '✍️ ' + u.name : (u.tg || '👤')) +
+      '</span><span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + u.chat_id + ' · ' + u.isp + '</span></div>'; }
+  $('users').innerHTML = h;
+}
+$('uFind').onclick = function(){
+  clearTimeout(uSearchTimer);
+  var q = ($('uSearch').value || '').trim().toLowerCase();
+  if (!q){ $('uSearchStat').style.display = 'none'; uOffset = 0; loadUsers(); return; }
+  toast('دارم می‌گردم…');
+  uSearchRun(q, null, [], 0);
+};
+/* G4-4 — group quota reset (chunked like the broadcast) */
+var qrTimer = null;
+function qrStep(op){
+  return post('quota_reset', { op: op || 'step' }).then(function(r){
+    if (!r || !r.ok){ toast('خطا'); return; }
+    if (r.total){
+      $('qrBarWrap').style.display = 'block';
+      $('qrBar').style.width = Math.round(100 * (r.cursor || 0) / r.total) + '%';
+      $('qrStat').textContent = (r.active ? 'در حال اجرا… ' : 'تمام — ') + fmt(r.cursor) + ' از ' + fmt(r.total) +
+        (r.cleared ? ' · ' + fmt(r.cleared) + ' سهمیهٔ دستی پاک شد' : '');
+    }
+    if (r.active){ qrTimer = setTimeout(function(){ qrStep('step'); }, 350); }
+    else if (op !== 'status' && op !== 'cancel'){ toast('بازنشانی گروهی تمام شد ✓'); loadUsers(); }
+  }).catch(function(){ toast('خطا'); });
+}
+$('qrBtn').onclick = function(){
+  clearTimeout(qrTimer);
+  confirm2($('qrBtn'), function(){ toast('شروع…'); qrStep('start'); });
+};
+/* G4-5 — audit log */
+$('loadAudit').onclick = function(){ toast('دارم میارم…');
+  post('audit', { limit: 30 }).then(function(d){
+    if (!d || !d.ok){ toast('خطا'); return; }
+    $('auTotal').textContent = '· ' + fmt(d.total) + ' رویداد';
+    var h = '';
+    for (var i = 0; i < d.items.length; i++){ var a = d.items[i];
+      h += '<div class="u"><span style="font-family:var(--mono);direction:ltr;font-size:10.5px">' + esc((a.ts || '').slice(5, 16).replace('T', ' ')) + ' · ' + esc(a.act) + '</span>' +
+        '<span style="color:var(--dim);font-family:var(--mono);font-size:10.5px;direction:ltr">' + (a.id || '—') + (a.d ? ' · ' + esc(String(a.d).slice(0, 24)) : '') + '</span></div>'; }
+    $('audit').innerHTML = h || '<div class="hint">هنوز رویدادی ثبت نشده</div>';
+    toast('آماده ✓');
+  }).catch(function(){ toast('خطا'); });
+};
+/* G2-4 — template save / reset */
+$('saveTpl').onclick = function(){
+  toast('دارم ذخیره می‌کنم…');
+  post('templates', { watchtower: $('tplWatch').value, card: $('tplCard').value, digest: $('tplDigest').value }).then(function(r){
+    if (r && r.ok){ S.tpl = r.tpl; drawTpl(); toast('قالب‌ها ذخیره شد ✓ — حالا «ارسال تستی» بزن'); } else toast('خطا');
+  }).catch(function(){ toast('خطا'); });
+};
+$('resetTpl').onclick = function(){
+  $('tplWatch').value = ''; $('tplCard').value = ''; $('tplDigest').value = '';
+  post('templates', { watchtower: '', card: '', digest: '' }).then(function(r){
+    if (r && r.ok){ S.tpl = r.tpl; toast('برگشت به متن پیش‌فرض ✓'); } else toast('خطا');
+  }).catch(function(){ toast('خطا'); });
+};
 /* D7 — crowd votes: ranked view + raw JSON export */
 function drawVotes(items){
   var el = $('votes');
@@ -4414,6 +5004,21 @@ $('savePipe').onclick = function(){ if (!S) return;
     setTimeout(function(){ set(k[0], parseFloat($(k[1]).value)); }, idx * 350);
   });
 };
+/* ─── D9/G2 — phase 2 bindings ─── */
+$('savePipe2').onclick = function(){ if (!S) return;
+  var tpl = ($('pRemark').value || '').trim();
+  if (tpl && tpl.length < 3){ toast('قالب ریمارک خیلی کوتاهه'); return; }
+  toast('دارم ذخیره می‌کنم…');
+  var keys = [['sub_max_lines','pSubMax'], ['sub_min_op_lines','pSubMin']];
+  keys.forEach(function(k, idx){
+    setTimeout(function(){ set(k[0], parseFloat($(k[1]).value)); }, idx * 350);
+  });
+  setTimeout(function(){ set('remark_tpl', tpl || 'Ariston{-GOLD}-{ping}ms'); }, 700);
+};
+$('tglExpMih').onclick = function(){ if (S) set('exports_mihomo', S.pcfg.exports_mihomo === false); };
+$('tglExpSb').onclick = function(){ if (S) set('exports_singbox', S.pcfg.exports_singbox === false); };
+$('tglExpB64').onclick = function(){ if (S) set('exports_base64', S.pcfg.exports_base64 === false); };
+$('tglSmartTtl').onclick = function(){ if (S) set('smart_ttl', S.pcfg.smart_ttl === false); };
 $('tglPass2').onclick = function(){ if (S) set('pass2_enabled', S.pcfg.pass2_enabled === false); };
 $('tglRescue').onclick = function(){ if (S) set('rescue_enabled', S.pcfg.rescue_enabled === false); };
 $('tglSkip').onclick = function(){
@@ -4611,6 +5216,13 @@ export default {
     if (url.pathname === '/app/api/admin/purge' && request.method === 'POST') return guardAdmin(env, request, adminPurge);
     if (url.pathname === '/app/api/admin/sync_cmds' && request.method === 'POST') return guardAdmin(env, request, adminSyncCmds);
     if (url.pathname === '/app/api/admin/test_notify' && request.method === 'POST') return guardAdmin(env, request, adminTestNotify);
+    /* ── D9/G4 — user management + audit + templates ── */
+    if (url.pathname === '/app/api/admin/user' && request.method === 'POST') return guardAdmin(env, request, adminUserProfile);
+    if (url.pathname === '/app/api/admin/user_block' && request.method === 'POST') return guardAdmin(env, request, adminUserBlock);
+    if (url.pathname === '/app/api/admin/user_quota' && request.method === 'POST') return guardAdmin(env, request, adminUserQuota);
+    if (url.pathname === '/app/api/admin/quota_reset' && request.method === 'POST') return guardAdmin(env, request, adminQuotaReset);
+    if (url.pathname === '/app/api/admin/audit' && request.method === 'POST') return guardAdmin(env, request, adminAudit);
+    if (url.pathname === '/app/api/admin/templates' && request.method === 'POST') return guardAdmin(env, request, adminTemplates);
 
     /* D8/H — pipeline knobs for the GitHub Action (public, read-only, no
        secrets; the pipeline clamps everything again on its side). */
@@ -4681,6 +5293,8 @@ export default {
     /* D8/P3 — one-shot «اسکن کامل دستی» from the panel: consumed once a run
        that actually read the flag is live; then the admins get a receipt. */
     ctx.waitUntil(consumePipelineRequest(env).catch((e) => console.error('pcfg error', e && e.message)));
+    /* D9/U2 — «محبوبت مُرد»: starred-config death notices (chunked, quiet hours) */
+    ctx.waitUntil(favDeathScan(env).catch((e) => console.error('favscan error', e && e.message)));
     /* D7 — one-time self-heal: re-register scoped commands so /panel & /freq
        live only in the admins' own menus, never in the public command list. */
     ctx.waitUntil((async () => {
@@ -4695,4 +5309,4 @@ export default {
 };
 
 /* test hooks — named exports are ignored by the Workers runtime */
-export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription, getPipelineCfg, inQuietHours };
+export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription, getPipelineCfg, inQuietHours, resolveQuota, renderTpl, getTemplates, isBlocked, favDeathScan, buildPool, refQuota };

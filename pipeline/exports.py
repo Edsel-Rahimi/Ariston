@@ -19,6 +19,7 @@ import base64
 import json
 from urllib.parse import parse_qsl, unquote, urlsplit
 
+from . import bank as BK
 from .validate import _b64, _hostport, _query, _scheme, _singbox_outbound
 
 PROBE_URL = "http://www.gstatic.com/generate_204"
@@ -61,9 +62,10 @@ def _name(scheme: str, host: str, port: int, seen: dict) -> str:
 def _brand_name(ping_ms: float | None, seen: dict, tier: str | None = None) -> str:
     """D4: proxy names carry the brand + measured ping: `Ariston-812ms`
     (`Ariston-GOLD-812ms` for the gold tier — decision 2026-11-01 #3),
-    duplicates disambiguated (`Ariston-812ms-2`)."""
-    brand = "Ariston-GOLD" if tier == "gold" else "Ariston"
-    base = f"{brand}-{round(ping_ms)}ms" if ping_ms else brand
+    duplicates disambiguated (`Ariston-812ms-2`).
+    D9/G2-1: rendered through the panel-editable remark template (fails safe
+    to the classic label), so the panel controls client-config names too."""
+    base = BK.render_remark(BK.REMARK_TPL, ping_ms, tier)
     n = seen.get(base, 0) + 1
     seen[base] = n
     return base if n == 1 else f"{base}-{n}"

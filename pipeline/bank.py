@@ -39,6 +39,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import urllib.request
 
 BANK_VERSION = 1
@@ -69,11 +70,31 @@ RESCUE_MIN_STREAK = int(os.environ.get("ARISTON_RESCUE_MIN_STREAK", "5"))
 RESCUE_MAX = int(os.environ.get("ARISTON_RESCUE_MAX", "1500"))  # per-run test budget
 RESCUE_URI_CAP = 4000   # bank-size guard: at most this many stored URIs
 
+# D9/U2 — smart TTL: proven configs (high streak) earn a longer lifetime.
+# Factor grows linearly with streak up to SMART_TTL_MAX_STREAK → SMART_TTL_MAX_X,
+# then everything is clamped to SMART_TTL_ABS (hours) — never shorter than base.
+SMART_TTL_ENABLED = True
+SMART_TTL_MAX_STREAK = 40   # streak that reaches the full multiplier
+SMART_TTL_MAX_X = 2.0       # ×bank_ttl_hours at (and beyond) that streak
+SMART_TTL_ABS = 72.0        # absolute ceiling in hours (clamp, checklist U2)
+
+# D9/G2-1 — the brand remark template (panel-editable).
+#   {-GOLD} → "-GOLD" for the gold tier, "" otherwise
+#   {ping}  → rounded latency in ms (the whole "-{ping}" chunk disappears when no ping)
+DEFAULT_REMARK_TPL = "Ariston{-GOLD}-{ping}ms"
+REMARK_TPL = os.environ.get("ARISTON_REMARK_TPL", DEFAULT_REMARK_TPL)
+
+# D9/G2-3 — which client exports to build (all default on = today's behavior)
+EXPORTS_MIHOMO = os.environ.get("ARISTON_EXPORT_MIHOMO", "1") != "0"
+EXPORTS_SINGBOX = os.environ.get("ARISTON_EXPORT_SINGBOX", "1") != "0"
+EXPORTS_BASE64 = os.environ.get("ARISTON_EXPORT_B64", "1") != "0"
+
 # ------------------------------------------------------------ pipeline cfg --
 # whitelist: key → (parser, low, high) — anything else / out of range is ignored
 _PCFG_INT = "int"
 _PCFG_FLOAT = "float"
 _PCFG_BOOL = "bool"
+_PCFG_STR = "str"
 PCFG_SPEC = {
     "bank_ttl_hours":      (_PCFG_FLOAT, 6.0, 72.0),
     "pass2_enabled":       (_PCFG_BOOL, None, None),
@@ -87,6 +108,12 @@ PCFG_SPEC = {
     "rescue_max":          (_PCFG_INT, 0, 5000),
     "skip_test":           (_PCFG_BOOL, None, None),
     "force_full_scan":     (_PCFG_BOOL, None, None),
+    # D9/G2 — panel phase 2 knobs (remark template · exports selection · smart TTL)
+    "remark_tpl":          (_PCFG_STR, None, None),
+    "exports_mihomo":      (_PCFG_BOOL, None, None),
+    "exports_singbox":     (_PCFG_BOOL, None, None),
+    "exports_base64":      (_PCFG_BOOL, None, None),
+    "smart_ttl":           (_PCFG_BOOL, None, None),
 }
 PCFG_DEFAULTS = {
     "bank_ttl_hours": BANK_TTL_HOURS, "pass2_enabled": PASS2_ENABLED,
@@ -95,6 +122,9 @@ PCFG_DEFAULTS = {
     "min_streak_priority": MIN_STREAK_PRIORITY, "rescue_enabled": RESCUE_ENABLED,
     "rescue_min_streak": RESCUE_MIN_STREAK, "rescue_max": RESCUE_MAX,
     "skip_test": False, "force_full_scan": False,
+    "remark_tpl": REMARK_TPL, "exports_mihomo": EXPORTS_MIHOMO,
+    "exports_singbox": EXPORTS_SINGBOX, "exports_base64": EXPORTS_BASE64,
+    "smart_ttl": SMART_TTL_ENABLED,
 }
 
 def _clamp(key: str, v):
@@ -102,6 +132,11 @@ def _clamp(key: str, v):
     try:
         if kind == _PCFG_BOOL:
             return bool(v) if isinstance(v, bool) else (str(v).lower() in ("1", "true", "yes", "on"))
+        if kind == _PCFG_STR:
+            s = re.sub(r"[#\r\n\t]", " ", str(v or "")).strip()
+            if len(s) < 3 or not re.search(r"[A-Za-z\u0600-\u06FF]", s):
+                return None   # junk/empty/number-only → dropped, default stays
+            return s[:48]
         if kind == _PCFG_INT:
             v = int(float(v))
         elif kind == _PCFG_FLOAT:
@@ -152,6 +187,7 @@ def apply_cfg(pcfg: dict) -> dict:
     global BANK_TTL_HOURS, PASS2_ENABLED, PASS2_TIMEOUT_FACTOR
     global SUSPECT_AFTER, QUARANTINE_AFTER, QUARANTINE_DAYS, MIN_STREAK_PRIORITY
     global RESCUE_ENABLED, RESCUE_MIN_STREAK, RESCUE_MAX
+    global REMARK_TPL, EXPORTS_MIHOMO, EXPORTS_SINGBOX, EXPORTS_BASE64, SMART_TTL_ENABLED
     eff = dict(PCFG_DEFAULTS)
     for key, val in (pcfg or {}).items():
         if key in PCFG_SPEC:
@@ -168,7 +204,26 @@ def apply_cfg(pcfg: dict) -> dict:
     RESCUE_ENABLED = bool(eff["rescue_enabled"])
     RESCUE_MIN_STREAK = int(eff["rescue_min_streak"])
     RESCUE_MAX = int(eff["rescue_max"])
+    REMARK_TPL = str(eff["remark_tpl"]) or DEFAULT_REMARK_TPL
+    EXPORTS_MIHOMO = bool(eff["exports_mihomo"])
+    EXPORTS_SINGBOX = bool(eff["exports_singbox"])
+    EXPORTS_BASE64 = bool(eff["exports_base64"])
+    SMART_TTL_ENABLED = bool(eff["smart_ttl"])
     return eff
+
+
+def render_remark(tpl: str | None, ping_ms, tier: str | None = None) -> str:
+    """D9/G2-1 — panel-editable remark template → the final brand label.
+    Fails safe: any weird input renders the classic ``Ariston[-GOLD]-<ms>ms``.
+    ``#`` is stripped so the template can never break the URI fragment."""
+    t = str(tpl or REMARK_TPL or DEFAULT_REMARK_TPL)
+    t = t.replace("{-GOLD}", "-GOLD" if tier == "gold" else "")
+    if isinstance(ping_ms, (int, float)) and ping_ms is not None:
+        t = t.replace("{ping}", str(int(round(ping_ms))))
+    else:
+        t = re.sub(r"-?\{ping\}(ms)?", "", t)   # no ping → the whole «-{ping}ms» chunk goes
+    t = t.replace("#", "").strip().strip("-").strip() or "Ariston"
+    return t[:48]
 
 
 def _now() -> str:
@@ -286,7 +341,17 @@ def merge_run(bank: dict, results: dict, alive_hashes: set[str],
         if lo:
             try:
                 age_h = (now - dt.datetime.fromisoformat(lo)).total_seconds() / 3600.0
-                if age_h > BANK_TTL_HOURS:
+                # D9/U2 — smart TTL: high streaks earn a longer lifetime
+                # (linear up to SMART_TTL_MAX_X, absolute ceiling SMART_TTL_ABS).
+                ttl = BANK_TTL_HOURS
+                if SMART_TTL_ENABLED:
+                    try:
+                        streak = min(int(e.get("streak", 0) or 0), SMART_TTL_MAX_STREAK)
+                        ttl = min(BANK_TTL_HOURS * (1.0 + streak / SMART_TTL_MAX_STREAK
+                                                    * (SMART_TTL_MAX_X - 1.0)), SMART_TTL_ABS)
+                    except Exception:
+                        ttl = BANK_TTL_HOURS
+                if age_h > max(BANK_TTL_HOURS, ttl):
                     continue
             except Exception:
                 pass
@@ -308,6 +373,7 @@ def merge_run(bank: dict, results: dict, alive_hashes: set[str],
         "last_alive": alive_now,
         "prev_alive": meta.get("last_alive"),
         "last_run_duration_s": (bank.get("meta") or {}).get("last_run_duration_s"),
+        "health_log": meta.get("health_log"),   # D9/U2 — 7-day health history rides along
     }
     return bank
 

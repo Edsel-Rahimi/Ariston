@@ -23,6 +23,7 @@ import base64
 import json
 from pathlib import Path
 
+from . import bank as BK
 from . import exports as E
 
 
@@ -31,14 +32,12 @@ def write_b64(path: Path, text: str) -> None:
 
 
 def remark_uri(uri: str, ping_ms: float | None, tier: str | None = None) -> str:
-    """Brand remark on every published URI: `Ariston-<ping>ms` — the gold tier
-    carries the GOLD flag (`Ariston-GOLD-<ping>ms`, decision 2026-11-01 #3); bare
-    `Ariston` when no latency is known.  Anything taken from the GitHub
-    page/repo carries it."""
+    """Brand remark on every published URI — D9/G2-1: rendered through the
+    panel-editable template (``Ariston{-GOLD}-{ping}ms`` by default, which
+    reproduces the classic ``Ariston-<ping>ms`` / ``Ariston-GOLD-<ping>ms``
+    labels exactly, decision 2026-11-01 #3).  Fails safe to the classic look."""
     base = uri.split("#", 1)[0]
-    brand = "Ariston-GOLD" if tier == "gold" else "Ariston"
-    remark = f"{brand}-{round(ping_ms)}ms" if ping_ms else brand
-    return f"{base}#{remark}"
+    return f"{base}#{BK.render_remark(BK.REMARK_TPL, ping_ms, tier)}"
 
 
 def write_stats(path: Path, stats: dict) -> None:
@@ -51,11 +50,13 @@ def write_history(path: Path, results: dict) -> None:
 
 
 def publish_master(dist: Path, uniq: list[str]) -> None:
-    """Master feed + per-protocol splits (always written, validation or not)."""
+    """Master feed + per-protocol splits (always written, validation or not).
+    D9/G2-3: the .b64 twins are skipped when the panel turns base64 off."""
     dist.mkdir(exist_ok=True)
     text = "\n".join(uniq) + "\n"
     (dist / "nodes.txt").write_text(text, encoding="utf-8")
-    write_b64(dist / "nodes.b64", text)
+    if BK.EXPORTS_BASE64:
+        write_b64(dist / "nodes.b64", text)
 
     by_protocol: dict[str, int] = {}
     for u in uniq:
@@ -67,7 +68,8 @@ def publish_master(dist: Path, uniq: list[str]) -> None:
     for scheme in by_protocol:
         lines = "\n".join(u for u in uniq if u.startswith(scheme + "://")) + "\n"
         (proto_dir / f"{scheme}.txt").write_text(lines, encoding="utf-8")
-        write_b64(proto_dir / f"{scheme}.b64", lines)
+        if BK.EXPORTS_BASE64:
+            write_b64(proto_dir / f"{scheme}.b64", lines)
 
 
 def publish_tiers(dist: Path, rows: list[dict]) -> None:
@@ -84,21 +86,30 @@ def publish_tiers(dist: Path, rows: list[dict]) -> None:
         tier = "gold" if name == "gold" else None  # D6/B: gold = Ariston-GOLD-<ms>
         text = "\n".join(remark_uri(r["uri"], r.get("latency_ms"), tier) for r in selected) + "\n"
         (dist / f"{name}.txt").write_text(text, encoding="utf-8")
-        write_b64(dist / f"{name}.b64", text)
+        if BK.EXPORTS_BASE64:
+            write_b64(dist / f"{name}.b64", text)
 
 
 def publish_clients(dist: Path, rows: list[dict]) -> dict:
     """Ready-to-import client configs (Mihomo / Clash.Meta + sing-box).
     Built from live-tested endpoints best-first; falls back to the full
-    ranked list when validation was skipped."""
+    ranked list when validation was skipped.
+    D9/G2-3 — panel-tunable selection: each export can be turned off.  Fail-safe:
+    if BOTH are off, both are built anyway (an empty shelf helps nobody)."""
     dist.mkdir(exist_ok=True)
     selected = [r for r in rows if r["alive"]] or rows
     ranked = sorted(selected, key=lambda r: -r["score"])
     report = {}
-    yaml_text, report["mihomo"] = E.to_mihomo(ranked)
-    (dist / "mihomo.yaml").write_text(yaml_text, encoding="utf-8")
-    sb_text, report["singbox"] = E.to_singbox(ranked)
-    (dist / "singbox.json").write_text(sb_text, encoding="utf-8")
+    if BK.EXPORTS_MIHOMO or not BK.EXPORTS_SINGBOX:
+        yaml_text, report["mihomo"] = E.to_mihomo(ranked)
+        (dist / "mihomo.yaml").write_text(yaml_text, encoding="utf-8")
+    else:
+        report["mihomo"] = {"built": 0, "skipped": 0, "disabled": True}
+    if BK.EXPORTS_SINGBOX or not BK.EXPORTS_MIHOMO:
+        sb_text, report["singbox"] = E.to_singbox(ranked)
+        (dist / "singbox.json").write_text(sb_text, encoding="utf-8")
+    else:
+        report["singbox"] = {"built": 0, "skipped": 0, "disabled": True}
     return report
 
 

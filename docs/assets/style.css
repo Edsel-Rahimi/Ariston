@@ -724,3 +724,14 @@ html[dir="rtl"] .client__go svg { transform: scaleX(-1); }
 .bank__dot--s i { background: var(--bronze); }
 .bank__dot--q i { background: var(--red); }
 [dir="ltr"] .bank__tile b { text-align: left; }
+
+/* D9/U2 — 7-day health sparkline (bank panel) */
+.health { margin-top: 12px; border-top: 1px dashed var(--line-soft); padding-top: 12px; }
+.health__title { font-size: 11.5px; color: var(--txt3); margin-bottom: 8px; }
+.health__bars { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.health__bar { flex: 1; min-width: 52px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; height: 74px; }
+.health__bar i { display: block; width: 70%; max-width: 34px; border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, var(--gold), var(--bronze)); min-height: 5px; }
+.health__bar i.na { background: var(--line-soft); }
+.health__bar span { font-size: 10px; color: var(--txt3); direction: ltr; }
+.health__bar b { font-size: 10.5px; color: var(--gold); font-weight: 600; direction: ltr; }

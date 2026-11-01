@@ -243,6 +243,7 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
     # not zeros (consumers treat a missing scoring as «nothing happened»).
     if not skip_validation:
         stats["scoring"] = tiers
+    tiers_map = tiers if isinstance(tiers, dict) else {}
 
     # D6/C — fold the run into the bank and publish it for the next one.
     # When validation was skipped (--no-validate / missing engines / panel
@@ -287,6 +288,25 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
     }
     print(f"[3c/4] bank: {stats['bank']['size']} entries · hits {bank_hits} · "
           f"pass2 {stats['bank']['pass2']} · sources {stats['bank']['sources']}")
+
+    # D9/U2 — daily health log: one row per Tehran day (hit_rate / alive / gold),
+    # kept 14 days inside bank.meta (persists on the data branch) and the last 8
+    # published as stats.health_7d for the mini-app + Pages sparklines.
+    # Skip-test runs append nothing (no honest numbers) but still republish the
+    # existing log so consumers never lose the chart.
+    try:
+        today = dt.datetime.now(TEHRAN_TZ).date().isoformat()
+        hlog = [x for x in (bank.get("meta") or {}).get("health_log") or []
+                if isinstance(x, dict) and x.get("d") and x["d"] != today][-13:]
+        if not skip_validation and alive_now is not None:
+            hlog.append({"d": today,
+                         "hit": stats["bank"]["hit_rate"],
+                         "alive": alive_now,
+                         "gold": (tiers or {}).get("gold")})
+        bank.setdefault("meta", {})["health_log"] = hlog
+        stats["health_7d"] = hlog[-8:]
+    except Exception:
+        stats["health_7d"] = (bank.get("meta") or {}).get("health_log") or []
 
     print("[4/4] writing outputs ...")
     P.publish_master(DIST, uniq)
