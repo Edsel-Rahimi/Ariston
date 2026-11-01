@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وضعیت آریستون · Ariston Status</title>
+<meta name="description" content="صفحهٔ عمومی وضعیت آریستون: آخرین ران موفق، فاصلهٔ زمانی، سلامت ورکر و کرون — public status page for the Ariston dual-engine proxy pipeline.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#14110C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314110C'/%3E%3Cpath d='M9 22 16 9l7 13' stroke='%23E8C872' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12 17h8' stroke='%23C0C6CC' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='9' r='2.2' fill='%23E8C872'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#14110C;--card:rgba(232,200,114,.05);--line:rgba(232,200,114,.16);--gold:#E8C872;--gold2:#F5DFA0;--deep:#C9A24A;--txt:#F3ECDD;--dim:#8d8262;--ok:#7ec97e;--bad:#e06c5a;--warn:#e2b34c;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--cin:'Cinzel',serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Vazirmatn',system-ui,sans-serif;font-size:15px;line-height:1.75}
+body{min-height:100vh;background:radial-gradient(760px 380px at 50% -100px,rgba(232,200,114,.13),transparent 70%),radial-gradient(420px 260px at 88% 30%,rgba(201,162,74,.05),transparent 70%)}
+.wrap{max-width:640px;margin:0 auto;padding:18px 16px 46px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 16px;flex-wrap:wrap}
+.brand{font-family:var(--cin);font-weight:700;letter-spacing:.3em;font-size:17px;text-indent:.3em;background:linear-gradient(180deg,#F7E5AF,#E8C872 55%,#B98F3E);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pill{border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:12px;color:var(--dim)}
+.pill b{color:var(--txt)}
+h1{font-size:15px;color:var(--deep);margin:18px 2px 8px;letter-spacing:.04em;display:flex;align-items:center;gap:8px;font-weight:800}
+h1::after{content:'';flex:1;height:1px;background:var(--line)}
+h1 .n{font-family:var(--mono);font-size:10px;color:var(--dim);font-weight:400}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 14px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed rgba(232,200,114,.1)}
+.row:last-child{border-bottom:none}
+.k{font-size:13.5px;font-weight:600}
+.v{font-family:var(--mono);direction:ltr;font-size:13px;color:var(--gold2);text-align:left}
+.hint{color:var(--dim);font-size:11.5px;margin-top:2px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-inline-end:6px;vertical-align:baseline}
+.dot.g{background:var(--ok);box-shadow:0 0 8px rgba(126,201,126,.7)}
+.dot.y{background:var(--warn);box-shadow:0 0 8px rgba(226,179,76,.6)}
+.dot.r{background:var(--bad);box-shadow:0 0 8px rgba(224,108,90,.6)}
+.dot.x{background:#5a5245}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 0}
+.tiles div{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center}
+.tiles b{display:block;font-family:var(--mono);font-size:15px;color:var(--gold);direction:ltr}
+.tiles span{font-size:10px;color:var(--dim)}
+.bars{display:flex;gap:5px;align-items:flex-end;height:56px;padding:8px 2px}
+.bars>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bars i{display:block;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--gold2),var(--deep));min-height:3px}
+.bars span{font-family:var(--mono);font-size:8.5px;color:var(--dim);text-align:center;direction:ltr;padding-top:3px}
+.runs .row{padding:7px 0}
+.st{font-family:var(--mono);font-size:11px;direction:ltr}
+.st.ok{color:var(--ok)} .st.fail{color:var(--bad)} .st.run{color:var(--warn)} .st.other{color:var(--dim)}
+.foot{margin-top:24px;text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.12em}
+.foot a{color:var(--deep);text-decoration:none}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{animation:up .5s ease both}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="brand">ARISTON</span>
+  <span class="pill" id="overall"><span class="dot x"></span>در حال بارگذاری…</span>
+</header>
+
+<h1>سرور و داده <span class="n">worker + data branch</span></h1>
+<div class="card">
+  <div class="tiles" id="tiles">
+    <div><b>—</b><span>طلایی</span></div>
+    <div><b>—</b><span>سالم</span></div>
+    <div><b>—</b><span>p50 ms</span></div>
+    <div><b>—</b><span>بانک</span></div>
+  </div>
+  <div class="row"><div><div class="k">ورکر (bot API)</div><div class="hint">پاسخ /api/v1/stats</div></div><div class="v" id="wState">…</div></div>
+  <div class="row"><div><div class="k">شاخهٔ داده</div><div class="hint">stats.json روی data</div></div><div class="v" id="dState">…</div></div>
+  <div class="row"><div><div class="k">آخرین ران موفق</div><div class="hint" id="nextHint">کرون هر ۳۰ دقیقه</div></div><div class="v" id="lastRun">—</div></div>
+</div>
+
+<h1>سلامت هفتگی <span class="n">hit-rate / زنده‌ها · ۸ روز</span></h1>
+<div class="card">
+  <div class="bars" id="bars"></div>
+  <div class="hint" style="padding:0 2px 8px" id="barsHint">ارتفاع هر میله = کانفیگ زندهٔ آن روز · عدد زیر آن = نرخ بازگشت بانک.</div>
+</div>
+
+<h1>کرون Actions <span class="n">۵ ران اخیر · github public api</span></h1>
+<div class="card runs" id="runs"><div class="row"><div class="k">…</div><div class="v">—</div></div></div>
+
+<div class="foot">ARISTON STATUS · <a href="./">MISSION CONTROL</a> · <a href="https://t.me/Ariston_vbot">@Ariston_vbot</a></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var DATA = 'https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/stats.json';
+var WORKER = 'https://ariston-bot.ariston-vbot.workers.dev/api/v1/stats';
+var ACTIONS = 'https://api.github.com/repos/Edsel-Rahimi/Ariston/actions/runs?per_page=5';
+var el = function(id){ return document.getElementById(id); };
+var fmt = function(n){ return (n == null ? '—' : Number(n).toLocaleString('en-US')); };
+function ageMin(iso){ try { return (Date.now() - new Date(iso).getTime()) / 60000; } catch(e){ return NaN; } }
+function ago(iso, langFa){
+  var m = ageMin(iso);
+  if (!isFinite(m)) return '—';
+  if (m < 60) return Math.max(0, Math.round(m)) + ' دقیقه پیش';
+  var h = Math.floor(m / 60);
+  return h + ' ساعت و ' + Math.round(m % 60) + ' دقیقه پیش';
+}
+function dot(cls){ return '<span class="dot ' + cls + '"></span>'; }
+
+var state = { worker: null, data: null }; // 'g' | 'y' | 'r' | null
+function overall(){
+  var rank = { r: 0, y: 1, g: 2 };
+  var vals = [state.worker, state.data].filter(function(x){ return x != null; });
+  if (!vals.length) return;
+  var worst = vals.reduce(function(a, b){ return rank[b] < rank[a] ? b : a; });
+  var msg = worst === 'g' ? 'همه‌چیز سالم است' : worst === 'y' ? 'در حال اجرا / کمی تاخیر' : 'اخلال در خط تولید';
+  el('overall').innerHTML = dot(worst === 'g' ? 'g' : worst === 'y' ? 'y' : 'r') + '<b>' + msg + '</b>';
+}
+
+/* worker health */
+fetch(WORKER + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); }).then(function(j){
+  el('wState').innerHTML = dot('g') + 'پاسخ ' + (j.validation ? fmt(j.validation.alive) : '—') + ' سالم';
+  state.worker = 'g';
+  var t = el('tiles').children;
+  if (j.scoring){ t[0].children[0].textContent = fmt(j.scoring.gold); }
+  if (j.validation){ t[1].children[0].textContent = fmt(j.validation.alive);
+    t[2].children[0].textContent = fmt((j.validation.latency_ms || {}).p50); }
+  if (j.generated_at){
+    var m = ageMin(j.generated_at);
+    var st = !isFinite(m) ? null : (m < 12 ? 'g' : m < 38 ? 'y' : 'r');
+    if (st){ state.worker = st; el('wState').innerHTML = dot(st) + 'آخرین ران ' + ago(j.generated_at); }
+  }
+  overall();
+}).catch(function(e){
+  el('wState').innerHTML = dot('r') + 'بدون پاسخ' + (e && e.status ? ' (' + e.status + ')' : '');
+  state.worker = 'r'; overall();
+});
+
+/* data branch freshness */
+fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); }).then(function(j){
+  var m = ageMin(j.generated_at || 0);
+  var st = !isFinite(m) ? 'x' : (m < 45 ? 'g' : m < 90 ? 'y' : 'r');
+  state.data = st === 'x' ? null : st;
+  el('dState').innerHTML = dot(st) + 'به‌روز ' + (isFinite(m) ? Math.round(m) + ' دقیقه' : '—');
+  el('lastRun').textContent = j.generated_at ? j.generated_at.replace('T', ' ').slice(0, 16) + ' UTC' : '—';
+  if (isFinite(m) && m < 38) el('nextHint').textContent = 'ران بعدی تا حداکثر ~' + Math.max(0, Math.round(30 - m)) + ' دقیقه دیگر';
+  else if (isFinite(m) && m >= 45) el('nextHint').textContent = '⚠ ران دیر شده — Actions را بررسی کنید';
+  if (j.bank && j.bank.size != null) el('tiles').children[3].children[0].textContent = fmt(j.bank.size);
+  /* health_7d bars */
+  var log = Array.isArray(j.health_7d) ? j.health_7d.slice(-8) : [];
+  var bars = el('bars');
+  if (!log.length){ barsHint(); return; }
+  var maxA = Math.max.apply(null, log.map(function(x){ return x.alive || 0; }).concat([1]));
+  var h = '';
+  for (var i = 0; i < log.length; i++){
+    var d = log[i];
+    var pct = Math.round(100 * (d.alive || 0) / maxA);
+    h += '<div><i style="height:' + Math.max(6, pct) + '%" title="' + d.d + ' · ' + fmt(d.alive) + ' سالم"></i>' +
+      '<span>' + (d.d || '').slice(5) + (d.hit != null ? ' · ' + d.hit + '%' : '') + '</span></div>';
+  }
+  bars.innerHTML = h;
+  function barsHint(){ el('barsHint').textContent = 'هنوز لاگ سلامتی ثبت نشده — بعد از چند ران پر می‌شود.'; }
+  overall();
+}).catch(function(e){
+  el('dState').innerHTML = dot('r') + 'در دسترس نیست' + (e && e.status ? ' (' + e.status + ')' : '');
+  state.data = 'r'; overall();
+});
+
+/* GitHub Actions cron */
+fetch(ACTIONS, { cache: 'no-store', headers: { 'accept': 'application/vnd.github+json' } }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); }).then(function(j){
+  var runs = (j.workflow_runs || []).slice(0, 5);
+  var box = el('runs');
+  if (!runs.length){ box.innerHTML = '<div class="row"><div class="k">رانی ثبت نشده</div><div class="v">—</div></div>'; return; }
+  var h = '';
+  for (var i = 0; i < runs.length; i++){
+    var r = runs[i];
+    var cls = r.status === 'completed' ? (r.conclusion === 'success' ? 'ok' : 'fail') : 'run';
+    var label = r.status === 'completed' ? (r.conclusion === 'success' ? 'موفق ✓' : (r.conclusion || 'ناموفق')) : 'در حال اجرا…';
+    h += '<div class="row"><div><div class="k">' + dot(cls === 'ok' ? 'g' : cls === 'fail' ? 'r' : 'y') + label + '</div>' +
+      '<div class="hint">' + (r.run_number ? '#' + r.run_number + ' · ' : '') + r.event + '</div></div>' +
+      '<div class="st ' + cls + '">' + (r.created_at || '').replace('T', ' ').slice(0, 16) + 'Z</div></div>';
+  }
+  box.innerHTML = h;
+}).catch(function(e){
+  el('runs').innerHTML = '<div class="row"><div class="k">API گیت‌هاب در دسترس نیست' + (e && e.status ? ' (' + e.status + ')' : '') + '</div><div class="v">—</div></div>';
+});
+
+/* refresh every 90s */
+setTimeout(function(){ location.reload(); }, 90000);
+})();
+</script>
+</body>
+</html>

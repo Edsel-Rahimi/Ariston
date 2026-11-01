@@ -148,7 +148,7 @@ def score_phase(uniq: list[str], history: dict, per_node: dict) -> list[dict]:
         sc = S.total(latency, rate, age, uri)
         rows.append({
             "uri": uri, "hash": h, "score": sc,
-            "tier": S.tier(sc) if alive else None,
+            "tier": S.tier(sc, BK.TIER_GOLD_MIN, BK.TIER_SILVER_MIN) if alive else None,
             "alive": alive,
             "latency_ms": info["latency_ms"] if info else None,
         })
@@ -203,6 +203,24 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
         print(f"[2a/4] bank rescue: {rescue_stats['picked']} orphaned proven configs "
               f"re-enter the queue (of {rescue_stats['candidates']} candidates)")
     stats["rescue"] = rescue_stats
+
+    # D10/G5 — panel filter stage (protocols · keywords · geo).  Empty knobs =
+    # a pure pass-through; any filter only *shrinks* today's queue.
+    try:
+        geo_on = BK.csv_tokens(BK.GEO_ALLOW) or BK.csv_tokens(BK.GEO_DENY)
+        table = G.load_table() if geo_on else None
+        lookup = (lambda ip: (G.lookup(table, ip) or (None, None))[1]) if (geo_on and table) else None
+        uniq, fstats = BK.filter_uniq(uniq, lookup)
+        stats["filter"] = fstats
+        if fstats["out"] != fstats["in"]:
+            print(f"[2a/4] panel filters: {fstats['in']:,} → {fstats['out']:,} "
+                  f"(proto {fstats['proto_dropped']} · deny {fstats['deny_dropped']} · "
+                  f"allow {fstats['allow_dropped']} · geo {fstats['geo_dropped']})")
+        elif geo_on and not fstats["geo_available"]:
+            print("[2a/4] panel geo filter: table unavailable — filter skipped (fail-safe)")
+    except Exception as exc:   # a broken filter stage must never kill the run
+        stats["filter"] = {"error": type(exc).__name__}
+        print(f"[2a/4] panel filters: skipped ({type(exc).__name__})")
 
     # D6/C — fold this run's source health into the ledger.
     failed_ids = list((stats.get("sources_failed") or {}).keys())

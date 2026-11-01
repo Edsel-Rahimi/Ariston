@@ -188,6 +188,15 @@ const T = {
     bank_line: '🏦 بانک کانفیگ: {n} خوش‌سابقه · بازگشت {hit}٪ · سابقهٔ میانگین {streak} دور',
     bank_p2: '🛟 دور دوم: {r} نجات از {a} تلاش',
     bank_src: '🩺 منابع: سالم {h} · مشکوک {s} · قرنطینه {q}',
+    /* D10/U3 — invite tiers + weekly summary + run-late */
+    tier_bronze: '🥉 برنزی', tier_silver: '🥈 نقره‌ای', tier_gold: '🥇 طلایی',
+    ref_tier: '🏅 سطح فعلی: {tier} — تا سطح {next} فقط {n} دعوت دیگر!',
+    ref_tier_max: '🏅 سطح فعلی: {tier} — بالاترین سطح! آفرین',
+    wk_title: '🗓 خلاصهٔ هفتگی تو از آریستون',
+    wk_tried: '🧪 این هفته {n} کانفیگ امتحان کردی.',
+    wk_quota: '🎯 سهمیهٔ فعلی: {q} · سطح: {tier}',
+    wk_gold: '🥇 الان {gold} طلایی و {alive} سالم در بانک هست — بفرما تازه‌ها!',
+    late_run: '⏰ «ران دیر شد» — از آخرین دورِ موفق {min} دقیقه گذشته (دور {run}). احتمالاً Actions خطا داده یا رد شده.',
   },
   en: {
     start_new: '👑 Welcome to Ariston!\n\nEvery 30 minutes Ariston collects thousands of public configs, tests them with the xray-core and sing-box engines, and delivers only the alive ones.\n\n⬇️ Quick setup first:',
@@ -255,6 +264,15 @@ const T = {
     bank_line: '🏦 Config bank: {n} known-good · hit {hit}% · avg streak {streak}',
     bank_p2: '🛟 Pass-2: {r} rescued of {a} attempts',
     bank_src: '🩺 Sources: healthy {h} · suspect {s} · quarantined {q}',
+    /* D10/U3 — invite tiers + weekly summary + run-late */
+    tier_bronze: '🥉 Bronze', tier_silver: '🥈 Silver', tier_gold: '🥇 Gold',
+    ref_tier: '🏅 Current tier: {tier} — only {n} more invites to {next}!',
+    ref_tier_max: '🏅 Current tier: {tier} — the top tier, nice!',
+    wk_title: '🗓 Your weekly Ariston recap',
+    wk_tried: '🧪 You tried {n} configs this week.',
+    wk_quota: '🎯 Current quota: {q} · tier: {tier}',
+    wk_gold: '🥇 {gold} gold & {alive} alive configs are in the bank right now — come get the fresh ones!',
+    late_run: '⏰ "Run is late" — {min} minutes since the last successful run ({run}). The Actions run likely failed or was skipped.',
   },
   ru: {
     start_new: '👑 Добро пожаловать в Ariston!\n\nКаждые 30 минут Ariston собирает тысячи публичных конфигов, проверяет их движками xray-core и sing-box и отдаёт только живые.\n\n⬇️ Сначала быстрая настройка:',
@@ -322,6 +340,15 @@ const T = {
     bank_line: '🏦 Банк конфигов: {n} надёжных · попаданий {hit}% · ср. серия {streak}',
     bank_p2: '🛟 Второй проход: {r} спасено из {a}',
     bank_src: '🩺 Источники: здоровых {h} · подозрительных {s} · карантин {q}',
+    /* D10/U3 — invite tiers + weekly summary + run-late */
+    tier_bronze: '🥉 Бронза', tier_silver: '🥈 Серебро', tier_gold: '🥇 Золото',
+    ref_tier: '🏅 Уровень: {tier} — до {next} всего {n} приглашений!',
+    ref_tier_max: '🏅 Уровень: {tier} — высший уровень, браво!',
+    wk_title: '🗓 Ваш недельный отчёт Ariston',
+    wk_tried: '🧪 На этой неделе вы попробовали {n} конфигов.',
+    wk_quota: '🎯 Квота: {q} · уровень: {tier}',
+    wk_gold: '🥇 В банке сейчас {gold} золотых и {alive} живых — забирайте свежие!',
+    late_run: '⏰ «Запуск задерживается» — {min} минут с последнего успешного прогона ({run}). Вероятно, Actions упал или был пропущен.',
   },
   tr: {
     start_new: '👑 Ariston\'a hoş geldin!\n\nAriston her 30 dakikada binlerce genel yapılandırmayı toplar, xray-core ve sing-box motorlarıyla test eder ve yalnızca çalışanları teslim eder.\n\n⬇️ Önce hızlı kurulum:',
@@ -389,6 +416,15 @@ const T = {
     bank_line: '🏦 Yapılandırma bankası: {n} güvenilir · isabet {hit}% · ort. seri {streak}',
     bank_p2: '🛟 İkinci tur: {a} denemede {r} kurtarıldı',
     bank_src: '🩺 Kaynaklar: sağlıklı {h} · şüpheli {s} · karantina {q}',
+    /* D10/U3 — invite tiers + weekly summary + run-late */
+    tier_bronze: '🥉 Bronz', tier_silver: '🥈 Gümüş', tier_gold: '🥇 Altın',
+    ref_tier: '🏅 Seviye: {tier} — {next} için sadece {n} davet kaldı!',
+    ref_tier_max: '🏅 Seviye: {tier} — en üst seviye, harika!',
+    wk_title: '🗓 Haftalık Ariston özetin',
+    wk_tried: '🧪 Bu hafta {n} yapılandırma denedin.',
+    wk_quota: '🎯 Kota: {q} · seviye: {tier}',
+    wk_gold: '🥇 Bankada şu an {gold} altın ve {alive} çalışan var — yeniler seni bekliyor!',
+    late_run: '⏰ "Çalışma gecikti" — son başarılı çalışmadan beri {min} dakika geçti ({run}). Actions muhtemelen başarısız oldu veya atlandı.',
   },
   zh: {
     start_new: '👑 欢迎使用 Ariston！\n\nAriston 每 30 分钟收集数千个公共配置，用 xray-core 与 sing-box 双引擎测试，只交付可用的。\n\n⬇️ 先做几个快速设置：',
@@ -456,6 +492,15 @@ const T = {
     bank_line: '🏦 配置银行：{n} 个优等 · 命中 {hit}% · 平均连击 {streak} 轮',
     bank_p2: '🛟 第二轮：{a} 次尝试救回 {r} 个',
     bank_src: '🩺 源：健康 {h} · 可疑 {s} · 隔离 {q}',
+    /* D10/U3 — invite tiers + weekly summary + run-late */
+    tier_bronze: '🥉 青铜', tier_silver: '🥈 白银', tier_gold: '🥇 黄金',
+    ref_tier: '🏅 当前等级：{tier} — 再邀请 {n} 人即可升级到 {next}！',
+    ref_tier_max: '🏅 当前等级：{tier} — 已是最高等级，厉害！',
+    wk_title: '🗓 你的 Ariston 周报',
+    wk_tried: '🧪 本周你尝试了 {n} 个配置。',
+    wk_quota: '🎯 当前配额：{q} · 等级：{tier}',
+    wk_gold: '🥇 银行现有 {gold} 个金牌和 {alive} 个可用配置 — 快来取新鲜的！',
+    late_run: '⏰ 「运行延迟」— 距上次成功运行已 {min} 分钟（{run}）。Actions 可能失败或被跳过。',
   },
 };
 
@@ -679,6 +724,8 @@ const CFG_DEFAULT = {
   quiet_start: 2,            // Tehran local hour, inclusive
   quiet_end: 8,              // Tehran local hour, exclusive
   admin_ids: [],             // managed via /setup?admin=<id> and the panel
+  /* D10/U3 — Friday personal weekly summary (quiet-hours + per-week guard) */
+  weekly_enabled: true,
 };
 
 /* Tehran is UTC+3:30 year-round → local hour helper for quiet hours */
@@ -712,16 +759,30 @@ const PCFG_DEFAULT = {
   sub_max_lines: 300, sub_min_op_lines: 10,
   exports_mihomo: true, exports_singbox: true, exports_base64: true,
   smart_ttl: true,
+  /* D10/G5 — panel phase 3: filters & strictness. Every list is a csv string,
+     EMPTY = the feature is off (classic behavior — the fail-safe default). */
+  gold_min: 80, silver_min: 55, strictness: 0,
+  proto_allow: '', deny_kw: '', allow_kw: '', geo_allow: '', geo_deny: '',
 };
 const PCFG_RANGE = {
   bank_ttl_hours: [6, 72], pass2_factor: [1, 3], suspect_after: [1, 10],
   quarantine_after: [2, 20], quarantine_days: [1, 30], min_streak_priority: [1, 10],
   rescue_min_streak: [2, 20], rescue_max: [0, 5000],
   sub_max_lines: [50, 500], sub_min_op_lines: [3, 50],
+  gold_min: [50, 95], silver_min: [25, 79], strictness: [0, 2],
 };
 const PCFG_BOOLS = ['pass2_enabled', 'rescue_enabled', 'skip_test', 'force_full_scan', 'exports_mihomo', 'exports_singbox', 'exports_base64', 'smart_ttl'];
 const PCFG_STRINGS = ['remark_tpl'];
+const PCFG_CSVS = ['proto_allow', 'deny_kw', 'allow_kw', 'geo_allow', 'geo_deny'];
 const sanitizeTpl = (v) => String(v == null ? '' : v).replace(/[#\r\n\t]/g, ' ').trim().slice(0, 48);
+/* D10/G5 — csv knob: lowercase word list, everything but [a-z0-9:._*-] is a
+   separator, deduped, ≤400 chars. Junk/empty → '' (= feature off). */
+const sanitizeCsv = (v) => {
+  const words = String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9:._*-]/g, ' ').split(/\s+/);
+  const out = [];
+  for (const w of words) if (w && !out.includes(w)) out.push(w);
+  return out.join(',').slice(0, 400);
+};
 /* same truthy set as the pipeline's clamp (bank.py) → the two layers never disagree */
 const boolish = (v) => v === true || v === 1 || (typeof v === 'string' && ['1', 'true', 'yes', 'on'].includes(v.toLowerCase()));
 
@@ -733,6 +794,7 @@ async function getPipelineCfg(env) {
       if (!(k in c)) continue;
       if (PCFG_BOOLS.includes(k)) { out[k] = boolish(c[k]); continue; }
       if (PCFG_STRINGS.includes(k)) { const s = sanitizeTpl(c[k]); if (s.length >= 3 && /[A-Za-z\u0600-\u06FF]/.test(s)) out[k] = s; continue; }
+      if (PCFG_CSVS.includes(k)) { out[k] = sanitizeCsv(c[k]); continue; }
       const n = Number(c[k]);
       const r = PCFG_RANGE[k];
       if (isFinite(n)) out[k] = r ? Math.min(r[1], Math.max(r[0], n)) : n;  // clamp, never pass junk
@@ -796,7 +858,7 @@ async function audit(env, tgUser, act, detail) {
 /* ── D9/G2-4 — editable automated-message templates (KV `cfg:templates`).
    Empty = the classic built-in text (fail-safe default). Vars: {gold} {alive}
    {p50} {sources_ok} {sources_total} {bank_size} {hit} {streak} {date} {last_run}. ── */
-const TPL_DEFAULT = { watchtower: '', card: '', digest: '' };
+const TPL_DEFAULT = { watchtower: '', card: '', digest: '', weekly: '' };
 async function getTemplates(env) {
   const t = await kvGet(env, 'cfg:templates', 'json');
   const out = { ...TPL_DEFAULT };
@@ -1132,6 +1194,143 @@ async function favDeathScan(env) {
     } catch (_) { /* keep scanning */ }
   }
   await kvPut(env, 'favscan:cursor', String(cursor >= total ? 0 : cursor), 172800);
+}
+
+/* ─── D10/G7 — error ring buffer: the last 10 worker-side errors in KV `err:log`.
+   fail-safe by construction: logging must never throw, never break the caller. ─── */
+async function logErr(env, where, message) {
+  try {
+    const log = (await kvGet(env, 'err:log', 'json')) || [];
+    if (!Array.isArray(log)) return;
+    log.unshift({ ts: new Date().toISOString(), w: String(where || '').slice(0, 40), m: String(message || '').slice(0, 220) });
+    await kvPut(env, 'err:log', JSON.stringify(log.slice(0, 10)), 30 * 86400);
+  } catch (_) { /* never */ }
+}
+
+/* ─── D10/U3-4 — invite tiering: naming the escalation ladder (bronze → gold).
+   Pure display + progress — resolveQuota stays bit-identical (the plan-B
+   formula already pays more quota; tiers make it visible and explainable). ─── */
+const REF_TIERS = [
+  { key: 'gold', min: 6 },
+  { key: 'silver', min: 3 },
+  { key: 'bronze', min: 0 },
+];
+function userLevel(refs) {
+  const r = Math.max(0, parseInt(refs, 10) || 0);
+  const tier = REF_TIERS.find((x) => r >= x.min) || REF_TIERS[2];
+  const next = REF_TIERS[REF_TIERS.indexOf(tier) - 1] || null; // undefined at gold
+  return { key: tier.key, refs: r, next: next ? next.key : null, need: next ? Math.max(0, next.min - r) : 0 };
+}
+
+/* Tehran weekday ('Fri' on Fridays) + ISO-week key for the weekly guards */
+function tehranWeekday() {
+  try { return new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tehran' }).format(new Date()); }
+  catch (_) { return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getUTCDay()]; }
+}
+function isoWeekKey(d) {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = t.getUTCDay() || 7; // Mon=1..Sun=7
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const wk = Math.ceil((((t - y0) / 86400e3) + 1) / 7);
+  return t.getUTCFullYear() + '-W' + String(wk).padStart(2, '0');
+}
+
+/* ─── D10/U3-1 — personal weekly summary, Fridays Tehran, from the user's own
+   history + connect marks (no global data, nothing to leak).  Chunked cursor
+   like favDeathScan (10 users/tick), one message per user per ISO-week,
+   quiet hours respected, weekly_enabled is the panel switch. ─── */
+const WK_CHUNK = 10;
+async function weeklyDigest(env) {
+  const cfg = await getCfg(env);
+  if (cfg.weekly_enabled === false) return;
+  if (inQuietHours(cfg)) return;
+  if (tehranWeekday() !== 'Fri') return;
+  const idx = (await kvGet(env, 'users:index', 'json')) || [];
+  const total = Array.isArray(idx) ? idx.length : 0;
+  if (!total) return;
+  const wk = isoWeekKey(new Date());
+  if ((await kvGet(env, 'wk:done:' + wk)) === '1') return; // lap complete
+  let cursor = parseInt((await kvGet(env, 'wk:cursor')) || '0', 10) || 0;
+  if (cursor >= total) cursor = 0;
+  const origin = await kvGet(env, 'meta:origin');
+  const s = await getStats(env);
+  const gold = s && s.scoring ? s.scoring.gold : null;
+  const alive = s && s.validation ? s.validation.alive : null;
+  let sent = 0;
+  const end = Math.min(total, cursor + WK_CHUNK);
+  for (; cursor < end && sent < WK_CHUNK; cursor++) {
+    const chatId = idx[total - 1 - cursor]; // newest users first
+    if (chatId == null) continue;
+    try {
+      if (await isBlocked(env, chatId)) continue;
+      const guard = 'wk:sent:' + chatId + ':' + wk;
+      if (await kvGet(env, guard)) continue;
+      const u = await getUser(env, chatId);
+      const lang = (u && u.lang) || 'fa';
+      const hist = await historyGet(env, chatId); // newest-first, ≤20
+      const marks = await marksGet(env, chatId);
+      const cutoff = Date.now() - 7 * 86400e3;
+      const week = hist.filter((x) => x && x.ts && x.ts >= cutoff);
+      const ok = week.filter((x) => marks[x.h] === 1).length;
+      const fail = week.filter((x) => marks[x.h] === 2).length;
+      const lvl = userLevel(u ? u.ref_count : 0);
+      const rows = [];
+      if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
+      rows.push([{ text: t(lang, 'btn_sub'), callback_data: 'menu:sub' }]);
+      const custom = renderTpl((await getTemplates(env)).weekly, {
+        tried: fmt(week.length), ok: fmt(ok), fail: fmt(fail),
+        quota: fmt(resolveQuota(u, cfg)), tier: t(lang, 'tier_' + lvl.key),
+        gold: gold != null ? fmt(gold) : '—', alive: alive != null ? fmt(alive) : '—',
+      });
+      const msg = custom || [
+        t(lang, 'wk_title'),
+        '',
+        t(lang, 'wk_tried', { n: fmt(week.length) }),
+        '✅ ' + fmt(ok) + '  ·  ❌ ' + fmt(fail),
+        t(lang, 'wk_quota', { q: fmt(resolveQuota(u, cfg)), tier: t(lang, 'tier_' + lvl.key) }),
+        t(lang, 'wk_gold', { gold: gold != null ? fmt(gold) : '—', alive: alive != null ? fmt(alive) : '—' }),
+      ].join('\n');
+      await sendMessage(env, chatId, msg, { reply_markup: { inline_keyboard: rows } });
+      await kvPut(env, guard, '1', 9 * 86400); // one summary per user per week
+      sent++;
+    } catch (_) { /* keep scanning */ }
+  }
+  await kvPut(env, 'wk:cursor', String(cursor >= total ? 0 : cursor), 172800);
+  if (cursor >= total) await kvPut(env, 'wk:done:' + wk, '1', 9 * 86400);
+}
+
+/* ─── D10/U3-3 — «ران دیر شد»: the Actions cron fires every 30 min, so a
+   stats.json older than 45 min means a run failed or was skipped.  The alert
+   goes to the admins (ops channel — quiet hours do NOT apply to it), at most
+   once per stale generation + a hourly nudge while it stays stale. ─── */
+async function lateRunCheck(env) {
+  const s = await getStats(env);
+  if (!s || !s.generated_at) return; // no data yet → nothing to compare
+  const ageMin = (Date.now() - Date.parse(s.generated_at)) / 60000;
+  if (!isFinite(ageMin) || ageMin <= 45) {
+    await kvDel(env, 'late:alert'); // fresh again → reset the nudges
+    return;
+  }
+  const gen = String(s.generated_at);
+  const perGen = 'late:' + gen;
+  const hourly = (await kvGet(env, 'late:alert')) || '';
+  const firstForThisGen = (await kvGet(env, 'late:gen')) !== gen;
+  if (!firstForThisGen && hourly && (Date.now() - Date.parse(hourly)) < 3600e3) return;
+  const ids = new Set([
+    ...(((await getCfg(env)).admin_ids) || []).map(String),
+    String(await kvGet(env, 'meta:owner') || ''),
+  ].filter(Boolean));
+  for (const id of ids) {
+    const u = await getUser(env, id);
+    const lang = (u && u.lang) || 'fa';
+    await sendMessage(env, id, t(lang, 'late_run', { min: Math.round(ageMin), run: gen.slice(0, 16).replace('T', ' ') })
+      + '\n🔗 github.com/Edsel-Rahimi/Ariston/actions').catch(() => null);
+  }
+  await kvPut(env, 'late:gen', gen, 172800);
+  await kvPut(env, 'late:alert', new Date().toISOString(), 172800);
+  if (firstForThisGen) await kvPut(env, perGen, '1', 86400); // marker (diagnostics)
+  await logErr(env, 'late-run', 'stats age ' + Math.round(ageMin) + 'min (gen ' + gen + ')');
 }
 
 async function dailyChannelCard(env, force = false) {
@@ -1626,10 +1825,16 @@ async function cmdRef(env, chatId, lang, origin) {
   const bot = (await kvGet(env, 'meta:bot_username')) || 'Ariston_vbot';
   const link = 'https://t.me/' + bot + '?start=ref' + chatId;
   const refs = user.ref_count || 0;
+  /* D10/U3-4 — invite tiering: bronze → silver → gold, with progress to next */
+  const lvl = userLevel(refs);
+  const tierLine = lvl.next
+    ? '\n' + t(lang, 'ref_tier', { tier: t(lang, 'tier_' + lvl.key), next: t(lang, 'tier_' + lvl.next), n: fmt(lvl.need) })
+    : '\n' + t(lang, 'ref_tier_max', { tier: t(lang, 'tier_gold') });
   const msg = [
     t(lang, 'ref_title'), '',
     '<code>' + esc(link) + '</code>', '',
-    t(lang, 'ref_stat', { n: refs, q: refQuota(refs, cfg), cap: cfg.ref_cap || REF_CAP }), '',
+    t(lang, 'ref_stat', { n: refs, q: refQuota(refs, cfg), cap: cfg.ref_cap || REF_CAP }),
+    tierLine, '',
     t(lang, 'ref_rule'),
   ].join('\n');
   const share = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(t(lang, 'ref_share_text'));
@@ -2219,6 +2424,9 @@ async function adminState(env) {
     /* D9/G2-4 — the editable message templates + the audit log size */
     tpl: await getTemplates(env),
     audit_n: ((await kvGet(env, 'audit:log', 'json')) || []).length || 0,
+    /* D10/G7 — error ring size + last cron tick (health card) */
+    err_n: (((await kvGet(env, 'err:log', 'json')) || []).length || 0),
+    cron_last_tick: (await kvGet(env, 'cron:last_tick')) || null,
     /* D8/P1 — the pipeline knobs, exactly what /api/pipeline-cfg serves */
     pcfg: await getPipelineCfg(env),
     now: new Date().toISOString(), // client computes run-lag from this
@@ -2252,6 +2460,8 @@ const ADMIN_SET_KEYS = {
   ref_base: 'int:5-50', ref_cap: 'int:10-100', every_hours: 'int:1-24', channel_user: 'handle',
   /* D8/P6 — notifications & quiet hours */
   watchtower_cap: 'int:5-100', quiet_enabled: 'bool', quiet_start: 'int:0-23', quiet_end: 'int:0-23',
+  /* D10/U3 — Friday personal weekly summary */
+  weekly_enabled: 'bool',
 };
 const PCFG_SET_KEYS = {
   bank_ttl_hours: 'num:6-72', pass2_enabled: 'bool', pass2_factor: 'num:1-3',
@@ -2262,6 +2472,9 @@ const PCFG_SET_KEYS = {
   /* D9/G2 — panel phase 2 */
   remark_tpl: 'tpl', sub_max_lines: 'int:50-500', sub_min_op_lines: 'int:3-50',
   exports_mihomo: 'bool', exports_singbox: 'bool', exports_base64: 'bool', smart_ttl: 'bool',
+  /* D10/G5 — panel phase 3: filters & strictness */
+  gold_min: 'int:50-95', silver_min: 'int:25-79', strictness: 'int:0-2',
+  proto_allow: 'csv', deny_kw: 'csv', allow_kw: 'csv', geo_allow: 'csv', geo_deny: 'csv',
 };
 
 async function adminSet(env, body, tgUser) {
@@ -2276,6 +2489,8 @@ async function adminSet(env, body, tgUser) {
   } else if (spec === 'tpl') { // D9/G2-1 — remark template: no '#', 3..48 chars, must contain a letter
     v = sanitizeTpl(v);
     if (v.length < 3 || !/[A-Za-z\u0600-\u06FF]/.test(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
+  } else if (spec === 'csv') { // D10/G5 — csv knob: '' is valid (= feature off)
+    v = sanitizeCsv(v);
   } else {
     const m = spec.match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
     v = Number(v);
@@ -2425,6 +2640,7 @@ async function adminUserProfile(env, body) {
     chat_id: id, name: u.name || null, tg: u.tg || null,
     lang: u.lang || 'fa', isp: u.isp || '—', client: u.client || '—',
     ref_count: u.ref_count || 0, quota: resolveQuota(u, cfg), quota_ovr: u.quota_ovr != null ? u.quota_ovr : null,
+    tier: userLevel(u.ref_count || 0).key,
     rotation: u.rotation === 'run' ? 'run' : 'day', sub_mode: u.sub_mode || 'mix',
     theme: u.theme || null, created: u.created || null, token: u.token || null,
     marks_ok: mvals.filter((v) => v === 1).length, marks_fail: mvals.filter((v) => v === 2).length,
@@ -2515,6 +2731,227 @@ async function adminTemplates(env, body, tgUser) {
   await kvPut(env, 'cfg:templates', JSON.stringify(next));
   await audit(env, tgUser, 'templates', Object.keys(body).filter((k) => k in TPL_DEFAULT).join(','));
   return Response.json({ ok: true, tpl: await getTemplates(env) });
+}
+
+/* ─── D10/G6 — settings backup: export / restore the three config keys + the
+   /freq interval as one JSON.  Restore re-clamps EVERY value through the same
+   specs adminSet uses; unknown keys are skipped. No secrets ever leave KV. ─── */
+async function adminSettingsExport(env) {
+  const pc = await getPipelineCfg(env);
+  return Response.json({
+    ariston_settings_version: 1,
+    exported_at: new Date().toISOString(),
+    cfg_admin: await getCfg(env),
+    cfg_pipeline: { ...pc, force_full_scan: false, skip_test: false }, // one-shots never ride a backup
+    cfg_templates: await getTemplates(env),
+    every_hours: Math.min(24, Math.max(1, parseInt((await kvGet(env, 'ch:every_hours')) || '6', 10) || 6)),
+  }, { headers: { 'content-disposition': 'attachment; filename="ariston-settings.json"' } });
+}
+
+/* spec-driven clamp shared with adminSet (same regex, same ranges) */
+function clampBySpec(spec, v) {
+  if (spec === 'bool') return Boolean(v);
+  if (spec === 'handle') {
+    const s = String(v || '').replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '');
+    return s.length >= 4 ? s : null;
+  }
+  if (spec === 'tpl') {
+    const s = sanitizeTpl(v);
+    return (s.length >= 3 && /[A-Za-z\u0600-\u06FF]/.test(s)) ? s : null;
+  }
+  if (spec === 'csv') return sanitizeCsv(v);
+  const m = String(spec).match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+  if (!m) return null;
+  const n = Number(v);
+  if (!isFinite(n)) return null;
+  const c = Math.min(parseFloat(m[2]), Math.max(parseFloat(m[1]), n));
+  return String(spec).startsWith('int:') ? Math.round(c) : c;
+}
+
+async function adminSettingsImport(env, body, tgUser) {
+  const inc = body && body.settings;
+  if (!inc || typeof inc !== 'object') return Response.json({ error: 'bad_json' }, { status: 400 });
+  let applied = 0, skipped = 0;
+  /* cfg:admin — known keys only, clamped, admin_ids never touched here */
+  if (inc.cfg_admin && typeof inc.cfg_admin === 'object') {
+    const cfg = await getCfg(env);
+    for (const [k, spec] of Object.entries(ADMIN_SET_KEYS)) {
+      if (!(k in inc.cfg_admin) || k === 'every_hours') { continue; }
+      const v = clampBySpec(spec, inc.cfg_admin[k]);
+      if (v == null) { skipped++; continue; }
+      cfg[k] = v; applied++;
+    }
+    await putCfg(env, cfg);
+  }
+  /* cfg:pipeline */
+  if (inc.cfg_pipeline && typeof inc.cfg_pipeline === 'object') {
+    const pc = await getPipelineCfg(env);
+    for (const [k, spec] of Object.entries(PCFG_SET_KEYS)) {
+      if (!(k in inc.cfg_pipeline) || k === 'force_full_scan' || k === 'skip_test') { continue; } // one-shots never ride a backup
+      const v = clampBySpec(spec, inc.cfg_pipeline[k]);
+      if (v == null) { skipped++; continue; }
+      pc[k] = v; applied++;
+    }
+    await putPipelineCfg(env, pc);
+  }
+  /* cfg:templates */
+  if (inc.cfg_templates && typeof inc.cfg_templates === 'object') {
+    const cur = await getTemplates(env);
+    const next = { ...cur };
+    for (const k of Object.keys(TPL_DEFAULT)) {
+      if (!(k in inc.cfg_templates)) continue;
+      next[k] = String(inc.cfg_templates[k] == null ? '' : inc.cfg_templates[k]).slice(0, 900).trim() || '';
+      applied++;
+    }
+    await kvPut(env, 'cfg:templates', JSON.stringify(next));
+  }
+  /* /freq interval */
+  if (inc.every_hours != null) {
+    const n = Math.round(Number(inc.every_hours));
+    if (isFinite(n) && n >= 1 && n <= 24) { await kvPut(env, 'ch:every_hours', String(n)); await kvDel(env, 'ch:last_post'); applied++; }
+    else skipped++;
+  }
+  await audit(env, tgUser, 'settings_import', 'applied ' + applied + ' · skipped ' + skipped);
+  return Response.json({ ok: true, applied, skipped });
+}
+
+/* ─── D10/G6 — read-only KV browser.  Safe prefixes show name + size + value
+   (truncated); user-data prefixes are metadata-only (name + TTL), values are
+   NEVER returned.  Read-only by design: no write, no delete here. ─── */
+const KV_OPEN_PREFIXES = ['cfg:', 'meta:', 'ch:', 'audit:', 'err:', 'stats:', 'watch:', 'favscan:', 'pcfg:', 'cron:', 'late:', 'wk:', 'card:', 'bc:', 'health:'];
+const KV_META_PREFIXES = ['blocked:', 'fb:', 'fbu:', 'fav:', 'hist:', 'sub:', 'user:', 'qr:', 'alloc:', 'rich:', 'rl:', 'sess:', 'wb:'];
+function kvPolicy(key) {
+  const k = String(key || '');
+  if (KV_OPEN_PREFIXES.some((p) => k.startsWith(p))) return 'open';
+  if (KV_META_PREFIXES.some((p) => k.startsWith(p))) return 'meta';
+  return 'meta'; // unknown prefix → conservative: metadata only
+}
+async function adminKvBrowser(env, body) {
+  const prefix = String(body.prefix || '').slice(0, 40);
+  if (!/^[\w:.-]{0,40}$/.test(prefix)) return Response.json({ error: 'bad_prefix' }, { status: 400 });
+  const cursor = String(body.cursor || '');
+  let page;
+  try { page = await env.KV.list({ prefix, cursor: cursor || undefined, limit: 20 }); }
+  catch (e) { return Response.json({ error: 'kv_list_failed' }, { status: 503 }); }
+  const items = [];
+  let valueBudget = 6; // free-plan subrequest budget: at most 6 value reads per call
+  for (const it of (page.keys || [])) {
+    const pol = kvPolicy(it.name);
+    const item = { key: it.name, pol, exp: it.expiration || null };
+    if (pol === 'open' && valueBudget > 0) {
+      valueBudget--;
+      const v = await kvGet(env, it.name, 'text');
+      item.size = v != null ? v.length : null;
+      item.value = v != null ? v.slice(0, 400) : null;
+    }
+    items.push(item);
+  }
+  return Response.json({ ok: true, items, cursor: page.list_complete ? null : (page.cursor || ''), done: Boolean(page.list_complete) });
+}
+
+/* ─── D10/G6 — selective cleanup.  Fixed categories only (never user data
+   unless explicitly listed), ≤50 deletes per call with a resumable cursor,
+   every step audited. ─── */
+const CLEANUP_KINDS = {
+  errlog: { label: 'err ring', single: 'err:log' },
+  audit: { label: 'audit log', single: 'audit:log' },
+  favdead: { label: 'fav-death guards', prefix: 'favdead:' },
+  wkguards: { label: 'weekly guards', prefix: 'wk:sent:' },
+  cursors: { label: 'scan cursors', keys: ['favscan:cursor', 'wk:cursor', 'qr:cursor', 'clean:cursor'] },
+  oneshots: { label: 'one-shot flags', keys: ['watch:last_gen', 'card:last', 'pcfg:last_full_done', 'late:gen', 'late:alert', 'ch:last_post'] },
+};
+async function adminCleanup(env, body, tgUser) {
+  const kind = String(body.kind || '');
+  const spec = CLEANUP_KINDS[kind];
+  if (!spec) return Response.json({ error: 'bad_kind' }, { status: 400 });
+  const ck = 'clean:cursor:' + kind;
+  let deleted = 0;
+  if (spec.single) { await kvDel(env, spec.single); deleted = 1; }
+  else if (spec.keys) { for (const k of spec.keys) { await kvDel(env, k); deleted++; } }
+  else if (spec.prefix) {
+    let cursor = String(body.cursor || (await kvGet(env, ck)) || '');
+    let page = null;
+    try { page = await env.KV.list({ prefix: spec.prefix, cursor: cursor || undefined, limit: 50 }); }
+    catch (_) { return Response.json({ error: 'kv_list_failed' }, { status: 503 }); }
+    for (const it of (page.keys || [])) { await kvDel(env, it.name); deleted++; }
+    if (!page.list_complete) { await kvPut(env, ck, page.cursor || '', 86400); return Response.json({ ok: true, kind, deleted, done: false, cursor: page.cursor || '' }); }
+    await kvDel(env, ck);
+  }
+  await audit(env, tgUser, 'cleanup', kind + ' · ' + deleted);
+  return Response.json({ ok: true, kind, deleted, done: true });
+}
+
+/* ─── D10/G7 — one-click health test: KV write/read/delete · Telegram getMe ·
+   channel visibility · webhook info · data-branch freshness · cron tick age.
+   Every check is individually fail-safe; the answer is always a full report. ─── */
+async function adminHealth(env) {
+  const checks = [];
+  const run = async (k, fn) => {
+    const t0 = Date.now();
+    try {
+      const detail = await fn();
+      checks.push({ k, ok: true, ms: Date.now() - t0, detail: detail || '' });
+    } catch (e) {
+      checks.push({ k, ok: false, ms: Date.now() - t0, detail: String(e && e.message || e).slice(0, 120) });
+    }
+  };
+  const withTimeout = (ms) => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), ms);
+    return { signal: c.signal, done: () => clearTimeout(t) };
+  };
+  await run('kv', async () => {
+    await kvPut(env, 'health:probe', String(Date.now()), 120);
+    const v = await kvGet(env, 'health:probe');
+    await kvDel(env, 'health:probe');
+    if (!v) throw new Error('read-back failed');
+    return 'write/read/delete ok';
+  });
+  await run('telegram', async () => {
+    const r = await api(env, 'getMe');
+    if (!r || !r.ok) throw new Error((r && r.description) || 'getMe failed');
+    return '@' + (r.result.username || '?');
+  });
+  await run('channel', async () => {
+    const cfg = await getCfg(env);
+    const chan = env.CHANNEL_ID || (await kvGet(env, 'meta:channel'));
+    if (!chan) return 'not configured (skip)';
+    const r = await api(env, 'getChat', { chat_id: chan });
+    if (!r || !r.ok) throw new Error((r && r.description) || 'getChat failed');
+    return '@' + (r.result.username || r.result.id || '?');
+  });
+  await run('webhook', async () => {
+    const r = await api(env, 'getWebhookInfo');
+    if (!r || !r.ok) throw new Error('getWebhookInfo failed');
+    const w = r.result || {};
+    const pending = w.pending_update_count || 0;
+    if (w.last_error_message) throw new Error('last_error: ' + w.last_error_message);
+    if (pending > 50) throw new Error(pending + ' pending updates');
+    return (w.url || 'no url') + ' · pending ' + pending;
+  });
+  let statsAge = null;
+  await run('data', async () => {
+    const t2 = withTimeout(8000);
+    try {
+      const r = await fetch(RAW + 'stats.json?t=' + Date.now(), { signal: t2.signal, headers: { 'user-agent': 'ariston-bot/1.0' }, cf: { cacheTtl: 0 } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (!j || !j.generated_at) throw new Error('no generated_at');
+      statsAge = Math.round((Date.now() - Date.parse(j.generated_at)) / 60000);
+      return 'run ' + statsAge + ' min ago · ' + ((j.validation || {}).alive ?? '?') + ' alive';
+    } finally { t2.done(); }
+  });
+  await run('cron', async () => {
+    const tick = await kvGet(env, 'cron:last_tick');
+    if (!tick) return 'no tick recorded yet';
+    const age = Math.round((Date.now() - Date.parse(tick)) / 60000);
+    if (!isFinite(age)) return 'tick unparsable';
+    if (age > 45) throw new Error('last tick ' + age + ' min ago (>45)');
+    return 'last tick ' + age + ' min ago';
+  });
+  const errors = (await kvGet(env, 'err:log', 'json')) || [];
+  await audit(env, null, 'health', checks.filter((c) => !c.ok).map((c) => c.k).join(',') || 'all ok');
+  return Response.json({ ok: true, checks, stats_age_min: statsAge, cron_last_tick: (await kvGet(env, 'cron:last_tick')) || null, errors: Array.isArray(errors) ? errors : [] });
 }
 
 /* ─── D7 — admin ops: admins · broadcast · purge · scoped commands ───────── */
@@ -3315,7 +3752,7 @@ body.light .fsearch{background:rgba(255,253,246,.8)}
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D9.0 · V4.3</span>
+    <span>D10.0 · V4.3</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -4306,7 +4743,7 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D9.0 — phase 2: remark template · sub caps · export selection · message templates · user search/profile/block/quota · group reset · audit log -->
+<!-- panel build: D10.0 — phase 3: pipeline filters (tier/protocol/blackwhite/geo/strictness) · settings export-restore · read-only KV browser · selective cleanup · health test · error ring · weekly summary · run-late alert · invite tiers -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4383,7 +4820,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
 </head>
 <body><div class="wrap">
 <header>
-  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D9.0</span>
+  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D10.0</span>
 </header>
 <div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
 <div id="panel" hidden>
@@ -4430,6 +4867,50 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div style="padding:10px 0 8px"><button class="btn" id="savePipe2">ذخیرهٔ فاز ۲</button></div>
   </div>
 
+  <div class="h2">فیلترها و سخت‌گیری — فاز ۳ <span class="n">دور بعد اعمال می‌شود</span></div>
+  <div class="card">
+    <div class="row"><div><div class="k">آستانهٔ طلایی</div><div class="hint">حداقل امتیاز برای تیر طلایی (۵۰ تا ۹۵ · پیش‌فرض ۸۰)</div></div><input id="pGold" type="number" min="50" max="95"></div>
+    <div class="row"><div><div class="k">آستانهٔ نقره‌ای</div><div class="hint">حداقل امتیاز برای نقره‌ای (۲۵ تا ۷۹ · پیش‌فرض ۵۵)</div></div><input id="pSilver" type="number" min="25" max="79"></div>
+    <div class="row"><div><div class="k">پروتکل‌های مجاز</div><div class="hint">خالی = همه · مثال: <span class="mono">vless,vmess,hysteria2</span></div></div><input id="pProto" style="width:150px;text-align:left" placeholder="خالی = همه"></div>
+    <div class="row"><div><div class="k">لیست سیاه کلمات</div><div class="hint">هر URI که این کلمه‌ها را داشته باشد حذف می‌شود</div></div><input id="pDeny" style="width:150px;text-align:left" placeholder="خالی = خاموش"></div>
+    <div class="row"><div><div class="k">لیست سفید کلمات</div><div class="hint">فقط URIهایی که این کلمه‌ها را دارند می‌مانند</div></div><input id="pAllow" style="width:150px;text-align:left" placeholder="خالی = خاموش"></div>
+    <div class="row"><div><div class="k">فیلتر جغرافیایی</div><div class="hint">حذف بر اساس کشورِ IP · مثال: <span class="mono">deny: cn,ru</span> یا <span class="mono">allow: ir,de</span></div></div>
+      <div style="display:flex;gap:6px;align-items:center"><input id="pGeoA" placeholder="allow" style="width:74px"><input id="pGeoD" placeholder="deny" style="width:74px"></div></div>
+    <div class="row"><div><div class="k">سختی‌گیری تست</div><div class="hint">۰ عادی · ۱ دور دوم فقط برای تایم‌اوت · ۲ بدون دور دوم</div></div>
+      <div class="chips" id="strictChips"></div></div>
+    <div style="padding:10px 0 8px"><button class="btn" id="savePipe3">ذخیرهٔ فاز ۳</button></div>
+    <div class="hint" style="padding:0 2px 6px">فیلترها فقط لیست امروز را کوچک می‌کنند — هر خطا یعنی برگشت به رفتار عادی.</div>
+  </div>
+
+  <div class="h2">سلامت سیستم — فاز ۳ <span class="n" id="cronAge"></span></div>
+  <div class="card">
+    <div class="row"><div><div class="k">تست سلامت یک‌کلیکی</div><div class="hint">KV · تلگرام · کانال · وب‌هوک · دیتا · کرون</div></div>
+      <button class="btn" id="healthBtn" style="flex:0 0 auto;padding:9px 14px">🩺 اجرا</button></div>
+    <div id="healthOut" style="display:none;padding:8px 0 2px"></div>
+    <div class="row" style="border-top:1px dashed rgba(232,200,114,.1)"><div><div class="k">۱۰ خطای اخیر ورکر</div><div class="hint" id="errN">حلقهٔ خطاها در KV</div></div>
+      <button class="mini" id="errBtn">دیدن</button></div>
+    <div id="errOut" style="display:none;padding:4px 0 8px"></div>
+  </div>
+
+  <div class="h2">پشتیبان و مرورگر — فاز ۳ <span class="n">G6</span></div>
+  <div class="card">
+    <div style="display:flex;gap:8px;padding:10px 0 6px">
+      <button class="btn ghost" id="expBtn">⬇ خروجی تنظیمات</button>
+      <button class="btn ghost" id="impBtn">⬆ بازگردانی</button>
+    </div>
+    <input type="file" id="impFile" accept="application/json,.json" style="display:none">
+    <div class="hint" style="padding:0 0 8px">هر سه کلید cfg + فاصلهٔ گزارش دوره‌ای · بازگردانی همه را دوباره clamp می‌کند · کلیدهای یک‌بارمصرف منتقل نمی‌شوند.</div>
+    <div class="row" style="border-top:1px dashed rgba(232,200,114,.1)"><div><div class="k">مرورگر KV (فقط‌خواندنی)</div><div class="hint">مقادیر کلیدهای کاربری هرگز نشان داده نمی‌شوند</div></div>
+      <div style="display:flex;gap:6px;align-items:center"><input id="kvPrefix" placeholder="پیشوند مثل cfg:" style="width:110px"><button class="mini" id="kvGo">دیدن</button></div></div>
+    <div id="kvOut" style="display:none;padding:4px 0 8px"></div>
+  </div>
+
+  <div class="h2">پاک‌سازی انتخابی <span class="n">G6 · با تایید دومرحله‌ای</span></div>
+  <div class="card">
+    <div class="chips" id="cleanChips" style="justify-content:flex-start;padding:10px 0"></div>
+    <div class="hint" style="padding:0 0 8px">هیچ‌کدام دادهٔ کاربر را پاک نمی‌کنند — فقط لاگ‌ها، گاردها، نشانگرهای اسکن و فلگ‌های یک‌بارمصرف.</div>
+  </div>
+
   <div class="h2">کانال</div>
   <div class="card">
     <div class="row"><div><div class="k">کانال رسمی</div><div class="hint tg" id="chName">—</div></div></div>
@@ -4448,6 +4929,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
   <div class="card">
     <div class="row"><div><div class="k">سقف گیرندگان «تست جدید»</div><div class="hint">در هر دور به آخرین N کاربر (۵ تا ۱۰۰)</div></div><input id="wtCap" type="number" min="5" max="100"></div>
     <div class="row"><div><div class="k">ساعات سکوت</div><div class="hint">در این بازهٔ تهران هیچ پیام خودکاری نمی‌رود</div></div><button class="tgl" id="tglQuiet"></button></div>
+    <div class="row"><div><div class="k">خلاصهٔ هفتگی جمعه</div><div class="hint">هر جمعه یه گزارش شخصی از تست‌ها و مارک‌های هفته (D10/U3)</div></div><button class="tgl" id="tglWeekly"></button></div>
     <div class="row"><div><div class="k">از ساعت / تا ساعت</div><div class="hint">ساعت تهران — شروعinclusive، پایان exclusive</div></div>
       <div style="display:flex;gap:6px;align-items:center"><input id="qStart" type="number" min="0" max="23" style="width:64px"><span style="color:var(--dim)">تا</span><input id="qEnd" type="number" min="0" max="23" style="width:64px"></div></div>
     <div style="padding:10px 0 4px"><button class="btn" id="saveNotify">ذخیرهٔ اعلان‌ها</button></div>
@@ -4468,6 +4950,8 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <textarea id="tplCard" style="min-height:64px" maxlength="900" placeholder="خالی = پیش‌فرض"></textarea>
     <div class="k" style="padding:8px 0 2px">📊 گزارش دوره‌ای کانال</div>
     <textarea id="tplDigest" style="min-height:64px" maxlength="900" placeholder="خالی = پیش‌فرض"></textarea>
+    <div class="k" style="padding:8px 0 2px">🗓 خلاصهٔ هفتگی شخصی <span class="n">متغیرها: {tried} {ok} {fail} {quota} {tier} {gold} {alive}</span></div>
+    <textarea id="tplWeekly" style="min-height:64px" maxlength="900" placeholder="خالی = پیش‌فرض"></textarea>
     <div style="display:flex;gap:8px;padding:10px 0 10px">
       <button class="btn" id="saveTpl">💾 ذخیرهٔ قالب‌ها</button>
       <button class="btn ghost" id="resetTpl">↺ پاک‌کردن همه</button>
@@ -4484,6 +4968,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
 
   <div class="h2">دعوت دوستان</div>
   <div class="card">
+    <div class="row"><div><div class="k">سطح‌بندی دعوت‌ها</div><div class="hint">🥉 برنزی ۰-۲ دعوت · 🥈 نقره‌ای ۳-۵ · 🥇 طلایی ۶+ — سهمیه با فرمول پله‌ای تا سقف بالا می‌رود (D10/U3)</div></div></div>
     <div class="row"><div><div class="k">سهمیهٔ پایه</div><div class="hint">هر کاربر تازه با /start</div></div><input id="refBase" type="number" min="5" max="50"></div>
     <div class="row"><div><div class="k">سقف سهمیه</div><div class="hint">با دعوت دوستان تا این عدد</div></div><input id="refCap" type="number" min="10" max="100"></div>
     <div style="padding:10px 0 8px"><button class="btn" id="saveRef">ذخیره</button></div>
@@ -4565,7 +5050,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div class="row"><div><div class="k">کانال فعلی</div><div class="hint tg" id="chId">—</div></div><div class="hint tg" id="bcStatus">—</div></div>
   </div>
 
-  <div class="foot">ARISTON WORKER · D9.0 · V4.3</div>
+  <div class="foot">ARISTON WORKER · D10.0 · V4.3</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -4627,8 +5112,10 @@ function draw(){
   drawBc();
   drawPipe();
   drawPipe2();
+  drawPipe3();
   drawNotify();
   drawTpl();
+  drawCronAge();
 }
 /* D8/P2 — pipeline knobs (cfg:pipeline) */
 function drawPipe(){
@@ -4677,6 +5164,36 @@ function drawTpl(){
   $('tplWatch').value = t.watchtower || '';
   $('tplCard').value = t.card || '';
   $('tplDigest').value = t.digest || '';
+  $('tplWeekly').value = t.weekly || '';
+}
+/* D10/G5 — phase 3: filters & strictness (cfg:pipeline) */
+var STRICT_LEVELS = [0, 1, 2], STRICT_LABELS = ['۰ عادی', '۱ سخت‌گیر', '۲ خیلی سخت'];
+function drawPipe3(){
+  var p = S.pcfg || {};
+  $('pGold').value = p.gold_min != null ? p.gold_min : 80;
+  $('pSilver').value = p.silver_min != null ? p.silver_min : 55;
+  $('pProto').value = p.proto_allow || '';
+  $('pDeny').value = p.deny_kw || '';
+  $('pAllow').value = p.allow_kw || '';
+  $('pGeoA').value = p.geo_allow || '';
+  $('pGeoD').value = p.geo_deny || '';
+  var st = parseInt(p.strictness, 10) || 0;
+  var chips = '';
+  for (var i = 0; i < STRICT_LEVELS.length; i++){
+    var lv = STRICT_LEVELS[i];
+    chips += '<button class="chip' + (st === lv ? ' on' : '') + '" data-s="' + lv + '">' + STRICT_LABELS[i] + '</button>';
+  }
+  $('strictChips').innerHTML = chips;
+  Array.prototype.forEach.call($('strictChips').querySelectorAll('.chip'), function(b){
+    b.onclick = function(){ set('strictness', parseInt(b.getAttribute('data-s'), 10)); }; });
+}
+/* D10/G7 — last cron tick age next to the health heading */
+function drawCronAge(){
+  var el = $('cronAge');
+  if (!S.cron_last_tick){ el.textContent = '· کرون هنوز تیک ثبت نکرده'; return; }
+  var age = Math.round((Date.now() - new Date(S.cron_last_tick).getTime()) / 60000);
+  el.textContent = '· آخرین تیک کرون ' + (isFinite(age) ? age : '؟') + ' دقیقه پیش';
+  el.style.color = (isFinite(age) && age > 45) ? 'var(--bad)' : '';
 }
 function drawBank(){
   var b = S.bank, g = $('bankGrid'), src = $('bankSrc'), p2 = $('bankPass2'), fl = $('bankFlag');
@@ -4888,13 +5405,13 @@ $('loadAudit').onclick = function(){ toast('دارم میارم…');
 /* G2-4 — template save / reset */
 $('saveTpl').onclick = function(){
   toast('دارم ذخیره می‌کنم…');
-  post('templates', { watchtower: $('tplWatch').value, card: $('tplCard').value, digest: $('tplDigest').value }).then(function(r){
+  post('templates', { watchtower: $('tplWatch').value, card: $('tplCard').value, digest: $('tplDigest').value, weekly: $('tplWeekly').value }).then(function(r){
     if (r && r.ok){ S.tpl = r.tpl; drawTpl(); toast('قالب‌ها ذخیره شد ✓ — حالا «ارسال تستی» بزن'); } else toast('خطا');
   }).catch(function(){ toast('خطا'); });
 };
 $('resetTpl').onclick = function(){
-  $('tplWatch').value = ''; $('tplCard').value = ''; $('tplDigest').value = '';
-  post('templates', { watchtower: '', card: '', digest: '' }).then(function(r){
+  $('tplWatch').value = ''; $('tplCard').value = ''; $('tplDigest').value = ''; $('tplWeekly').value = '';
+  post('templates', { watchtower: '', card: '', digest: '', weekly: '' }).then(function(r){
     if (r && r.ok){ S.tpl = r.tpl; toast('برگشت به متن پیش‌فرض ✓'); } else toast('خطا');
   }).catch(function(){ toast('خطا'); });
 };
@@ -5017,6 +5534,125 @@ $('savePipe2').onclick = function(){ if (!S) return;
 };
 $('tglExpMih').onclick = function(){ if (S) set('exports_mihomo', S.pcfg.exports_mihomo === false); };
 $('tglExpSb').onclick = function(){ if (S) set('exports_singbox', S.pcfg.exports_singbox === false); };
+/* ─── D10 — phase 3 bindings: filters · health · backup · KV browser · cleanup ─── */
+$('savePipe3').onclick = function(){ if (!S) return;
+  var g = parseInt($('pGold').value, 10), sv = parseInt($('pSilver').value, 10);
+  if (isFinite(g) && isFinite(sv) && sv >= g){ toast('آستانهٔ نقره‌ای باید کمتر از طلایی باشد'); return; }
+  toast('دارم ذخیره می‌کنم…');
+  [['gold_min','pGold'], ['silver_min','pSilver']].forEach(function(k, idx){
+    setTimeout(function(){ set(k[0], parseInt($(k[1]).value, 10)); }, idx * 350);
+  });
+  setTimeout(function(){ set('proto_allow', $('pProto').value); }, 700);
+  setTimeout(function(){ set('deny_kw', $('pDeny').value); }, 1050);
+  setTimeout(function(){ set('allow_kw', $('pAllow').value); }, 1400);
+  setTimeout(function(){ set('geo_allow', $('pGeoA').value); }, 1750);
+  setTimeout(function(){ set('geo_deny', $('pGeoD').value); }, 2100);
+};
+$('tglWeekly').onclick = function(){ if (S) set('weekly_enabled', S.cfg.weekly_enabled === false); };
+/* G7 — one-click health test */
+$('healthBtn').onclick = function(){
+  toast('دارم سلامت را می‌سنجم…');
+  post('health', {}).then(function(r){
+    if (!r || !r.ok){ toast('خطا'); return; }
+    var out = $('healthOut');
+    var icons = { kv: '🗃', telegram: '✈️', channel: '📢', webhook: '🪝', data: '📦', cron: '⏰' };
+    var h = '';
+    for (var i = 0; i < r.checks.length; i++){ var c = r.checks[i];
+      h += '<div class="u"><span>' + (icons[c.k] || '·') + ' ' + c.k + (c.ok ? ' <span style="color:var(--ok)">سبز</span>' : ' <span style="color:var(--bad)">قرمز</span>') + '</span>' +
+        '<span style="font-family:var(--mono);direction:ltr;font-size:10px;color:var(--dim)">' + c.ms + 'ms · ' + esc(String(c.detail).slice(0, 60)) + '</span></div>'; }
+    out.innerHTML = h;
+    out.style.display = 'block';
+    $('errN').textContent = r.errors.length ? '۱۰ خطای اخیر · ' + fmt(r.errors.length) + ' ثبت‌شده' : 'حلقهٔ خطاها خالی است';
+    toast(r.checks.every(function(c){ return c.ok; }) ? 'همه‌چیز سبز ✓' : 'بعضی چک‌ها قرمزند ⚠');
+  }).catch(function(){ toast('خطا'); });
+};
+$('errBtn').onclick = function(){
+  post('health', {}).then(function(r){
+    if (!r || !r.ok){ toast('خطا'); return; }
+    var out = $('errOut');
+    if (!r.errors.length){ out.innerHTML = '<div class="hint">هیچ خطایی ثبت نشده — عالی</div>'; }
+    else { var h = '';
+      for (var i = 0; i < r.errors.length; i++){ var e = r.errors[i];
+        h += '<div class="u"><span style="font-family:var(--mono);direction:ltr;font-size:10.5px">' + esc((e.ts || '').slice(5, 16).replace('T', ' ')) + ' · ' + esc(e.w || '') + '</span>' +
+          '<span style="color:var(--dim);font-size:10.5px;direction:ltr;font-family:var(--mono)">' + esc(String(e.m || '').slice(0, 48)) + '</span></div>'; }
+      out.innerHTML = h; }
+    out.style.display = 'block';
+  }).catch(function(){ toast('خطا'); });
+};
+/* G6 — settings export / restore */
+$('expBtn').onclick = function(){
+  post('settings_export', {}).then(function(d){
+    try {
+      var blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'ariston-settings.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('دانلود شد ✓');
+    } catch (e){ toast('خطا'); }
+  }).catch(function(){ toast('خطا'); });
+};
+$('impBtn').onclick = function(){ $('impFile').click(); };
+$('impFile').onchange = function(){
+  var f = $('impFile').files && $('impFile').files[0];
+  if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var obj = null;
+    try { obj = JSON.parse(String(rd.result || '{}')); } catch (e){ toast('فایل JSON نیست'); return; }
+    confirm2($('impBtn'), function(){
+      toast('دارم بازگردانی می‌کنم…');
+      post('settings_import', { settings: obj }).then(function(r){
+        if (r && r.ok){ toast('اعمال شد: ' + fmt(r.applied) + ' کلید · ' + fmt(r.skipped) + ' ردشد'); bootPanel(); }
+        else toast('خطا');
+      }).catch(function(){ toast('خطا'); });
+    });
+  };
+  rd.readAsText(f);
+  $('impFile').value = '';
+};
+/* G6 — read-only KV browser (click again = next page when the prefix is unchanged) */
+var kvCursor = null, kvLastPrefix = null;
+function kvShow(prefix, cur){
+  post('kv', { prefix: prefix, cursor: cur || '' }).then(function(r){
+    if (!r || !r.ok){ toast((r && r.error === 'bad_prefix') ? 'پیشوند نامعتبر' : 'خطا'); return; }
+    var out = $('kvOut');
+    var h = out.style.display === 'block' ? (cur ? out.innerHTML : '') : '';
+    for (var i = 0; i < r.items.length; i++){ var it = r.items[i];
+      h += '<div class="u"><span style="font-family:var(--mono);direction:ltr;font-size:10.5px">' + esc(it.key) + (it.pol === 'meta' ? ' <span style="color:var(--dim)">(محافظت‌شده)</span>' : '') + '</span>' +
+        '<span style="color:var(--dim);font-family:var(--mono);font-size:10px;direction:ltr">' + (it.value != null ? esc(String(it.value).slice(0, 44)) : (it.size != null ? fmt(it.size) + 'B' : '—')) + '</span></div>'; }
+    if (!r.items.length && !cur) h += '<div class="hint">چیزی با این پیشوند پیدا نشد</div>';
+    out.innerHTML = h;
+    out.style.display = 'block';
+    kvCursor = r.cursor;
+    if (r.cursor) toast('ادامه دارد — دوباره بزن');
+    else toast('تمام ✓');
+  }).catch(function(){ toast('خطا'); });
+}
+$('kvGo').onclick = function(){
+  var pfx = ($('kvPrefix').value || '').trim();
+  if (pfx !== kvLastPrefix){ kvCursor = null; kvLastPrefix = pfx; }
+  kvShow(pfx, kvCursor);
+};
+/* G6 — selective cleanup (fixed categories, two-step confirm) */
+var CLEANUP_LABELS = [['errlog', '🧯 حلقهٔ خطاها'], ['audit', '📜 گزارش فعالیت'], ['favdead', '🪦 گاردهای مرگ فاو'], ['wkguards', '🗓 گاردهای هفتگی'], ['cursors', '📍 نشانگرهای اسکن'], ['oneshots', '🎯 فلگ‌های یک‌بارمصرف']];
+function drawCleanup(){
+  var h = '';
+  for (var i = 0; i < CLEANUP_LABELS.length; i++){
+    h += '<button class="mini" data-k="' + CLEANUP_LABELS[i][0] + '">' + CLEANUP_LABELS[i][1] + '</button>';
+  }
+  $('cleanChips').innerHTML = h;
+  Array.prototype.forEach.call($('cleanChips').querySelectorAll('button.mini'), function(b){
+    b.onclick = function(){
+      confirm2(b, function(){
+        post('cleanup', { kind: b.getAttribute('data-k') }).then(function(r){
+          if (r && r.ok){ toast(r.done ? fmt(r.deleted) + ' کلید پاک شد ✓' : fmt(r.deleted) + ' پاک شد — ادامه دارد، دوباره بزن'); }
+          else toast((r && r.error === 'bad_kind') ? 'نوع نامعتبر' : 'خطا');
+        }).catch(function(){ toast('خطا'); });
+      });
+    };
+  });
+}
+drawCleanup();
 $('tglExpB64').onclick = function(){ if (S) set('exports_base64', S.pcfg.exports_base64 === false); };
 $('tglSmartTtl').onclick = function(){ if (S) set('smart_ttl', S.pcfg.smart_ttl === false); };
 $('tglPass2').onclick = function(){ if (S) set('pass2_enabled', S.pcfg.pass2_enabled === false); };
@@ -5072,9 +5708,9 @@ if (!tgAttach()){
 </div></body>
 </html>`;
 
-/* ────────────────────────────────── router ────────────────────────────────── */
+/* ────────────────────────────── router ────────────────────────────── */
 
-export default {
+const ROUTES = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = url.origin;
@@ -5090,7 +5726,7 @@ export default {
       if (known !== origin) await kvPut(env, 'meta:origin', origin);
       let update = null;
       try { update = await request.json(); } catch (_) { return new Response('bad request', { status: 400 }); }
-      ctx.waitUntil(handleUpdate(env, update, origin).catch((e) => console.error('update error', e && e.message)));
+      ctx.waitUntil(handleUpdate(env, update, origin).catch((e) => { console.error('update error', e && e.message); return logErr(env, 'update', e && e.message); }));
       return new Response('ok');
     }
 
@@ -5223,6 +5859,12 @@ export default {
     if (url.pathname === '/app/api/admin/quota_reset' && request.method === 'POST') return guardAdmin(env, request, adminQuotaReset);
     if (url.pathname === '/app/api/admin/audit' && request.method === 'POST') return guardAdmin(env, request, adminAudit);
     if (url.pathname === '/app/api/admin/templates' && request.method === 'POST') return guardAdmin(env, request, adminTemplates);
+    /* ── D10/G6+G7 — settings backup · KV browser · cleanup · health ── */
+    if (url.pathname === '/app/api/admin/settings_export' && request.method === 'POST') return guardAdmin(env, request, (env2, b, u) => adminSettingsExport(env2));
+    if (url.pathname === '/app/api/admin/settings_import' && request.method === 'POST') return guardAdmin(env, request, adminSettingsImport);
+    if (url.pathname === '/app/api/admin/kv' && request.method === 'POST') return guardAdmin(env, request, adminKvBrowser);
+    if (url.pathname === '/app/api/admin/cleanup' && request.method === 'POST') return guardAdmin(env, request, adminCleanup);
+    if (url.pathname === '/app/api/admin/health' && request.method === 'POST') return guardAdmin(env, request, (env2) => adminHealth(env2));
 
     /* D8/H — pipeline knobs for the GitHub Action (public, read-only, no
        secrets; the pipeline clamps everything again on its side). */
@@ -5287,14 +5929,19 @@ export default {
   /* cron — Watchtower + daily card + periodic digest (D4) — D4.2 adds cfg toggles */
   async scheduled(event, env, ctx) {
     const cfg = await getCfg(env);
-    if (cfg.watchtower_enabled !== false) ctx.waitUntil(broadcastNewRun(env).catch((e) => console.error('cron error', e && e.message)));
-    ctx.waitUntil(dailyChannelCard(env).catch((e) => console.error('card error', e && e.message)));
-    ctx.waitUntil(channelDigest(env).catch((e) => console.error('digest error', e && e.message)));
+    ctx.waitUntil((async () => { try { await kvPut(env, 'cron:last_tick', new Date().toISOString(), 172800); } catch (_) {} })()); // D10/G7
+    if (cfg.watchtower_enabled !== false) ctx.waitUntil(broadcastNewRun(env).catch((e) => { console.error('cron error', e && e.message); return logErr(env, 'cron:watch', e && e.message); }));
+    ctx.waitUntil(dailyChannelCard(env).catch((e) => { console.error('card error', e && e.message); return logErr(env, 'cron:card', e && e.message); }));
+    ctx.waitUntil(channelDigest(env).catch((e) => { console.error('digest error', e && e.message); return logErr(env, 'cron:digest', e && e.message); }));
     /* D8/P3 — one-shot «اسکن کامل دستی» from the panel: consumed once a run
        that actually read the flag is live; then the admins get a receipt. */
-    ctx.waitUntil(consumePipelineRequest(env).catch((e) => console.error('pcfg error', e && e.message)));
+    ctx.waitUntil(consumePipelineRequest(env).catch((e) => { console.error('pcfg error', e && e.message); return logErr(env, 'cron:pcfg', e && e.message); }));
     /* D9/U2 — «محبوبت مُرد»: starred-config death notices (chunked, quiet hours) */
-    ctx.waitUntil(favDeathScan(env).catch((e) => console.error('favscan error', e && e.message)));
+    ctx.waitUntil(favDeathScan(env).catch((e) => { console.error('favscan error', e && e.message); return logErr(env, 'cron:favscan', e && e.message); }));
+    /* D10/U3 — run-late alert (>45 min without a fresh run → admins) +
+       Friday personal weekly summary (chunked, per-week guard) */
+    ctx.waitUntil(lateRunCheck(env).catch((e) => { console.error('late error', e && e.message); return logErr(env, 'cron:late', e && e.message); }));
+    ctx.waitUntil(weeklyDigest(env).catch((e) => { console.error('weekly error', e && e.message); return logErr(env, 'cron:weekly', e && e.message); }));
     /* D7 — one-time self-heal: re-register scoped commands so /panel & /freq
        live only in the admins' own menus, never in the public command list. */
     ctx.waitUntil((async () => {
@@ -5308,5 +5955,25 @@ export default {
   },
 };
 
+/* D10/G7 — the public entry wraps every fetch: an unexpected throw is logged
+   into the error ring (err:log, last 10) and answered with a clean 500 —
+   the worker never dies silently, and the panel can see what happened. */
+export default {
+  async fetch(request, env, ctx) {
+    try {
+      return await ROUTES.fetch(request, env, ctx);
+    } catch (e) {
+      console.error('fetch error', e && e.message);
+      let path = '';
+      try { path = new URL(request.url).pathname; } catch (_) {}
+      await logErr(env, 'fetch', path + ' · ' + (e && e.message));
+      return new Response('internal error\n', { status: 500, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    }
+  },
+  async scheduled(event, env, ctx) {
+    return ROUTES.scheduled(event, env, ctx);
+  },
+};
+
 /* test hooks — named exports are ignored by the Workers runtime */
-export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription, getPipelineCfg, inQuietHours, resolveQuota, renderTpl, getTemplates, isBlocked, favDeathScan, buildPool, refQuota };
+export { renderCardPNG, remarkUri, brandRemark, cleanName, allocateSub, buildSubscription, getPipelineCfg, inQuietHours, resolveQuota, renderTpl, getTemplates, isBlocked, favDeathScan, buildPool, refQuota, userLevel, sanitizeCsv, weeklyDigest, lateRunCheck, logErr, isoWeekKey, tehranWeekday, clampBySpec, kvPolicy };

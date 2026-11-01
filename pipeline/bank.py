@@ -78,6 +78,18 @@ SMART_TTL_MAX_STREAK = 40   # streak that reaches the full multiplier
 SMART_TTL_MAX_X = 2.0       # ×bank_ttl_hours at (and beyond) that streak
 SMART_TTL_ABS = 72.0        # absolute ceiling in hours (clamp, checklist U2)
 
+# D10/G5 — panel phase 3: tier thresholds · protocol allow-list · black/white
+# keywords · strictness (pass-2 dial) · geo country filter.  Every list is a
+# comma-separated string; EMPTY = feature off (classic behavior, fail-safe).
+TIER_GOLD_MIN = 80
+TIER_SILVER_MIN = 55
+PROTO_ALLOW = ""
+DENY_KW = ""
+ALLOW_KW = ""
+STRICTNESS = 0  # 0 normal · 1 pass-2 retries only true timeouts · 2 pass-2 off
+GEO_ALLOW = ""
+GEO_DENY = ""
+
 # D9/G2-1 — the brand remark template (panel-editable).
 #   {-GOLD} → "-GOLD" for the gold tier, "" otherwise
 #   {ping}  → rounded latency in ms (the whole "-{ping}" chunk disappears when no ping)
@@ -95,6 +107,7 @@ _PCFG_INT = "int"
 _PCFG_FLOAT = "float"
 _PCFG_BOOL = "bool"
 _PCFG_STR = "str"
+_PCFG_CSV = "csv"   # comma-separated token list — empty string = off (fail-safe)
 PCFG_SPEC = {
     "bank_ttl_hours":      (_PCFG_FLOAT, 6.0, 72.0),
     "pass2_enabled":       (_PCFG_BOOL, None, None),
@@ -114,6 +127,15 @@ PCFG_SPEC = {
     "exports_singbox":     (_PCFG_BOOL, None, None),
     "exports_base64":      (_PCFG_BOOL, None, None),
     "smart_ttl":           (_PCFG_BOOL, None, None),
+    # D10/G5 — panel phase 3: filters & strictness (all fail-safe defaults)
+    "gold_min":            (_PCFG_INT, 50, 95),
+    "silver_min":          (_PCFG_INT, 25, 79),
+    "proto_allow":         (_PCFG_CSV, None, None),
+    "deny_kw":             (_PCFG_CSV, None, None),
+    "allow_kw":            (_PCFG_CSV, None, None),
+    "strictness":          (_PCFG_INT, 0, 2),
+    "geo_allow":           (_PCFG_CSV, None, None),
+    "geo_deny":            (_PCFG_CSV, None, None),
 }
 PCFG_DEFAULTS = {
     "bank_ttl_hours": BANK_TTL_HOURS, "pass2_enabled": PASS2_ENABLED,
@@ -125,6 +147,9 @@ PCFG_DEFAULTS = {
     "remark_tpl": REMARK_TPL, "exports_mihomo": EXPORTS_MIHOMO,
     "exports_singbox": EXPORTS_SINGBOX, "exports_base64": EXPORTS_BASE64,
     "smart_ttl": SMART_TTL_ENABLED,
+    "gold_min": TIER_GOLD_MIN, "silver_min": TIER_SILVER_MIN,
+    "proto_allow": PROTO_ALLOW, "deny_kw": DENY_KW, "allow_kw": ALLOW_KW,
+    "strictness": STRICTNESS, "geo_allow": GEO_ALLOW, "geo_deny": GEO_DENY,
 }
 
 def _clamp(key: str, v):
@@ -137,6 +162,16 @@ def _clamp(key: str, v):
             if len(s) < 3 or not re.search(r"[A-Za-z\u0600-\u06FF]", s):
                 return None   # junk/empty/number-only → dropped, default stays
             return s[:48]
+        if kind == _PCFG_CSV:
+            # lowercase word list; anything but [a-z0-9:._*-] acts as a separator;
+            # the result is a clean comma-separated list — junk → '' (= feature off)
+            s = re.sub(r"[^a-z0-9:._*\-]", " ", str(v or "").lower())
+            out, seen = [], set()
+            for t in s.split():
+                if t not in seen:
+                    seen.add(t)
+                    out.append(t)
+            return ",".join(out)[:400]
         if kind == _PCFG_INT:
             v = int(float(v))
         elif kind == _PCFG_FLOAT:
@@ -188,6 +223,8 @@ def apply_cfg(pcfg: dict) -> dict:
     global SUSPECT_AFTER, QUARANTINE_AFTER, QUARANTINE_DAYS, MIN_STREAK_PRIORITY
     global RESCUE_ENABLED, RESCUE_MIN_STREAK, RESCUE_MAX
     global REMARK_TPL, EXPORTS_MIHOMO, EXPORTS_SINGBOX, EXPORTS_BASE64, SMART_TTL_ENABLED
+    global TIER_GOLD_MIN, TIER_SILVER_MIN, PROTO_ALLOW, DENY_KW, ALLOW_KW
+    global STRICTNESS, GEO_ALLOW, GEO_DENY
     eff = dict(PCFG_DEFAULTS)
     for key, val in (pcfg or {}).items():
         if key in PCFG_SPEC:
@@ -209,7 +246,76 @@ def apply_cfg(pcfg: dict) -> dict:
     EXPORTS_SINGBOX = bool(eff["exports_singbox"])
     EXPORTS_BASE64 = bool(eff["exports_base64"])
     SMART_TTL_ENABLED = bool(eff["smart_ttl"])
+    # D10/G5 — tier thresholds keep their sane order (silver strictly below gold)
+    g, s = int(eff["gold_min"]), int(eff["silver_min"])
+    if s >= g:
+        s = g - 1
+    TIER_GOLD_MIN, TIER_SILVER_MIN = g, max(0, s)
+    PROTO_ALLOW = str(eff["proto_allow"] or "")
+    DENY_KW = str(eff["deny_kw"] or "")
+    ALLOW_KW = str(eff["allow_kw"] or "")
+    STRICTNESS = int(eff["strictness"])
+    GEO_ALLOW = str(eff["geo_allow"] or "")
+    GEO_DENY = str(eff["geo_deny"] or "")
     return eff
+
+
+def csv_tokens(csv_str: str) -> list[str]:
+    """Split a panel csv knob into clean lowercase tokens ('' → [])."""
+    return [t for t in re.split(r"[,:]", str(csv_str or "")) if t.strip()]
+
+
+def filter_uniq(uris: list[str], geo_lookup=None) -> tuple[list[str], dict]:
+    """D10/G5 — panel filter stage, applied right after collect+rescue.
+    Reads the module globals (PROTO_ALLOW / DENY_KW / ALLOW_KW / GEO_*), so it
+    always sees the effective (clamped) knobs.  All four filters are OFF by
+    default → the function is a pure pass-through and stats show zeros.
+    ``geo_lookup(ip) -> country-code | None`` comes from geo.lookup + the
+    ip2asn table; domain-hosted endpoints stay unfiltered (honest fail-safe)."""
+    proto = set(csv_tokens(PROTO_ALLOW))
+    deny = [k.lower() for k in csv_tokens(DENY_KW)]
+    allow = [k.lower() for k in csv_tokens(ALLOW_KW)]
+    geo_a = {c.upper() for c in csv_tokens(GEO_ALLOW)}
+    geo_d = {c.upper() for c in csv_tokens(GEO_DENY)}
+    geo_on = bool(geo_a or geo_d) and callable(geo_lookup)
+    stats = {"in": len(uris), "proto_dropped": 0, "deny_dropped": 0,
+             "allow_dropped": 0, "geo_dropped": 0, "geo_available": geo_on,
+             "out": 0}
+    if not (proto or deny or allow or geo_on):
+        stats["out"] = stats["in"]
+        return uris, stats
+    out: list[str] = []
+    for u in uris:
+        scheme = u.split("://", 1)[0].lower()
+        if proto and scheme not in proto:
+            stats["proto_dropped"] += 1
+            continue
+        low = u.lower()
+        if deny and any(k in low for k in deny):
+            stats["deny_dropped"] += 1
+            continue
+        if allow and not any(k in low for k in allow):
+            stats["allow_dropped"] += 1
+            continue
+        if geo_on:
+            cc = None
+            try:
+                from .validate import _hostport
+                host, _p = _hostport(u)
+                if host:
+                    cc = geo_lookup(host)   # None for domains / unknown IPs
+            except Exception:
+                cc = None
+            if cc is not None:
+                if geo_d and cc in geo_d:
+                    stats["geo_dropped"] += 1
+                    continue
+                if geo_a and cc not in geo_a:
+                    stats["geo_dropped"] += 1
+                    continue
+        out.append(u)
+    stats["out"] = len(out)
+    return out, stats
 
 
 def render_remark(tpl: str | None, ping_ms, tier: str | None = None) -> str:

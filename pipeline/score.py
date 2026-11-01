@@ -65,9 +65,11 @@ def total(
     return round(sum(WEIGHTS[k] * v for k, v in parts.items()) / wsum, 1)
 
 
-def tier(score: float) -> str:
-    if score >= 80:
+def tier(score: float, gold_min: int = 80, silver_min: int = 55) -> str:
+    """D10/G5 — panel-tunable thresholds (clamped by bank.apply_cfg; the
+    defaults reproduce the classic 80/55 cutoffs bit-for-bit)."""
+    if score >= gold_min:
         return "gold"
-    if score >= 55:
+    if score >= silver_min:
         return "silver"
     return "bronze"

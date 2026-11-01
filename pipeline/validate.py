@@ -547,16 +547,21 @@ def validate_all(uris: list[str], prev: dict | None = None) -> tuple[dict, dict,
         # borderline failure (timeout / probe-error / engine-boot / no-socks).
         # The proposal measured ~55% of these as actually alive.  Rescued
         # endpoints overwrite their first outcome before the history merge.
-        pass2 = {"attempted": 0, "rescued": 0, "timeout_s": None}
+        # D10/G5 — panel strictness narrows the rescue dial: 1 = only true
+        # timeouts get the retry, 2 = no retry at all (a fail is a fail).
+        pass2 = {"attempted": 0, "rescued": 0, "timeout_s": None, "strictness": int(bank.STRICTNESS)}
         p2_jobs: list[tuple[int, str, str]] = []
         # D8: panel knobs read live; the env kill-switch (ARISTON_PASS2=0) still wins.
-        if ENV_PASS2 and bank.PASS2_ENABLED:
+        if ENV_PASS2 and bank.PASS2_ENABLED and bank.STRICTNESS < 2:
+            p2_reasons = set(bank.PASS2_REASONS)
+            if bank.STRICTNESS == 1:
+                p2_reasons &= {"timeout"}
             p2_timeout = round(ENV_TIMEOUT * bank.PASS2_TIMEOUT_FACTOR, 2)
             pass2["timeout_s"] = p2_timeout
             for i, (u, eng) in enumerate(routing):
                 res = outcomes[i]
                 if res is not None and eng and not res["alive"] \
-                        and res.get("reason") in bank.PASS2_REASONS:
+                        and res.get("reason") in p2_reasons:
                     p2_jobs.append((i, u, eng))
             pass2["attempted"] = len(p2_jobs)
             if p2_jobs:
