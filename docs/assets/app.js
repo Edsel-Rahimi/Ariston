@@ -229,7 +229,7 @@ function relativeAgo(iso) {
 
 function renderTicker() {
   const v = S.validation || {}, pf = S.prefilter || {}, sc = S.scoring || {};
-  const seg = `RUN <i>${(S.generated_at || '').replace('T', ' ').slice(0, 16)}Z</i>` +
+  const seg = `RUN <i>${(S.published_at || S.generated_at || '').replace('T', ' ').slice(0, 16)}Z</i>` + /* D10.2/B2 — publish stamp */
     ` · SOURCES <b>${fmt(S.sources_ok)}/${fmt(S.sources_total)}</b>` +
     ` · RAW <b>${fmt(S.raw)}</b> → UNIQUE <b>${fmt(S.unique)}</b>` +
     ` · TCP CULLED <b>${fmt(pf.tcp_closed)}</b>` +

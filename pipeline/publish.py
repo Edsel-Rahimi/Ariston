@@ -192,7 +192,7 @@ def render_stats_markdown(stats: dict, lang: str = "fa") -> str:
     alive = v.get("alive", 0)
     probed = v.get("probed", 0)
     rate = f"{100.0 * alive / probed:.1f}%" if probed else "—"
-    ts = (stats.get("generated_at") or "").replace("T", " ")[:16]
+    ts = (stats.get("published_at") or stats.get("generated_at") or "").replace("T", " ")[:16]  # D10.2/B2
     ir = (stats.get("operators") or {}).get("classified_iran")
     clean_v = L["clean_v"].format(raw=f"{stats.get('raw', 0):,}", uniq=f"{stats.get('unique', 0):,}")
     tested_v = L["tested_v"].format(n=f"{probed:,}")

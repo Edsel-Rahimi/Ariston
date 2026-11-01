@@ -564,6 +564,15 @@ async function saveUser(env, chatId, u) { await kvPut(env, 'user:' + chatId, JSO
    Cloudflare collapse requests inside the same 2-minute bucket. */
 const statsBust = () => '?t=' + Math.floor(Date.now() / 120e3);
 
+/* D10.2/B2 — every user-facing «last run» clock measures from the moment the
+   snapshot was finalized on the data branch (published_at), NOT from run
+   start.  generated_at is the collector's start stamp: runs take 15-25 min
+   and Actions slots get skipped (concurrency group), so the panel counted
+   run duration + queue drift into «آخرین دور» — the bot had just announced
+   «تموم شد» while the panel still said «57 دقیقه پیش».  Older snapshots
+   without the field fall back to generated_at — zero-rollback. */
+const runStamp = (s) => (s && (s.published_at || s.generated_at)) || '';
+
 async function fetchTextCached(env, name, ttlSec, bust) {
   const key = 'file:' + name;
   const hit = await kvGet(env, key, 'json');
@@ -830,7 +839,7 @@ async function consumePipelineRequest(env) {
     const ids = [...new Set([...(cfg.admin_ids || []).map(String), owner].filter(Boolean).map(String))];
     for (const id of ids) {
       const u = await getUser(env, id);
-      await sendMessage(env, id, '🛠 ⚙️ اسکن کامل درخواستیِ پنل تمام شد و دور جدید منتشر شد.\n🕐 دور: ' + s.generated_at + '\n✅ فلگ «اسکن کامل دستی» ریست شد.').catch(() => null);
+      await sendMessage(env, id, '🛠 ⚙️ اسکن کامل درخواستیِ پنل تمام شد و دور جدید منتشر شد.\n🕐 دور: ' + runStamp(s) + '\n✅ فلگ «اسکن کامل دستی» ریست شد.').catch(() => null);
     }
   } catch (_) { /* never break the cron over the request bookkeeping */ }
 }
@@ -1160,10 +1169,14 @@ async function broadcastNewRun(env) {
       if (!(await gateUser(env, chatId, cfg))) continue; // D10.1/B3 — no run pings for leavers
       const u = await getUser(env, chatId);
       const lang = (u && u.lang) || 'fa';
+      /* D10.2/B2 — the ping carries the run's own clock, so a recipient can
+         never read «تموم شد!» while the panel claims an older run */
+      const body = (custom || t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }))
+        + '\n🕐 ' + t(lang, 'last_run', { t: relTime(runStamp(s), lang) });
       const rows = [];
       if (origin) rows.push([{ text: '👑 ' + t(lang, 'btn_app'), web_app: { url: origin + '/app' } }]);
       rows.push([{ text: t(lang, 'btn_gold'), callback_data: 'menu:gold' }]);
-      await sendMessage(env, chatId, custom || t(lang, 'watchtower', { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0) }), { reply_markup: { inline_keyboard: rows } });
+      await sendMessage(env, chatId, body, { reply_markup: { inline_keyboard: rows } });
     } catch (_) { /* keep broadcasting */ }
   }
 }
@@ -1343,13 +1356,14 @@ async function weeklyDigest(env) {
    once per stale generation + a hourly nudge while it stays stale. ─── */
 async function lateRunCheck(env) {
   const s = await getStats(env);
-  if (!s || !s.generated_at) return; // no data yet → nothing to compare
-  const ageMin = (Date.now() - Date.parse(s.generated_at)) / 60000;
+  const stamp = runStamp(s); // D10.2/B2 — «late» is measured from publish, not run start
+  if (!stamp) return; // no data yet → nothing to compare
+  const ageMin = (Date.now() - Date.parse(stamp)) / 60000;
   if (!isFinite(ageMin) || ageMin <= 45) {
     await kvDel(env, 'late:alert'); // fresh again → reset the nudges
     return;
   }
-  const gen = String(s.generated_at);
+  const gen = String(stamp);
   const perGen = 'late:' + gen;
   const hourly = (await kvGet(env, 'late:alert')) || '';
   const firstForThisGen = (await kvGet(env, 'late:gen')) !== gen;
@@ -1408,7 +1422,7 @@ async function dailyChannelCard(env, force = false) {
   const origin = await kvGet(env, 'meta:origin');
   const bot = (await kvGet(env, 'meta:bot_username')) || null;
   const tplV = { date: dateStr, gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0),
-    last_run: relTime(s.generated_at, lang),
+    last_run: relTime(runStamp(s), lang),
     sources_ok: fmt(s.sources_ok), sources_total: fmt(s.sources_total),
     bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
     hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
@@ -1418,7 +1432,7 @@ async function dailyChannelCard(env, force = false) {
     t(lang, 'daily_title'),
     '🗓 ' + dateStr, '',
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
-    '🕐 ' + t(lang, 'last_run', { t: relTime(s.generated_at, lang) }),
+    '🕐 ' + t(lang, 'last_run', { t: relTime(runStamp(s), lang) }),
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     '📈 ' + (Object.entries(v.by_protocol_alive || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => esc(k) + ' ' + fmt(n)).join(' · ') || '—'),
     /* D7 — config bank line (matches the bank-card artwork on GitHub) */
@@ -1470,7 +1484,7 @@ async function channelDigest(env) {
   const v = s.validation, p = v.latency_ms || {};
   const tplV = { gold: fmt(s.scoring.gold), alive: fmt(v.alive), p50: Math.round(p.p50 || 0),
     sources_ok: fmt(s.sources_ok), sources_total: fmt(s.sources_total),
-    last_run: relTime(s.generated_at, lang),
+    last_run: relTime(runStamp(s), lang),
     bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
     hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
     streak: s.bank && s.bank.avg_streak != null ? s.bank.avg_streak : '—' };
@@ -1479,7 +1493,7 @@ async function channelDigest(env) {
     t(lang, 'digest_title'),
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
-    t(lang, 'last_run', { t: relTime(s.generated_at, lang) }),
+    t(lang, 'last_run', { t: relTime(runStamp(s), lang) }),
     /* D7 — config bank line */
     ...(s.bank && s.bank.size != null ? [
       t(lang, 'bank_line', { n: fmt(s.bank.size), hit: s.bank.hit_rate != null ? s.bank.hit_rate : '—', streak: s.bank.avg_streak != null ? s.bank.avg_streak : '—' }),
@@ -1657,10 +1671,10 @@ async function fetchCardPng(env, s) {
      caption quotes the fresh run: that is the «card and caption don't agree»
      bug.  If the PNG lags the stats by more than one run cycle, skip it — the
      caller then renders the in-worker raster from the very same stats. */
-  if (env && s && s.generated_at) {
+  if (env && s && runStamp(s)) {
     const commitAt = await cardPngCommitAt(env);
     if (commitAt) {
-      const lagMin = (Date.parse(s.generated_at) - Date.parse(commitAt)) / 60000;
+      const lagMin = (Date.parse(runStamp(s)) - Date.parse(commitAt)) / 60000;
       if (isFinite(lagMin) && lagMin > 20) return null;
     }
   }
@@ -1833,7 +1847,7 @@ async function cmdStats(env, chatId, lang, origin) {
     .map(([k, n]) => esc(k) + ' ' + fmt(n)).join(' · ');
   const msg = [
     t(lang, 'stats_head'), '',
-    t(lang, 'last_run', { t: relTime(s.generated_at, lang) }),
+    t(lang, 'last_run', { t: relTime(runStamp(s), lang) }),
     t(lang, 'sources', { ok: fmt(s.sources_ok), total: fmt(s.sources_total) }),
     t(lang, 'unique_n', { n: fmt(s.unique) }),
     t(lang, 'probed_n', { a: fmt(v.probed), b: fmt(v.alive) }),
@@ -2253,6 +2267,7 @@ async function appStats(env) {
   const v = s.validation, p = v.latency_ms || {};
   return Response.json({
     generated_at: s.generated_at,
+    published_at: s.published_at || null, // D10.2/B2 — snapshot finalization stamp
     sources_ok: s.sources_ok || 0, sources_total: s.sources_total || 0,
     unique: s.unique || 0, probed: v.probed || 0, alive: v.alive || 0,
     p50: Math.round(p.p50 || 0), avg: Math.round(p.avg || 0),
@@ -2529,6 +2544,7 @@ async function adminState(env) {
     } : null,
     stats: s && s.validation && s.scoring ? {
       generated_at: s.generated_at,
+      published_at: s.published_at || null, // D10.2/B2 — admin panel clock anchor
       gold: s.scoring.gold || 0, alive: s.validation.alive || 0,
       p50: Math.round((s.validation.latency_ms || {}).p50 || 0),
       sources_ok: s.sources_ok || 0, sources_total: s.sources_total || 0, unique: s.unique || 0,
@@ -2646,7 +2662,7 @@ async function adminTestNotify(env, body, tgUser) {
     bank_size: s.bank && s.bank.size != null ? fmt(s.bank.size) : '—',
     hit: s.bank && s.bank.hit_rate != null ? s.bank.hit_rate : '—',
     streak: s.bank && s.bank.avg_streak != null ? s.bank.avg_streak : '—',
-    last_run: relTime(s.generated_at, lang),
+    last_run: relTime(runStamp(s), lang),
   });
   const msg = custom ? '🧪 ' + custom : [...head,
     '🥇 ' + fmt(s.scoring.gold) + '  ·  ❤️ ' + fmt(v.alive) + '  ·  ⚡ ' + Math.round(p.p50 || 0) + 'ms',
@@ -3020,8 +3036,8 @@ async function adminHealth(env) {
       const r = await fetch(RAW + 'stats.json?t=' + Date.now(), { signal: t2.signal, headers: { 'user-agent': 'ariston-bot/1.0' }, cf: { cacheTtl: 0 } });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
-      if (!j || !j.generated_at) throw new Error('no generated_at');
-      statsAge = Math.round((Date.now() - Date.parse(j.generated_at)) / 60000);
+      if (!j || !(j.published_at || j.generated_at)) throw new Error('no generated_at');
+      statsAge = Math.round((Date.now() - Date.parse(j.published_at || j.generated_at)) / 60000); // D10.2/B2
       return 'run ' + statsAge + ' min ago · ' + ((j.validation || {}).alive ?? '?') + ' alive';
     } finally { t2.done(); }
   });
@@ -3213,6 +3229,7 @@ async function apiV1Stats(env) {
   const v = s.validation, p = v.latency_ms || {};
   return jsonRes({
     generated_at: s.generated_at || null,
+    published_at: s.published_at || null, // D10.2/B2
     sources: { ok: s.sources_ok || 0, total: s.sources_total || 0 },
     unique: s.unique || 0,
     validation: {
@@ -4359,20 +4376,20 @@ function showQR(url){
 function loadStats(){
   fetch('/app/api/stats').then(function(r){ return r.json(); }).then(function(s){
     /* D5.1: every failure is visible and retried — never a silent «—» */
-    if (s.error || !s.generated_at){ throw new Error('no_data'); }
+    if (s.error || (!s.generated_at && !s.published_at)){ throw new Error('no_data'); }
     statRetry = 0;
     var he = document.getElementById('heroErr'); if (he) he.style.display = 'none';
     lastStats = s;
     countUp(document.getElementById('heroNum'), s.gold);
     document.getElementById('heroSubA').textContent = T('hero_a', {alive: fmtN(s.alive)});
-    document.getElementById('heroSubB').textContent = T('hero_b', {run: rel(s.generated_at)});
+    document.getElementById('heroSubB').textContent = T('hero_b', {run: rel(s.published_at || s.generated_at)}); // D10.2/B2
     document.getElementById('stAlive').textContent = fmtN(s.alive);
     document.getElementById('stP50').innerHTML = fmtN(s.p50) + '<small> ms</small>';
     document.getElementById('stSrc').innerHTML = fmtN(s.sources_ok) + '<small> / ' + fmtN(s.sources_total) + '</small>';
-    document.getElementById('stRun').textContent = rel(s.generated_at);
+    document.getElementById('stRun').textContent = rel(s.published_at || s.generated_at); // D10.2/B2
     var pct = s.sources_total ? Math.round(100 * s.sources_ok / s.sources_total * 10) / 10 : 0;
     document.getElementById('stSrcB').textContent = pct + '%';
-    document.getElementById('stRunB').textContent = rel(s.generated_at);
+    document.getElementById('stRunB').textContent = rel(s.published_at || s.generated_at); // D10.2/B2
     var bank = document.getElementById('bankStrip');
     if (s.bank && s.bank.size != null){
       bank.style.display = 'flex';
@@ -5224,12 +5241,16 @@ function drawStats(){
       countUp(b, parseInt(b.getAttribute('data-n'), 10) || 0);
       var suf = b.getAttribute('data-suf'); if (suf) setTimeout(function(){ b.textContent += suf; }, 820);
     });
-    try { $('statTime').textContent = 'آخرین تست: ' + new Date(st.generated_at).toLocaleString('fa-IR'); }
-    catch (e){ $('statTime').textContent = st.generated_at || ''; }
+    /* D10.2/B2 — «آخرین تست» = when the snapshot was finalized (published_at),
+       not when the run started; right after the bot's «تموم شد» the panel now
+       reads minutes, not «run duration + queue drift» */
+    try { $('statTime').textContent = 'آخرین تست: ' + new Date(runStamp(st)).toLocaleString('fa-IR'); }
+    catch (e){ $('statTime').textContent = runStamp(st) || ''; }
     /* D8/P5 + D10.1/B2 — run-lag thresholds sized for the half-hour Actions cadence
-       (30 min cron + ~15 min run + jitter → 50 min before «check Actions») */
+       (30 min cron + ~15 min run + jitter → 50 min before «check Actions»);
+       D10.2/B2: the lag counts from PUBLISH, so a normal cycle stays < 40 min */
     var lagMin = 0;
-    try { lagMin = Math.max(0, (Date.now() - new Date(st.generated_at).getTime()) / 60000); } catch (e2){}
+    try { lagMin = Math.max(0, (Date.now() - new Date(runStamp(st)).getTime()) / 60000); } catch (e2){}
     var rs = $('runStatus');
     if (lagMin < 12){ rs.textContent = '🟢 دور اخیراً تمام شد — همه‌چیز سر جاش'; rs.style.color = 'var(--ok)'; }
     else if (lagMin < 50){ rs.textContent = '🔵 دور بعدی احتمالاً در حال اجراست'; rs.style.color = 'var(--gold)'; }

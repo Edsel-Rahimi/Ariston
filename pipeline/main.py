@@ -160,6 +160,8 @@ def score_phase(uniq: list[str], history: dict, per_node: dict) -> list[dict]:
 def cmd_collect() -> int:
     sources = load_sources()
     uniq, stats = collect_phase(sources)
+    # D10.2/B2 — publish-stamp clock (same contract as cmd_run below)
+    stats["published_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     print("[4/4] writing outputs ...")
     P.publish_master(DIST, uniq)
     P.write_stats(DIST / "stats.json", stats)
@@ -359,6 +361,13 @@ def cmd_run(skip_validation: bool = False, full: bool = False) -> int:
     # D8/H — publish the effective knob set (transparency + the worker uses it
     # to confirm/reset «force full scan» requests from the panel).
     stats["pipeline_cfg"] = {**eff, "requested": pcfg or {}}
+    # D10.2/B2 — the «last run» clock for the bot / admin panel / mini-app
+    # measures from the moment this snapshot was finalized, not from collect
+    # start.  Runs take 15-25 min and Actions slots get skipped, so counting
+    # from generated_at (start stamp) made the panel say «57 دقیقه پیش» right
+    # after the bot had announced «تست جدید تموم شد».  Additive field — every
+    # consumer falls back to generated_at when it is absent.
+    stats["published_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     P.write_stats(DIST / "stats.json", stats)
     P.write_history(DIST / "results.json", history)
     # D6/C — the bank rides to the data branch with the rest of dist/

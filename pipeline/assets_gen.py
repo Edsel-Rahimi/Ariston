@@ -56,7 +56,7 @@ def load_stats(demo: bool = False) -> dict:
 
 def brand_stats(s: dict) -> dict:
     """Map the pipeline's stats.json onto the brand run-card contract."""
-    ts = (s.get("generated_at") or "")
+    ts = (s.get("published_at") or s.get("generated_at") or "")  # D10.2/B2 — publish stamp
     try:
         updated = dt.datetime.fromisoformat(ts).strftime("%H:%M UTC")
     except Exception:

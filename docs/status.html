@@ -121,10 +121,10 @@ fetch(WORKER + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ retu
   if (j.scoring){ t[0].children[0].textContent = fmt(j.scoring.gold); }
   if (j.validation){ t[1].children[0].textContent = fmt(j.validation.alive);
     t[2].children[0].textContent = fmt((j.validation.latency_ms || {}).p50); }
-  if (j.generated_at){
-    var m = ageMin(j.generated_at);
+  if (j.generated_at || j.published_at){
+    var m = ageMin(j.published_at || j.generated_at); // D10.2/B2 — publish clock
     var st = !isFinite(m) ? null : (m < 12 ? 'g' : m < 38 ? 'y' : 'r');
-    if (st){ state.worker = st; el('wState').innerHTML = dot(st) + 'آخرین ران ' + ago(j.generated_at); }
+    if (st){ state.worker = st; el('wState').innerHTML = dot(st) + 'آخرین ران ' + ago(j.published_at || j.generated_at); }
   }
   overall();
 }).catch(function(e){
@@ -134,11 +134,11 @@ fetch(WORKER + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ retu
 
 /* data branch freshness */
 fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); }).then(function(j){
-  var m = ageMin(j.generated_at || 0);
+  var m = ageMin(j.published_at || j.generated_at || 0); // D10.2/B2 — publish clock
   var st = !isFinite(m) ? 'x' : (m < 45 ? 'g' : m < 90 ? 'y' : 'r');
   state.data = st === 'x' ? null : st;
   el('dState').innerHTML = dot(st) + 'به‌روز ' + (isFinite(m) ? Math.round(m) + ' دقیقه' : '—');
-  el('lastRun').textContent = j.generated_at ? j.generated_at.replace('T', ' ').slice(0, 16) + ' UTC' : '—';
+  el('lastRun').textContent = (j.published_at || j.generated_at) ? (j.published_at || j.generated_at).replace('T', ' ').slice(0, 16) + ' UTC' : '—';
   if (isFinite(m) && m < 38) el('nextHint').textContent = 'ران بعدی تا حداکثر ~' + Math.max(0, Math.round(30 - m)) + ' دقیقه دیگر';
   else if (isFinite(m) && m >= 45) el('nextHint').textContent = '⚠ ران دیر شده — Actions را بررسی کنید';
   if (j.bank && j.bank.size != null) el('tiles').children[3].children[0].textContent = fmt(j.bank.size);
