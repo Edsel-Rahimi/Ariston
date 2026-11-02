@@ -1,0 +1,38 @@
+name: heartbeat
+
+# D12.1 — repo freshness heartbeat. Pushes one tiny commit every 5 minutes so
+# the repo always reads «freshly updated» (search ranking + Recently-updated
+# filter). Deliberately NOT the pipeline's calendar: the pipeline owns
+# 7,37 * * * * and 7/37 are never multiples of 5, so the two schedules never
+# coincide. Pushes made with GITHUB_TOKEN do not trigger other workflows, so
+# there is zero interference with the pipeline. Only heartbeat.json changes.
+# Kill-switch: disable this workflow from the Actions tab (no code coupling).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: heartbeat
+  cancel-in-progress: true
+
+jobs:
+  beat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: fresh configs
+        run: |
+          ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          printf '{\n  "fresh": "%s",\n  "run": %s\n}\n' "$ts" "${GITHUB_RUN_NUMBER:-0}" > heartbeat.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add heartbeat.json
+          git commit -m "fresh configs" || echo "nothing to commit"
+          git push

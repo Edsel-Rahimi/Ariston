@@ -934,7 +934,10 @@ async function isMember(env, chatId, chan) {
 /* D10.1/B3 — membership verdict with a short KV cache so EVERY access path
    (bot commands · mini app · /u/ feeds · broadcasts · inline) can afford to
    ask on every hit without burning the getChatMember budget.
-   positive 30 min · negative 3 min · API hiccups stay fail-open and uncached. */
+   D12.0 — live gating: verdicts now live 60 s (was +30 min / −3 min), so a
+   leaver loses the service within a minute and a joiner is freed instantly by
+   the «✅ عضو شدم» probe (/app/api/joincheck busts this cache). API hiccups
+   stay fail-open and uncached. */
 const MEMBER_OK = new Set(['member', 'administrator', 'creator', 'restricted']);
 async function membership(env, chatId, cfg) {
   const key = 'mem:' + chatId;
@@ -946,7 +949,7 @@ async function membership(env, chatId, cfg) {
   const r = await api(env, 'getChatMember', { chat_id: chan.id, user_id: chatId });
   if (!r || !r.ok) return true; // fail-open, never cached
   const ok = MEMBER_OK.has(r.result && r.result.status);
-  await kvPut(env, key, ok ? 'in' : 'out', ok ? 1800 : 180);
+  await kvPut(env, key, ok ? 'in' : 'out', 60); // D12.0 — live gating
   return ok;
 }
 
@@ -2164,8 +2167,13 @@ async function buildSubscription(env, token, modeParam) {
   /* D10.1/B3 — a leaver's personal feed dies with the rest of the service */
   if (!(await gateUser(env, rec.chat_id, await getCfg(env)))) return null;
   const lang = user.lang || 'fa';
-  const pcfg = await getPipelineCfg(env); // D9/G2-2 — panel-tunable caps
-  const maxLines = Math.max(10, parseInt(pcfg.sub_max_lines, 10) || SUB_MAX_LINES);
+  const pcfg = await getPipelineCfg(env); // D9/G2-2 — panel ceiling (fail-safe)
+  /* D12.0 — one sub, one size: the feed IS the personal quota (10 base →
+     REF_CAP via referrals). sub_max_lines is a hard ceiling only, never a
+     target — the 300-line top-up flood is gone. Legacy ?m=mine|gold|mix links
+     keep working; every mode now caps at the same personal quota. */
+  const quota = resolveQuota(user, await getCfg(env));
+  const maxLines = Math.min(quota, Math.max(10, parseInt(pcfg.sub_max_lines, 10) || SUB_MAX_LINES));
   const mode = SUB_MODES.includes(modeParam) ? modeParam
     : (SUB_MODES.includes(user.sub_mode) ? user.sub_mode : 'mix');
   const name = cleanName(user.name);
@@ -2359,9 +2367,12 @@ async function appSub(env, request) {
       }));
     }
   } catch (_) { /* sub link still works without picks */ }
+  /* D12.0 — the mini app shows the live quota: n of quota, referral growth hint */
+  const bcfg = await getCfg(env);
   return Response.json({
     url: origin + '/u/' + user.token, isp: user.isp, client: user.client || 'other', lang: user.lang || 'fa',
     name: user.name || null, rotation: rotMode, sub_mode: subMode, n: items.length,
+    quota: resolveQuota(user, bcfg), ref_n: user.ref_count || 0, ref_cap: bcfg.ref_cap || REF_CAP,
     items, // [{uri, hash, ping, mark: 0|1|2}] — 1 = connected ✅, 2 = failed ❌
   });
 }
@@ -2379,6 +2390,21 @@ async function appSubMode(env, request) {
   user.sub_mode = mode;
   await saveUser(env, tgUser.id, user);
   return Response.json({ ok: true, sub_mode: mode });
+}
+
+/* D12.0 — live membership probe for the join wall: a fresh getChatMember every
+   time, cache busted on success. The bot's «✅ عضو شدم» flow and the mini app
+   wall button both end here — joiners get in with zero TTL waiting.
+   Fail-open: a Telegram API hiccup must never lock a member out. */
+async function appJoinCheck(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const tgUser = await verifyInitData(env, body.initData);
+  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const cfg = await getCfg(env);
+  const chan = await resolveChannel(env, cfg);
+  const ok = Boolean(chan) && !!(await isMember(env, tgUser.id, chan));
+  if (ok) await kvDel(env, 'mem:' + tgUser.id); // fresh verdict beats any cached state
+  return Response.json({ ok: true, joined: ok });
 }
 
 /* D8/U4 — light/dark theme preference (profile-stored, survives devices) */
@@ -3953,42 +3979,14 @@ body.light .fsearch{background:rgba(255,253,246,.8)}
   <div class="hint" id="favHint" style="display:none"></div>
   <div id="favList"></div>
 
-  <div class="sec"><h2 id="goldTitle">…</h2><div class="rule"></div></div>
-  <div class="hint" id="goldHint">…</div>
-  <div class="chips" id="sortChips">
-    <button class="schip on" data-sort="ping" id="chipPing">…</button>
-    <button class="schip" data-sort="ok" id="chipOk">…</button>
-    <button class="schip" data-sort="vote" id="chipVote">…</button>
-  </div>
-  <div class="frow" id="protoRow">
-    <button class="fchip on" data-f="">ALL</button>
-    <button class="fchip" data-f="vless">vless</button>
-    <button class="fchip" data-f="trojan">trojan</button>
-    <button class="fchip" data-f="vmess">vmess</button>
-    <button class="fchip" data-f="hysteria2">hy2</button>
-    <button class="fchip" data-f="tuic">tuic</button>
-    <input class="fsearch" id="goldQ" placeholder="search host…">
-  </div>
-  <div class="frow" id="pingRow">
-    <button class="fchip on" data-p="0">∞</button>
-    <button class="fchip" data-p="500">&lt;500ms</button>
-    <button class="fchip" data-p="1000">&lt;1000ms</button>
-    <button class="fchip" data-p="2000">&lt;2000ms</button>
-    <button class="fchip" data-fav="1" id="favOnlyChip">⭐</button>
-  </div>
-  <div class="fmeta"><span class="fcount" id="fCount"></span><button class="copyall" id="copyAllBtn" style="display:none">⧉</button></div>
-  <div id="goldList">
-    <div class="sk"></div><div class="sk"></div><div class="sk"></div>
-  </div>
-  <button class="more" id="moreBtn" style="display:none">…</button>
-
   <div class="sec"><h2 id="subTitle">…</h2><div class="rule"></div></div>
+  <div class="hint" id="subHint">…</div>
   <div class="sub" id="subCard">…</div>
 
   <footer>
     <a href="https://edsel-rahimi.github.io/Ariston/" target="_blank" id="ftSite">PAGES</a>
     <a href="https://github.com/Edsel-Rahimi/Ariston" target="_blank">GITHUB</a>
-    <span>D10.1 · V4.3</span>
+    <span>D12.0 · V5.0</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -4006,8 +4004,8 @@ var I18N = {
     rel_min:'{n} دقیقه پیش', rel_hour:'{n} ساعت پیش', rel_day:'{n} روز پیش',
     gold_t:'کانفیگ‌های طلایی', gold_st:'برترین‌ها بر اساس پینگ و تست‌ها', gold_hint:'روی کارت بزن تا کپی بشه · 👍 یعنی برات کار کرد',
     more:'نمایش بیشتر', copied:'کپی شد ✅', voted:'ممنون! ثبت شد 🙏',
-    hist_t:'تاریخچه من', hist_hint:'آخرین کانفیگ‌هایی که کپی کردی — تا ۲۰ مورد، همیشه همین‌جان', hist_empty:'هنوز چیزی کپی نکردی — از «کانفیگ‌های طلایی» شروع کن', hist_cleared:'تاریخچه پاک شد',
-    sub_t:'اشتراک شخصی و اختصاصی', sub_note:'هر بار اپت رو آپدیت کنی، کانفیگ‌های مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_copy:'کپی لینک',
+    hist_t:'تاریخچه من', hist_hint:'آخرین کانفیگ‌هایی که کپی کردی — تا ۲۰ مورد، همیشه همین‌جان', hist_empty:'هنوز چیزی کپی نکردی — از «طلایی‌های من» شروع کن', hist_cleared:'تاریخچه پاک شد',
+    sub_t:'طلایی‌های من', sub_note:'هر بار اپت رو آپدیت کنی، کانفیگ‌های مخصوص خودت می‌رسه (تعویض روزانه یا هر دور تست)', sub_st:'ساب شخصی + کانفیگ‌های طلایی خودت — یک لینک، همیشه تازه', sub_quota:'{n} از {q} کانفیگ فعال', sub_ref_hint:'لینک هیچ‌وقت عوض نمی‌شه؛ محتواش هر دور تست تازه می‌شه. با دعوت دوستان، سهمیه‌ات تا {cap} تا می‌شه.', sub_copy:'کپی لینک',
     sub_meta:'اپراتور: {o} · اپ: {c}', sub_need:'اول توی ربات /start رو بزن', open_tg:'جهت دریافت اشتراک شخصی، این صفحه رو داخل تلگرام باز کن',
     mk_ok:'وصل شد', mk_fail:'وصل نشد', my10:'کانفیگ‌های مخصوص من', rot_day:'تعویض: روزانه', rot_run:'تعویض: هر دور تست',
     marked:'ثبت شد', fail:'نتونستم اطلاعات رو بگیرم — دوباره امتحان کن', isp_other:'همه', cl_other:'سایر',
@@ -4018,7 +4016,8 @@ var I18N = {
     msw_mine:'فقط مخصوص من', msw_gold:'فقط برترین‌ها', msw_mix:'ترکیبی',
     msw_note:'این لینک هیچ‌وقت عوض نمی‌شه؛ فقط محتواش با همین سوییچ عوض می‌شه. بعد از تغییر، «به‌روزرسانی اشتراک» اپت رو بزن.',
     msw_saved:'حالت ذخیره شد ✅', adv_t:'لینک‌های پیشرفته (برای حرفه‌ای‌ها)',
-    tag_mine:'شخصی', tag_gold:'برترین‌ها', tag_mix:'ترکیبی', qr_btn:'QR', copy_btn:'کپی'},
+    tag_mine:'شخصی', tag_gold:'برترین‌ها', tag_mix:'ترکیبی', qr_btn:'QR', copy_btn:'کپی',
+    wall_t:'عضویت در کانال لازم است', wall_d:'برای استفاده از آریستون باید عضو کانال رسمی باشی. عضو شو و دکمهٔ بررسی رو بزن.', wall_btn:'عضویت در @Ariston_CH', wall_check:'✅ عضو شدم — بررسی کن', wall_ok:'خوش برگشتی! همه‌چیز فعال شد ✅', wall_still:'هنوز عضو کانال نشدی 😕'},
   en: {hero_badge:'Smart live selection', hero_lbl:'gold configs',
     hero_a:'refined from {alive} alive configs', hero_b:'run {run}',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Alive configs verified', st_p50:'Network avg ping',
@@ -4029,8 +4028,8 @@ var I18N = {
     rel_min:'{n} min ago', rel_hour:'{n} h ago', rel_day:'{n} d ago',
     gold_t:'Gold configs', gold_st:'ranked by ping & test results', gold_hint:'tap a card to copy · 👍 = it worked for you',
     more:'Show more', copied:'Copied ✅', voted:'Recorded 🙏',
-    hist_t:'My history', hist_hint:'the configs you copied — last 20, always here', hist_empty:'nothing copied yet — start from the gold list', hist_cleared:'history cleared',
-    sub_t:'My personal subscription', sub_note:'every client refresh delivers your personal picks (daily or per-run rotation)', sub_copy:'Copy link',
+    hist_t:'My history', hist_hint:'the configs you copied — last 20, always here', hist_empty:'nothing copied yet — start from My golden picks', hist_cleared:'history cleared',
+    sub_t:'My golden picks', sub_note:'every client refresh delivers your personal picks (daily or per-run rotation)', sub_st:'your personal sub + your golden configs — one link, always fresh', sub_quota:'{n} of {q} active configs', sub_ref_hint:'the link never changes; its content refreshes every run. Invite friends to grow your quota up to {cap}.', sub_copy:'Copy link',
     sub_meta:'ISP: {o} · Client: {c}', sub_need:'press /start in the bot first', open_tg:'open this page inside Telegram for your personal sub',
     mk_ok:'connected', mk_fail:'failed', my10:'My personal picks', rot_day:'rotation: daily', rot_run:'rotation: per run',
     marked:'Recorded', fail:'failed to load — try again', isp_other:'All', cl_other:'Other',
@@ -4041,7 +4040,8 @@ var I18N = {
     msw_mine:'Only mine', msw_gold:'Only best', msw_mix:'Mixed',
     msw_note:'this link never changes — only its content does. After switching, hit “update subscription” in your client.',
     msw_saved:'Mode saved ✅', adv_t:'Advanced links (for power users)',
-    tag_mine:'personal', tag_gold:'best', tag_mix:'mixed', qr_btn:'QR', copy_btn:'Copy'},
+    tag_mine:'personal', tag_gold:'best', tag_mix:'mixed', qr_btn:'QR', copy_btn:'Copy',
+    wall_t:'Channel membership required', wall_d:'To use Ariston you must join the official channel. Join, then tap the check button.', wall_btn:'Join @Ariston_CH', wall_check:'✅ I joined — check now', wall_ok:'Welcome back! Everything is unlocked ✅', wall_still:'You have not joined the channel yet 😕'},
   ru: {hero_badge:'Умный выбор в реальном времени', hero_lbl:'золотых конфигов',
     hero_a:'отобрано из {alive} живых конфигов', hero_b:'прогон {run}',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Проверенных конфигов', st_p50:'Средний пинг сети',
@@ -4052,8 +4052,8 @@ var I18N = {
     rel_min:'{n} мин назад', rel_hour:'{n} ч назад', rel_day:'{n} дн назад',
     gold_t:'Золотые конфиги', gold_st:'рейтинг по пингу и тестам', gold_hint:'нажми на карточку — копировать · 👍 = работает',
     more:'Показать ещё', copied:'Скопировано ✅', voted:'Записано 🙏',
-    hist_t:'Моя история', hist_hint:'конфиги, которые ты копировал — последние 20, всегда здесь', hist_empty:'пока ничего — начни с золотого списка', hist_cleared:'история очищена',
-    sub_t:'Моя личная подписка', sub_note:'при каждом обновлении — твоя персональная подборка (день или прогон)', sub_copy:'Копировать ссылку',
+    hist_t:'Моя история', hist_hint:'конфиги, которые ты копировал — последние 20, всегда здесь', hist_empty:'пока ничего — начни с «Мои золотые»', hist_cleared:'история очищена',
+    sub_t:'Мои золотые', sub_note:'при каждом обновлении — твоя персональная подборка (день или прогон)', sub_st:'личная подписка + золотые конфиги — одна ссылка, всегда свежая', sub_quota:'{n} из {q} активных', sub_ref_hint:'ссылка не меняется — содержимое обновляется каждый прогон. Приглашай друзей: квота растёт до {cap}.', sub_copy:'Копировать ссылку',
     sub_meta:'Оператор: {o} · Клиент: {c}', sub_need:'сначала /start в боте', open_tg:'открой эту страницу в Telegram для личной подписки',
     mk_ok:'подключилось', mk_fail:'не вышло', my10:'Мои личные конфиги', rot_day:'ротация: день', rot_run:'ротация: прогон',
     marked:'Записано', fail:'ошибка загрузки — попробуй снова', isp_other:'Все', cl_other:'Другое',
@@ -4064,7 +4064,8 @@ var I18N = {
     msw_mine:'Только мои', msw_gold:'Только лучшие', msw_mix:'Смешанный',
     msw_note:'ссылка никогда не меняется — меняется только содержимое. После смены нажми «обновить подписку».',
     msw_saved:'Режим сохранён ✅', adv_t:'Продвинутые ссылки (для профи)',
-    tag_mine:'личные', tag_gold:'лучшие', tag_mix:'микс', qr_btn:'QR', copy_btn:'Копировать'},
+    tag_mine:'личные', tag_gold:'лучшие', tag_mix:'микс', qr_btn:'QR', copy_btn:'Копировать',
+    wall_t:'Нужна подписка на канал', wall_d:'Чтобы пользоваться Ariston, вступи в официальный канал, затем нажми кнопку проверки.', wall_btn:'Вступить в @Ariston_CH', wall_check:'✅ Я вступил — проверить', wall_ok:'С возвращением! Всё разблокировано ✅', wall_still:'Ты ещё не вступил в канал 😕'},
   tr: {hero_badge:'Akıllı anlık seçki', hero_lbl:'altın yapılandırma',
     hero_a:'{alive} çalışan içinden seçildi', hero_b:'tur {run}',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'Onaylanan çalışan yapılandırma', st_p50:'Ağ ortalama ping',
@@ -4075,8 +4076,8 @@ var I18N = {
     rel_min:'{n} dk önce', rel_hour:'{n} sa önce', rel_day:'{n} gün önce',
     gold_t:'Altın yapılandırmalar', gold_st:'ping ve test sonuçlarına göre', gold_hint:'kopyalamak için karta dokun · 👍 = işime yaradı',
     more:'Daha fazla', copied:'Kopyalandı ✅', voted:'Kaydedildi 🙏',
-    hist_t:'Geçmişim', hist_hint:'kopyaladığın yapılandırmalar — son 20, hep burada', hist_empty:'henüz bir şey kopyalanmadı — altın listeden başla', hist_cleared:'geçmiş temizlendi',
-    sub_t:'Kişisel aboneliğim', sub_note:'her yenilemede kişisel seçkinlerin gelir (günlük veya her tur)', sub_copy:'Bağlantıyı kopyala',
+    hist_t:'Geçmişim', hist_hint:'kopyaladığın yapılandırmalar — son 20, hep burada', hist_empty:'henüz bir şey kopyalanmadı — Altın seçkilerim’den başla', hist_cleared:'geçmiş temizlendi',
+    sub_t:'Altın seçkilerim', sub_note:'her yenilemede kişisel seçkinlerin gelir (günlük veya her tur)', sub_st:'kişisel aboneliğin + altın yapılandırmaların — tek bağlantı, hep taze', sub_quota:'{n} / {q} aktif yapılandırma', sub_ref_hint:'bağlantı hiç değişmez; içeriği her turda yenilenir. Arkadaşlarını davet et — kota {cap}’e kadar çıkar.', sub_copy:'Bağlantıyı kopyala',
     sub_meta:'Sağlayıcı: {o} · İstemci: {c}', sub_need:'önce botta /start gönder', open_tg:'kişisel abonelik için bu sayfayı Telegram içinde aç',
     mk_ok:'bağlandı', mk_fail:'olmadı', my10:'Kişisel seçkilerim', rot_day:'rotasyon: günlük', rot_run:'rotasyon: her tur',
     marked:'Kaydedildi', fail:'yükleme hatası — tekrar dene', isp_other:'Tümü', cl_other:'Diğer',
@@ -4087,7 +4088,8 @@ var I18N = {
     msw_mine:'Sadece benim', msw_gold:'Sadece en iyiler', msw_mix:'Karışık',
     msw_note:'bu bağlantı hiç değişmez — sadece içeriği değişir. Sonra istemcide “aboneliği güncelle”ye bas.',
     msw_saved:'Mod kaydedildi ✅', adv_t:'Gelişmiş bağlantılar (profesyoneller için)',
-    tag_mine:'kişisel', tag_gold:'en iyiler', tag_mix:'karışık', qr_btn:'QR', copy_btn:'Kopyala'},
+    tag_mine:'kişisel', tag_gold:'en iyiler', tag_mix:'karışık', qr_btn:'QR', copy_btn:'Kopyala',
+    wall_t:'Kanala katılım gerekli', wall_d:'Ariston\\'u kullanmak için resmî kanala katıl, sonra kontrol düğmesine bas.', wall_btn:'@Ariston_CH kanalına katıl', wall_check:'✅ Katıldım — kontrol et', wall_ok:'Tekrar hoş geldin! Her şey açıldı ✅', wall_still:'Kanala henüz katılmadın 😕'},
   zh: {hero_badge:'实时智能精选', hero_lbl:'金牌配置',
     hero_a:'从 {alive} 个可用配置中精选', hero_b:'第 {run} 轮',
     st_online:'ONLINE', st_fast:'FAST', st_alive:'已验证可用配置', st_p50:'网络平均延迟',
@@ -4098,8 +4100,8 @@ var I18N = {
     rel_min:'{n} 分钟前', rel_hour:'{n} 小时前', rel_day:'{n} 天前',
     gold_t:'金牌配置', gold_st:'按延迟与测试结果排名', gold_hint:'点卡片即复制 · 👍 = 对我有用',
     more:'显示更多', copied:'已复制 ✅', voted:'已记录 🙏',
-    hist_t:'我的历史', hist_hint:'你复制过的配置 — 最近 20 条，一直都在', hist_empty:'还没有复制过 — 从金牌列表开始', hist_cleared:'历史已清除',
-    sub_t:'我的个人订阅', sub_note:'客户端每次刷新拿到你的专属配置（按天或每轮轮换）', sub_copy:'复制链接',
+    hist_t:'我的历史', hist_hint:'你复制过的配置 — 最近 20 条，一直都在', hist_empty:'还没有复制过 — 从「我的金牌精选」开始', hist_cleared:'历史已清除',
+    sub_t:'我的金牌精选', sub_note:'客户端每次刷新拿到你的专属配置（按天或每轮轮换）', sub_st:'个人订阅 + 金牌配置 — 一条链接，始终新鲜', sub_quota:'{n} / {q} 条生效', sub_ref_hint:'链接永不改变；内容每轮自动更新。邀请好友，配额最高 {cap} 条。', sub_copy:'复制链接',
     sub_meta:'运营商：{o} · 客户端：{c}', sub_need:'请先在机器人里 /start', open_tg:'在 Telegram 内打开此页面以获取个人订阅',
     mk_ok:'连上了', mk_fail:'连不上', my10:'我的专属配置', rot_day:'轮换：每天', rot_run:'轮换：每轮',
     marked:'已记录', fail:'加载失败 — 请重试', isp_other:'全部', cl_other:'其他',
@@ -4110,7 +4112,8 @@ var I18N = {
     msw_mine:'只看我的', msw_gold:'只看最佳', msw_mix:'混合',
     msw_note:'链接永不改变 — 只变内容。切换后在客户端点“更新订阅”。',
     msw_saved:'模式已保存 ✅', adv_t:'高级链接（进阶用户）',
-    tag_mine:'个人', tag_gold:'最佳', tag_mix:'混合', qr_btn:'QR', copy_btn:'复制'}
+    tag_mine:'个人', tag_gold:'最佳', tag_mix:'混合', qr_btn:'QR', copy_btn:'复制',
+    wall_t:'需要加入频道', wall_d:'使用 Ariston 前请先加入官方频道，加入后点击检查按钮。', wall_btn:'加入 @Ariston_CH', wall_check:'✅ 已加入 — 检查', wall_ok:'欢迎回来！一切已解锁 ✅', wall_still:'你还没有加入频道 😕'}
 };
 var MEDALS = ['🥇', '🥈', '🥉'];
 var ISPN = {irancell:'Irancell', mci:'MCI', rightel:'Rightel', shatel:'Shatel', asiatech:'Asiatech', tci:'TCI'};
@@ -4164,21 +4167,14 @@ function applyTexts(){
   document.getElementById('stP50K').textContent = T('st_p50');
   document.getElementById('stSrcK').textContent = T('st_src');
   document.getElementById('stRunK').textContent = T('st_run');
-  document.getElementById('goldTitle').textContent = '🏆 ' + T('gold_t');
-  document.getElementById('goldHint').textContent = T('gold_st') + ' · ' + T('gold_hint');
   document.getElementById('histTitle').textContent = '🕘 ' + T('hist_t');
-  document.getElementById('subTitle').textContent = '🔗 ' + T('sub_t');
-  document.getElementById('chipPing').textContent = T('sort_fast');
-  document.getElementById('chipOk').textContent = T('sort_ok');
-  document.getElementById('chipVote').textContent = T('sort_vote');
+  document.getElementById('subTitle').textContent = '🏆 ' + T('sub_t');
+  document.getElementById('subHint').textContent = T('sub_st');
   document.getElementById('favTitle').textContent = '⭐ ' + T('fav_t');
-  document.getElementById('goldQ').placeholder = T('search_ph');
-  var mb = document.getElementById('moreBtn'); mb.textContent = T('more');
 }
-var lastStats = null, goldOffset = 0, statRetry = 0, goldItems = [], goldSort = 'ping';
+var lastStats = null, statRetry = 0;
 /* D8 — UX state: filters · favorites · theme · sub mode */
-var goldFProto = '', goldFPing = 0, goldQ = '', goldFavOnly = false;
-var favSet = {}, favItems = [], subModeCur = 'mix', subUrlCur = '';
+var favSet = {}, favItems = [], subUrlCur = '';
 
 /* ── D8/U4 theme ── */
 function applyTheme(mode){
@@ -4239,7 +4235,6 @@ function favRender(items){
       favToggle(btn.getAttribute('data-hash'), btn.getAttribute('data-uri'), btn.getAttribute('data-p'), btn.getAttribute('data-l'));
     });
   });
-  if (goldItems.length) renderGold(); // star badges on gold cards may change
 }
 function favToggle(hash, uri, proto, lat){
   if (!initData || !hash) return;
@@ -4258,20 +4253,6 @@ function loadFavs(){
     body: JSON.stringify({ initData: initData, op: 'list' }) })
     .then(function(r){ return r.json(); })
     .then(function(d){ if (d && d.ok) favRender(d.items); }).catch(function(){});
-}
-
-/* ── D8/U2 gold filters ── */
-function goldFiltered(){
-  var a = sortItems(goldItems);
-  var q = goldQ.toLowerCase();
-  return a.filter(function(it){
-    var proto = (it.uri.split('://')[0] || '').toLowerCase();
-    if (goldFProto && proto !== goldFProto) return false;
-    if (goldFPing > 0 && !(it.latency_ms != null && it.latency_ms <= goldFPing)) return false;
-    if (goldFavOnly && !favSet[it.hash]) return false;
-    if (q && hostOf(it.uri).toLowerCase().indexOf(q) === -1) return false;
-    return true;
-  });
 }
 
 /* ── D8/U1 QR (self-contained encoder — the sub link never leaves the device) ──
@@ -4556,181 +4537,6 @@ function loadStats(){
     setTimeout(loadStats, [5000, 15000, 40000, 90000, 180000, 300000][statRetry - 1]);
   });
 }
-function sortItems(items){
-  var a = items.slice();
-  if (goldSort === 'ok'){
-    a.sort(function(x, y){ var ex = x.ema === null ? -1 : x.ema, ey = y.ema === null ? -1 : y.ema;
-      return (ey - ex) || ((x.latency_ms === null ? 9e9 : x.latency_ms) - (y.latency_ms === null ? 9e9 : y.latency_ms)); });
-  } else if (goldSort === 'vote'){
-    a.sort(function(x, y){ return ((y.up || 0) - (y.down || 0)) - ((x.up || 0) - (x.down || 0)); });
-  } else {
-    a.sort(function(x, y){ return (x.latency_ms === null ? 9e9 : x.latency_ms) - (y.latency_ms === null ? 9e9 : y.latency_ms); });
-  }
-  return a;
-}
-function renderGold(){
-  var list = document.getElementById('goldList');
-  if (!goldItems.length){ list.innerHTML = '<div class="err">⏳</div>'; return; }
-  var filtered = goldFiltered();
-  var anyFilter = goldFProto || goldFPing > 0 || goldQ || goldFavOnly;
-  var shown = anyFilter ? filtered : filtered.slice(0, 10); /* D6 look: 10 cards by default */
-  var html = '';
-  for (var i = 0; i < shown.length; i++){ html += goldCard(shown[i], i); }
-  list.innerHTML = html;
-  document.getElementById('fCount').textContent = shown.length + ' / ' + goldItems.length;
-  var cab = document.getElementById('copyAllBtn');
-  cab.style.display = anyFilter && shown.length ? 'inline-flex' : 'none';
-  cab.textContent = T('copy_all', {n: shown.length});
-  bindCards();
-}
-function goldCard(it, idx){
-  var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
-  var rank = (idx < 3) ? MEDALS[idx] : '<span class="num">#' + (idx + 1) + '</span>';
-  var emaCls = it.ema !== null ? (it.ema >= 0.99 ? 'g' : it.ema >= 0.8 ? 's' : 'b') : 'b';
-  var emaTx = it.ema !== null ? Math.round(it.ema * 100) + '%' : '—';
-  var latTx = it.latency_ms !== null ? Math.round(it.latency_ms) + 'ms' : '—';
-  var starred = favSet[it.hash] ? ' on' : '';
-  var opTx = it.op ? '<span class="opchip">' + esc(ISPN[it.op] || it.op) + '</span>' : '';
-  return '<div class="gcard" data-uri="' + esc(it.uri) + '" data-hash="' + esc(it.hash || '') + '" style="animation:up .4s ' + (idx * 0.05) + 's ease both">' +
-    '<div class="gtop"><div class="rank">' + rank + '</div>' +
-    '<span class="chip ' + esc(proto) + '">' + esc(proto) + '</span>' +
-    '<div class="host">' + esc(hostOf(it.uri)) + '</div>' +
-    opTx +
-    '<span class="livedot"></span>' +
-    '<div class="metrics"><span class="ema ' + emaCls + '">' + emaTx + '</span>' +
-    '<span class="lat">' + latTx + '</span></div></div>' +
-    '<div class="gfoot">' +
-    '<button class="fb"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash) + '" data-v="up">👍 <span>' + (it.up || 0) + '</span></button>' +
-    '<button class="fb"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash) + '" data-v="down">👎 <span>' + (it.down || 0) + '</span></button>' +
-    '<button class="star' + starred + '"' + (initData ? '' : ' disabled') + ' data-hash="' + esc(it.hash || '') + '" data-uri="' + esc(it.uri) + '" data-p="' + esc(proto) + '" data-l="' + (it.latency_ms == null ? '' : Math.round(it.latency_ms)) + '">⭐</button>' +
-    '<span class="ok">✔ ' + (it.ok || 0) + ' / ✘ ' + (it.fail || 0) + '</span></div></div>';
-}
-function bindCards(){
-  var list = document.getElementById('goldList');
-  Array.prototype.forEach.call(list.querySelectorAll('.gcard'), function(card){
-    if (card._bound) return; card._bound = true;
-    card.addEventListener('click', function(ev){
-      if (ev.target.closest && (ev.target.closest('.fb') || ev.target.closest('.star'))) return;
-      copyText(card.getAttribute('data-uri'));
-      histAdd(card.getAttribute('data-uri'), card.getAttribute('data-hash'));
-    });
-  });
-  Array.prototype.forEach.call(list.querySelectorAll('.star'), function(btn){
-    if (btn._bound) return; btn._bound = true;
-    btn.addEventListener('click', function(ev){
-      ev.stopPropagation();
-      if (!initData) return;
-      favToggle(btn.getAttribute('data-hash'), btn.getAttribute('data-uri'), btn.getAttribute('data-p'), btn.getAttribute('data-l'));
-      btn.classList.toggle('on', !btn.classList.contains('on'));
-      btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
-    });
-  });
-  Array.prototype.forEach.call(list.querySelectorAll('.fb'), function(btn){
-    if (btn._bound) return; btn._bound = true;
-    btn.addEventListener('click', function(ev){
-      ev.stopPropagation();
-      if (!initData) return; /* anonymous visitors see counts only */
-      var vote = btn.getAttribute('data-v'), hash = btn.getAttribute('data-hash');
-      haptic('medium');
-      fetch('/app/api/feedback', {method:'POST', headers:{'content-type':'application/json'},
-        body: JSON.stringify({initData: initData, hash: hash, vote: vote})})
-        .then(function(r){ return r.json(); })
-        .then(function(res){
-          if (res.ok){ toast(T('voted'));
-            btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
-            var card = btn.closest('.gcard');
-            Array.prototype.forEach.call(card.querySelectorAll('.fb'), function(b){ b.classList.remove('on'); });
-            btn.classList.add('on');
-            var cnt = btn.querySelector('span'); if (cnt) cnt.textContent = (vote === 'up') ? res.up : res.down;
-            for (var i = 0; i < goldItems.length; i++){
-              if (goldItems[i].hash === hash){
-                if (vote === 'up'){ goldItems[i].up = res.up; } else { goldItems[i].down = res.down; }
-              }
-            }
-          } /* server refused (expired session) — stay silent */
-        }).catch(function(){ toast(T('fail')); });
-    });
-  });
-}
-Array.prototype.forEach.call(document.querySelectorAll('.schip'), function(chip){
-  chip.addEventListener('click', function(){
-    if (chip.classList.contains('on')) return;
-    haptic('light');
-    Array.prototype.forEach.call(document.querySelectorAll('.schip'), function(c){ c.classList.remove('on'); });
-    chip.classList.add('on');
-    goldSort = chip.getAttribute('data-sort');
-    renderGold();
-  });
-});
-  /* D8/U2 — filter chips + search + copy-all */
-  Array.prototype.forEach.call(document.querySelectorAll('#protoRow .fchip'), function(chip){
-    chip.addEventListener('click', function(){
-      haptic('light');
-      Array.prototype.forEach.call(document.querySelectorAll('#protoRow .fchip'), function(c){ c.classList.remove('on'); });
-      chip.classList.add('on');
-      goldFProto = chip.getAttribute('data-f') || '';
-      renderGold();
-    });
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('#pingRow .fchip[data-p]'), function(chip){
-    chip.addEventListener('click', function(){
-      haptic('light');
-      Array.prototype.forEach.call(document.querySelectorAll('#pingRow .fchip[data-p]'), function(c){ c.classList.remove('on'); });
-      chip.classList.add('on');
-      goldFPing = parseInt(chip.getAttribute('data-p'), 10) || 0;
-      renderGold();
-    });
-  });
-  var foc = document.getElementById('favOnlyChip');
-  if (foc) foc.addEventListener('click', function(){
-    if (!initData){ toast(T('open_tg')); return; }
-    haptic('light');
-    goldFavOnly = !goldFavOnly;
-    foc.classList.toggle('on', goldFavOnly);
-    renderGold();
-  });
-  var qin = document.getElementById('goldQ');
-  if (qin){ var qT = null; qin.addEventListener('input', function(){
-    clearTimeout(qT); qT = setTimeout(function(){ goldQ = qin.value.trim(); renderGold(); }, 220);
-  }); }
-  document.getElementById('copyAllBtn').addEventListener('click', function(){
-    var shown = goldFiltered();
-    if (!shown.length) return;
-    copyText(shown.map(function(it){ return it.uri; }).join('\\n'));
-    toast(T('copied_n', {n: shown.length}));
-  });
-  var goldAutoRetried = false;
-function showGoldFail(list){
-  list.innerHTML = '<div class="err">' + T('fail') + '</div>';
-  var b = document.createElement('button');
-  b.className = 'retrybtn'; b.textContent = '⟳';
-  b.addEventListener('click', function(){ loadGold(false); });
-  list.appendChild(b);
-}
-function goldAutoRetry(){
-  if (goldAutoRetried) return;
-  goldAutoRetried = true;
-  setTimeout(function(){ loadGold(false); }, 6000);
-}
-function loadGold(append){
-  var list = document.getElementById('goldList');
-  if (!append){ list.innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>'; goldOffset = 0; }
-  /* POST + initData → the server stamps the user's own name on the copied configs */
-  var req = initData
-    ? fetch('/app/api/gold', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ initData: initData, offset: goldOffset, limit: 24 }) })
-    : fetch('/app/api/gold?offset=' + goldOffset + '&limit=24');
-  req.then(function(r){ return r.json(); }).then(function(d){
-    if (d.error || !d.items){ showGoldFail(list); goldAutoRetry(); return; }
-    if (!d.items.length && !append){ list.innerHTML = '<div class="err">⏳</div>'; return; }
-    goldAutoRetried = false;
-    goldItems = append ? goldItems.concat(d.items) : d.items;
-    goldOffset += d.items.length;
-    renderGold();
-    /* D8/U2: filters live client-side — no pager button needed any more */
-    document.getElementById('moreBtn').style.display = 'none';
-  }).catch(function(){ showGoldFail(list); goldAutoRetry(); });
-}
 function subRow(it, idx){
   var proto = (it.uri.split('://')[0] || 'other').toLowerCase();
   var pingTx = it.ping != null ? Math.round(it.ping) + 'ms' : '—';
@@ -4799,23 +4605,17 @@ function loadSub(){
       var cl = d.client === 'other' ? T('cl_other') : d.client;
       var rotChip = '<span class="rot">' + T(d.rotation === 'run' ? 'rot_run' : 'rot_day') + '</span>';
       var nameTag = d.name ? ' · ✍️ ' + esc(d.name) : '';
-      subModeCur = d.sub_mode || 'mix'; subUrlCur = d.url;
-      var modeBtn = function(m, key){ return '<button data-m="' + m + '"' + (subModeCur === m ? ' class="on"' : '') + '>' + T(key) + '</button>'; };
+      subUrlCur = d.url;
+      /* D12.0 — one merged section: link + live quota + the personal picks.
+         The mine/gold/mix switch is retired from the UI (legacy ?m= links work). */
       var html = '<div class="t">' + T('sub_t') + ' ' + rotChip + '</div>' +
         '<div class="url">' + esc(d.url) + '</div>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
         '<button class="btn" id="copySub">📋 ' + T('sub_copy') + '</button>' +
         '<button class="btn" id="qrSub" style="background:none;color:var(--gold)">🔲 ' + T('qr_btn') + '</button>' +
         '</div>' +
-        '<div class="msw" id="msw">' +
-        modeBtn('mine', 'msw_mine') + modeBtn('gold', 'msw_gold') + modeBtn('mix', 'msw_mix') +
-        '</div>' +
-        '<div class="mswnote">' + T('msw_note') + '</div>' +
-        '<details class="adv"><summary>' + T('adv_t') + '</summary>' +
-        '<div class="arow"><span class="tag">' + T('tag_mine') + '</span><div class="url">' + esc(d.url + '?m=mine') + '</div><button class="mini2" data-copy="' + esc(d.url + '?m=mine') + '">' + T('copy_btn') + '</button></div>' +
-        '<div class="arow"><span class="tag">' + T('tag_gold') + '</span><div class="url">' + esc(d.url + '?m=gold') + '</div><button class="mini2" data-copy="' + esc(d.url + '?m=gold') + '">' + T('copy_btn') + '</button></div>' +
-        '<div class="arow"><span class="tag">' + T('tag_mix') + '</span><div class="url">' + esc(d.url + '?m=mix') + '</div><button class="mini2" data-copy="' + esc(d.url + '?m=mix') + '">' + T('copy_btn') + '</button></div>' +
-        '</details>' +
+        '<div class="mswnote" style="color:var(--gold);font-weight:800">📦 ' + T('sub_quota', {n: d.n, q: d.quota || d.n}) + '</div>' +
+        '<div class="mswnote">' + T('sub_ref_hint', {cap: d.ref_cap || 20}) + '</div>' +
         '<div class="meta">' + T('sub_meta', {o: isp, c: cl}) + nameTag + '</div>';
       if (d.items && d.items.length){
         html += '<div class="meta" style="margin-top:14px;font-weight:800;color:var(--gold)">📦 ' + T('my10') + ' · ' + d.items.length + '</div>';
@@ -4825,24 +4625,6 @@ function loadSub(){
       card.innerHTML = html;
       document.getElementById('copySub').addEventListener('click', function(){ copyText(d.url); });
       document.getElementById('qrSub').addEventListener('click', function(){ showQR(d.url); });
-      Array.prototype.forEach.call(document.querySelectorAll('#msw button'), function(btn){
-        btn.addEventListener('click', function(){
-          var m = btn.getAttribute('data-m');
-          if (m === subModeCur) return;
-          haptic('medium');
-          fetch('/app/api/submode', { method: 'POST', headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ initData: initData, mode: m }) })
-            .then(function(r){ return r.json(); })
-            .then(function(res){
-              if (res && res.ok){ subModeCur = m; toast(T('msw_saved'));
-                Array.prototype.forEach.call(document.querySelectorAll('#msw button'), function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); });
-              } else toast(T('fail'));
-            }).catch(function(){ toast(T('fail')); });
-        });
-      });
-      Array.prototype.forEach.call(card.querySelectorAll('.mini2[data-copy]'), function(btn){
-        btn.addEventListener('click', function(ev){ ev.stopPropagation(); copyText(btn.getAttribute('data-copy')); });
-      });
       bindSubMarks();
     }).catch(function(){ card.innerHTML = '<div class="err">' + T('fail') + '</div>'; });
 }
@@ -4931,7 +4713,7 @@ initTheme();
    two languages. Fail-open: any error boots exactly like before. */
 var booted = false;
 function finishBoot(){ if (booted) return; booted = true;
-  loadStats(); loadGold(false); loadSub(); loadMe(); loadHist(); loadFavs(); }
+  loadStats(); loadSub(); loadMe(); loadHist(); loadFavs(); }
 if (initData){
   fetch('/app/api/pref', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ initData: initData }) })
     .then(function(r){ return r.ok ? r.json() : null; })
@@ -4950,8 +4732,7 @@ if (initData){
     .then(finishBoot);
 } else finishBoot();
 setTimeout(finishBoot, 2500); // hard fail-open: the app never hangs on the pref read
-document.getElementById('moreBtn').addEventListener('click', function(){ haptic('light'); loadGold(true); });
-document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); loadGold(false); });
+document.getElementById('refresh').addEventListener('click', function(){ haptic('light'); loadStats(); });
 document.getElementById('heroErr').addEventListener('click', loadStats);
 document.getElementById('themeBtn').addEventListener('click', function(){
   haptic('light');
@@ -4979,11 +4760,32 @@ function showJoinWall(){
   d.id = 'joinWall';
   d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,8,4,.96);backdrop-filter:blur(8px);text-align:center;padding:24px';
   d.innerHTML = '<div style="font-size:44px">🔒</div>'
-    + '<div style="font-size:17px;font-weight:700;color:#E8C872">عضویت در کانال لازم است</div>'
-    + '<div style="font-size:13px;color:#b8ad93">برای استفاده از آریستون باید عضو کانال رسمی باشی. عضو شو و دکمهٔ بررسی رو بزن.</div>'
-    + '<a href="https://t.me/Ariston_CH" style="display:block;padding:12px 22px;border-radius:12px;background:#E8C872;color:#14110C;font-weight:700;text-decoration:none">🔔 عضویت در @Ariston_CH</a>'
-    + '<button onclick="location.reload()" style="padding:10px 18px;border-radius:12px;border:1px solid #E8C872;background:transparent;color:#E8C872;font-weight:600">✅ عضو شدم — بررسی کن</button>';
+    + '<div style="font-size:17px;font-weight:700;color:#E8C872">' + T('wall_t') + '</div>'
+    + '<div style="font-size:13px;color:#b8ad93">' + T('wall_d') + '</div>'
+    + '<a href="https://t.me/Ariston_CH" style="display:block;padding:12px 22px;border-radius:12px;background:#E8C872;color:#14110C;font-weight:700;text-decoration:none">🔔 ' + T('wall_btn') + '</a>'
+    + '<button id="jcheck" style="padding:10px 18px;border-radius:12px;border:1px solid #E8C872;background:transparent;color:#E8C872;font-weight:600">' + T('wall_check') + '</button>';
   document.body.appendChild(d);
+  /* D12.0 — the check is live: a fresh server-side getChatMember (cache
+     busted), and on success the wall drops and every section reloads in place —
+     no page reload, no TTL waiting (the «joined but still blocked» bug). */
+  document.getElementById('jcheck').addEventListener('click', function(){
+    var b = this; b.disabled = true; b.textContent = '…';
+    fetch('/app/api/joincheck', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ initData: initData }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j && j.ok && j.joined){
+          var w = document.getElementById('joinWall'); if (w) w.remove();
+          JOIN_WALL_SHOWN = false;
+          toast(T('wall_ok'));
+          loadStats(); loadSub(); loadMe(); loadHist(); loadFavs();
+        } else {
+          toast(T('wall_still'));
+          b.disabled = false; b.textContent = T('wall_check');
+        }
+      })
+      .catch(function(){ b.disabled = false; b.textContent = T('wall_check'); toast(T('fail')); });
+  });
 }
 (function(){
   var _f = window.fetch;
@@ -5005,7 +4807,7 @@ function tgAttach(){
   if (!tg) return false;
   initData = tg.initData || '';
   try { tg.ready(); tg.expand(); tg.setHeaderColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); tg.setBackgroundColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); } catch (e){}
-  if (initData){ loadSub(); loadGold(false); loadHist(); loadMe(); loadFavs(); }
+  if (initData){ loadSub(); loadHist(); loadMe(); loadFavs(); }
   return true;
 }
 if (!tgAttach()){
@@ -5026,7 +4828,7 @@ const ADMIN_PANEL_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ARISTON · پنل مدیریت</title>
-<!-- panel build: D10.1 — phase 3: pipeline filters (tier/protocol/blackwhite/geo/strictness) · settings export-restore · read-only KV browser · selective cleanup · health test · error ring · weekly summary · run-late alert · invite tiers -->
+<!-- panel build: D12.0 — phase 3: pipeline filters (tier/protocol/blackwhite/geo/strictness) · settings export-restore · read-only KV browser · selective cleanup · health test · error ring · weekly summary · run-late alert · invite tiers -->
 <script src="https://telegram.org/js/telegram-web-app.js" async><\/script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5103,7 +4905,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
 </head>
 <body><div class="wrap">
 <header>
-  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D10.1</span>
+  <span class="brand">ARISTON</span><span class="sub">🛠 پنل مدیریت · D12.0</span>
 </header>
 <div id="lock" class="lock" hidden>⛔ این پنل فقط برای مدیرهای ربات باز می‌شه.</div>
 <div id="panel" hidden>
@@ -5346,7 +5148,7 @@ textarea{width:100%;min-height:84px;direction:rtl;text-align:right;font-family:'
     <div class="row"><div><div class="k">کانال فعلی</div><div class="hint tg" id="chId">—</div></div><div class="hint tg" id="bcStatus">—</div></div>
   </div>
 
-  <div class="foot">ARISTON WORKER · D10.1 · V4.3</div>
+  <div class="foot">ARISTON WORKER · D12.0 · V5.0</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -6162,6 +5964,7 @@ const ROUTES = {
     if (url.pathname === '/app/api/gold') return appGold(env, url, request);
     if (url.pathname === '/app/api/sub' && request.method === 'POST') return appSub(env, request);
     if (url.pathname === '/app/api/submode' && request.method === 'POST') return appSubMode(env, request);
+    if (url.pathname === '/app/api/joincheck' && request.method === 'POST') return appJoinCheck(env, request); // D12.0 — live join probe
     if (url.pathname === '/app/api/pref' && request.method === 'POST') return appPref(env, request);
     if (url.pathname === '/app/api/fav' && request.method === 'POST') return appFavs(env, request);
     if (url.pathname === '/app/api/mark' && request.method === 'POST') return appMark(env, request);
