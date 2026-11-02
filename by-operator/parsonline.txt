@@ -1,0 +1,1 @@
+vless://40bcfe7f-9e3d-450e-993c-982630dbf3ca@77.77.77.77:80?encryption=none&path=/%3Fed%3D2048&security=&type=ws#Ariston

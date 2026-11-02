@@ -1,0 +1,5 @@
+trojan://ecd5e68e-92a5-4f85-afe1-1775ec84bf54@5.239.245.250:443?security=tls&sni=empty.node&type=tcp#Ariston
+vless://30899004-424b-4071-af4c-6ddaed1f247d@89.235.118.122:18641?headerType=http&host=Speedtest.net&path=/&security=none&type=tcp#Ariston
+vless://421697ee-a1b7-474a-b084-48cb0e05aee3@80.210.32.110:49959?encryption=none&headerType=none&security=none&type=tcp#Ariston
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@2.185.18.146:40443?allowInsecure=1&encryption=none&host=sni.111000.indevs.in&insecure=1&path=/&security=tls&sni=sni.111000.indevs.in&type=ws#Ariston
+vless://f19dd823-2306-4b98-a22c-54c80155546b@85.185.201.36:52?encryption=none&headerType=http&host=myket.ir&security=none&type=tcp#Ariston
