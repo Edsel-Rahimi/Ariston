@@ -5361,6 +5361,11 @@ function post(path, body){
     body: JSON.stringify(Object.assign({ initData: initData }, body || {})) }).then(function(r){ return r.json(); }); }
 function fmt(n){ return (n || 0).toLocaleString('en-US'); }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* D10.3/B4 — runStamp lives only in the server scope (defined near line 574);
+   the panel clock (drawStats) calls it client-side. Without this copy the
+   try/catch in drawStats throws a ReferenceError twice and draw() aborts —
+   stat tiles render but bank/pipeline/templates/cron sections stay skeleton. */
+function runStamp(s){ return (s && (s.published_at || s.generated_at)) || ''; }
 function drawTgl(el, on){ el.textContent = on ? '✅ روشن' : '⛔ خاموش';
   el.classList.toggle('on', !!on); el.classList.toggle('off', !on); }
 function countUp(el, to){ var t0 = null, dur = 800;
@@ -5369,34 +5374,32 @@ function countUp(el, to){ var t0 = null, dur = 800;
   requestAnimationFrame(step); }
 var FREQS = [1, 2, 3, 6, 12, 24], S = null, uOffset = 0;
 var P2_FACTORS = [1.5, 2, 3];
+/* D10.3/B4 — one broken renderer must never freeze the sections after it:
+   each drawX runs isolated; a throw is logged and the rest continues. */
+function safe(fn){ try { fn(); } catch (e) { if (window.console && console.error) console.error('panel section error', e); } }
 function draw(){
-  drawTgl($('tglCard'), S.cfg.card_enabled !== false);
-  drawTgl($('tglDigest'), S.cfg.digest_enabled !== false);
-  drawTgl($('tglWatch'), S.cfg.watchtower_enabled !== false);
-  drawTgl($('tglJoin'), S.cfg.force_join !== false);
-  /* D11/U4-2 — keyed API + webhook */
-  $('apiKeyView').textContent = S.cfg.api_key || 'تولید نشده';
-  $('hookUrl').value = S.cfg.webhook_url || '';
-  $('refBase').value = S.cfg.ref_base || 10; $('refCap').value = S.cfg.ref_cap || 20;
-  $('chName').textContent = S.channel ? ('@' + S.channel.user + ' · id ' + S.channel.id) : '— هنوز ثبت نشده —';
-  $('chUserIn').value = '@' + (S.cfg.channel_user || 'Ariston_CH');
-  $('chId').textContent = S.channel ? ('id ' + S.channel.id) : '—';
-  var ch = '';
-  for (var i = 0; i < FREQS.length; i++){ var h = FREQS[i];
-    ch += '<button class="chip' + (h === S.every_hours ? ' on' : '') + '" data-h="' + h + '">' + h + 'h</button>'; }
-  $('freqChips').innerHTML = ch;
-  Array.prototype.forEach.call($('freqChips').querySelectorAll('.chip'), function(b){
-    b.onclick = function(){ set('every_hours', parseInt(b.getAttribute('data-h'), 10)); }; });
-  drawStats();
-  drawBank();
-  drawAdmins();
-  drawBc();
-  drawPipe();
-  drawPipe2();
-  drawPipe3();
-  drawNotify();
-  drawTpl();
-  drawCronAge();
+  safe(function(){
+    drawTgl($('tglCard'), S.cfg.card_enabled !== false);
+    drawTgl($('tglDigest'), S.cfg.digest_enabled !== false);
+    drawTgl($('tglWatch'), S.cfg.watchtower_enabled !== false);
+    drawTgl($('tglJoin'), S.cfg.force_join !== false);
+    /* D11/U4-2 — keyed API + webhook */
+    $('apiKeyView').textContent = S.cfg.api_key || 'تولید نشده';
+    $('hookUrl').value = S.cfg.webhook_url || '';
+    $('refBase').value = S.cfg.ref_base || 10; $('refCap').value = S.cfg.ref_cap || 20;
+    $('chName').textContent = S.channel ? ('@' + S.channel.user + ' · id ' + S.channel.id) : '— هنوز ثبت نشده —';
+    $('chUserIn').value = '@' + (S.cfg.channel_user || 'Ariston_CH');
+    $('chId').textContent = S.channel ? ('id ' + S.channel.id) : '—';
+    var ch = '';
+    for (var i = 0; i < FREQS.length; i++){ var h = FREQS[i];
+      ch += '<button class="chip' + (h === S.every_hours ? ' on' : '') + '" data-h="' + h + '">' + h + 'h</button>'; }
+    $('freqChips').innerHTML = ch;
+    Array.prototype.forEach.call($('freqChips').querySelectorAll('.chip'), function(b){
+      b.onclick = function(){ set('every_hours', parseInt(b.getAttribute('data-h'), 10)); }; });
+  });
+  safe(drawStats); safe(drawBank); safe(drawAdmins); safe(drawBc);
+  safe(drawPipe); safe(drawPipe2); safe(drawPipe3); safe(drawNotify);
+  safe(drawTpl); safe(drawCronAge);
 }
 /* D10.1/B2 — the status block owns its own draw so an open panel can refresh
    it silently every 2 minutes (the old panel stayed frozen on «70 minutes
@@ -5415,7 +5418,7 @@ function drawStats(){
        not when the run started; right after the bot's «تموم شد» the panel now
        reads minutes, not «run duration + queue drift» */
     try { $('statTime').textContent = 'آخرین تست: ' + new Date(runStamp(st)).toLocaleString('fa-IR'); }
-    catch (e){ $('statTime').textContent = runStamp(st) || ''; }
+    catch (e){ $('statTime').textContent = (st && (st.published_at || st.generated_at)) || ''; }
     /* D8/P5 + D10.1/B2 — run-lag thresholds sized for the half-hour Actions cadence
        (30 min cron + ~15 min run + jitter → 50 min before «check Actions»);
        D10.2/B2: the lag counts from PUBLISH, so a normal cycle stays < 40 min */
