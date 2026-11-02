@@ -1,38 +1,80 @@
 name: heartbeat
 
-# D12.1 — repo freshness heartbeat. Pushes one tiny commit every 5 minutes so
-# the repo always reads «freshly updated» (search ranking + Recently-updated
-# filter). Deliberately NOT the pipeline's calendar: the pipeline owns
-# 7,37 * * * * and 7/37 are never multiples of 5, so the two schedules never
-# coincide. Pushes made with GITHUB_TOKEN do not trigger other workflows, so
-# there is zero interference with the pipeline. Only heartbeat.json changes.
-# Kill-switch: disable this workflow from the Actions tab (no code coupling).
+# D12.2 — repo freshness heartbeat, SELF-REARMING.
+#
+# WHY NOT PLAIN CRON: GitHub Actions throttles scheduled workflows under load
+# and folds missed beats. Verified on this repo: `*/5` cron produced only
+# 4 runs in 3.2 hours (actual gap 50–75 min). The scheduler's timing is simply
+# not guaranteed, so instead of trusting it, each run:
+#     1. writes heartbeat.json (fresh UTC stamp) and pushes «fresh configs»
+#     2. sleeps ~5 minutes on the runner
+#     3. re-arms ITSELF via workflow_dispatch (GITHUB_TOKEN is allowed to
+#        trigger workflow_dispatch — the one event exempt from the
+#        "events from GITHUB_TOKEN don't trigger workflows" rule)
+# A */15 cron watchdog remains ONLY to restart the chain if it ever dies.
+# While the loop is healthy, the watchdog merely replaces the sleeping run
+# (concurrency group), so the gap between beats stays <= ~5.5 min in every
+# scenario, watchdog or not.
+#
+# Cost: public repo → free unlimited minutes; ≈55 runner-min/hour, nearly all
+# of it the sleep itself. Pushes made with GITHUB_TOKEN never trigger other
+# workflows, so there is zero interference with the pipeline (7,37 * * * *).
+# Only heartbeat.json changes. Commit message stays «fresh configs».
+#
+# Kill-switches (either one stops the loop, no code coupling):
+#   • add file .heartbeat-off on main
+#   • disable this workflow from the Actions tab
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/15 * * * *"   # watchdog only — restarts the chain if it dies
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write            # required to self-dispatch with GITHUB_TOKEN
 
 concurrency:
   group: heartbeat
-  cancel-in-progress: true
+  cancel-in-progress: true   # a new beat replaces a sleeping one
 
 jobs:
   beat:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
 
-      - name: fresh configs
+      - id: beat
+        name: fresh configs
         run: |
+          if [ -f .heartbeat-off ]; then
+            echo "kill-switch present (.heartbeat-off) — skip beat and re-arm"
+            echo "rearm=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           printf '{\n  "fresh": "%s",\n  "run": %s\n}\n' "$ts" "${GITHUB_RUN_NUMBER:-0}" > heartbeat.json
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add heartbeat.json
           git commit -m "fresh configs" || echo "nothing to commit"
+          git pull --rebase origin main
           git push
+          echo "rearm=true" >> "$GITHUB_OUTPUT"
+
+      - name: re-arm in ~5 minutes (self-dispatch — GitHub cron is throttled)
+        if: ${{ !cancelled() && steps.beat.outputs.rearm != 'false' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sleep 290
+          for i in 1 2 3; do
+            if gh workflow run heartbeat --ref main; then
+              echo "re-armed (attempt $i)"; exit 0
+            fi
+            echo "dispatch attempt $i failed — retrying in 15s"; sleep 15
+          done
+          echo "::warning::self-dispatch failed after 3 tries — */15 cron watchdog will restart the chain"
+          exit 1
