@@ -102,6 +102,7 @@ STYLE = ("<style>"
          ".d{opacity:0;animation:d 1s ease-out both}@keyframes d{from{opacity:0}to{opacity:1}}"
          ".w{animation:w 4.9s ease-in-out infinite}@keyframes w{0%,100%{opacity:.55}14%,42%{opacity:1}}"
          ".pk{animation:pk 4s linear infinite}@keyframes pk{from{transform:translateX(0)}to{transform:translateX(250px)}}"
+         ".f2{stroke-dasharray:10 14;animation:f 2.4s linear infinite}"
          "@media (prefers-reduced-motion:reduce){*{animation:none!important}.r,.d{opacity:1!important}}"
          "</style>")
 
@@ -152,100 +153,209 @@ def mark(c, x, y, size, anim=False):
 
 
 def tier_color(c, k):
-    return {"gold": c.gold, "silver": c.silver, "bronze": c.bronze, "olive": c.olive, "text": c.text}[k]
+    return {"gold": c.gold, "silver": c.silver, "bronze": c.bronze, "olive": c.olive, "text": c.text, "key": c.key}[k]
+
+
+# ---------------------------------------------------------------- logo D12.1
+# The real ARISTON emblem + wordmark, embedded as vectors from the brand file
+# (assets/logo/ariston-logo.svg, viewBox 1254). Theme colors are substituted
+# so the mark stays readable on both charcoal and marble.
+EMBLEM_W = ("M627 253L608 362L513 455L537 519L341 735Z", "M627 253L646 362L741 455L717 519L913 735Z")
+EMBLEM_T = ("M513 455L627 396L741 455L710 486L627 444L549 486Z",   # bronze tier
+            "M554 508L627 472L700 508L678 540L627 513L576 540Z",   # silver tier
+            "M582 559L627 541L672 559L627 644Z")                    # gold tier
+EMBLEM_PT = "M624 644H630V675H624Z"
+# EMBLEM bbox: x 341..913 (w 572), y 253..712 (h 459) · wordmark bbox: x 222..1032 (w 810), y 797..873
+WORD_D = (
+ "M298.345 869.91C293.395 869.58 292.295 868.48 288.445 860.34L261.055 797.86H258.855L235.975 851.87C228.935 867.93 227.615 869.69 222.335 869.91V872.0H244.115V869.91C238.835 869.91 236.635 868.59 236.635 865.4C236.635 864.08 236.965 862.54 237.51500000000001 861.11L242.575 848.24H271.395L275.905 858.8C277.225 861.77 277.995 864.63 277.995 866.17C277.995 868.92 276.125 869.8 270.295 869.91V872.0H298.345ZM244.445 843.73 257.095 813.48 269.855 843.73Z",
+ "M428.595 869.91C424.415 869.58 422.21500000000003 868.48 419.02500000000003 864.74L396.365 836.91C410.33500000000004 834.16 416.27500000000003 828.66 416.27500000000003 818.54C416.27500000000003 813.81 414.845 809.74 411.985 806.55C407.805 802.04 398.565 799.18 388.33500000000004 799.18H357.975V801.27C366.115 802.15 367.21500000000003 803.14 367.32500000000005 811.17V858.8C367.21500000000003 868.15 366.225 869.25 357.975 869.91V872.0H388.44500000000005V869.91C379.975 869.36 378.65500000000003 868.04 378.545 860.01V838.34L384.70500000000004 838.12L410.885 872.0H428.595ZM378.545 807.21C378.545 804.13 379.755 803.25 384.15500000000003 803.25C397.90500000000003 803.25 404.285 807.98 404.285 818.32C404.285 823.82 401.975 828.44 398.01500000000004 830.53C392.95500000000004 833.39 389.105 834.05 378.545 834.27Z",
+ "M487.45500000000004 872.0H520.125V869.91C511.105 869.69 509.565 868.15 509.345 860.01V811.17C509.565 802.92 510.995 801.6 520.125 801.27V799.18H487.45500000000004V801.27C496.805 801.8199999999999 498.01500000000004 802.92 498.125 811.17V860.01C498.01500000000004 868.37 496.69500000000005 869.58 487.45500000000004 869.91V872.0Z",
+ "M627.275 797.64H624.965C624.525 800.06 623.315 801.38 621.445 801.38C620.345 801.38 618.475 800.94 616.605 800.06C612.535 798.52 608.465 797.64 604.835 797.64C600.215 797.64 595.375 799.51 591.745 802.7C587.895 806.11 585.915 810.73 585.915 816.45C585.915 825.25 590.755 831.41 603.075 837.9C610.995 842.19 616.715 846.59 619.465 850.77C620.455 852.2 621.005 854.51 621.005 857.26C621.005 864.52 615.505 869.58 607.475 869.58C597.575 869.58 590.755 863.53 585.255 850.11H582.725L586.025 873.43H588.445C588.5550000000001 871.34 589.875 869.8 591.525 869.8C592.735 869.8 594.605 870.24 596.695 871.01C600.875 872.66 605.385 873.54 609.6750000000001 873.54C622.4350000000001 873.54 632.115 864.85 632.115 853.41C632.115 844.39 626.065 837.35 611.5450000000001 829.43C599.995 823.16 595.375 818.32 595.375 812.27C595.375 806.22 599.995 802.15 606.815 802.15C611.765 802.15 616.385 804.24 620.235 808.2C623.645 811.72 625.1850000000001 814.58 626.945 821.07H629.695Z",
+ "M744.985 869.91C735.965 869.47 734.535 868.15 734.425 860.01V803.8H740.365C753.125 804.02 755.435 805.89 757.855 817.88H760.495L759.835 799.18H697.795L697.135 817.88H699.775C702.305 805.89 704.615 804.02 717.265 803.8H723.205V858.8C723.095 868.26 722.105 869.36 712.865 869.91V872.0H744.985Z",
+ "M858.1850000000001 797.64C837.1750000000001 797.64 822.215 813.37 822.215 835.59C822.215 845.93 825.735 856.05 831.6750000000001 862.32C838.0550000000001 869.25 847.845 873.54 857.525 873.54C879.195 873.54 894.155 858.25 894.155 836.03C894.155 825.14 890.965 815.68 884.915 809.19C877.985 801.6 868.745 797.64 858.1850000000001 797.64ZM858.1850000000001 801.6C863.245 801.6 868.3050000000001 803.58 872.265 807.1C878.205 812.49 881.615 822.83 881.615 835.92C881.615 842.41 880.2950000000001 850.0 877.985 855.72C876.995 858.47 875.125 861.22 872.595 863.75C868.745 867.6 863.7950000000001 869.58 857.965 869.58C852.905 869.58 847.955 867.6 843.995 864.19C838.385 859.13 834.755 848.02 834.755 835.81C834.755 824.59 837.835 813.92 842.455 808.75C846.745 804.02 852.135 801.6 858.1850000000001 801.6Z",
+ "M1031.665 799.18H1005.8149999999999V801.27C1014.615 801.8199999999999 1016.045 803.69 1016.375 815.35V852.42L974.025 799.18H955.215V801.27C959.9449999999999 801.27 961.485 802.15 965.885 807.3199999999999V855.83C965.665 867.49 964.235 869.36 955.215 869.91V872.0H981.0649999999999V869.91C972.595 869.47 970.9449999999999 867.16 970.725 855.83V812.71L1019.345 873.21H1021.215V815.35C1021.545 803.91 1022.975 802.04 1031.665 801.27Z")
+
+
+def emblem(c, x, y, size, anim=False):
+    """The A-shaped filter emblem at (x, y) top-left, `size` px tall."""
+    k = size / 459.0
+    g = f'<g transform="translate({n(x)} {n(y)}) scale({k:.5f}) translate(-341 -253)">'
+    g += ''.join(f'<path d="{d}" fill="{c.gold}"/>' for d in EMBLEM_W)
+    g += f'<path d="{EMBLEM_T[0]}" fill="{c.bronze}"/>'
+    g += f'<path d="{EMBLEM_T[1]}" fill="{c.silver}"/>'
+    g += f'<path d="{EMBLEM_T[2]}" fill="{c.key}"/>'
+    pt = f'<path d="{EMBLEM_PT}" fill="{c.gold}"/>'
+    dot = f'<circle cx="627" cy="693" r="19" fill="{c.gold}"/>'
+    if anim:
+        pt = f'<g class="p">{pt}</g>'
+        dot = f'<g class="p" style="animation-delay:.7s">{dot}</g>'
+    return g + pt + dot + '</g>'
+
+
+def halo(c, cx, cy, r, dur="18s", op=.5):
+    return (f'<circle class="o" style="animation-duration:{dur}" cx="{n(cx)}" cy="{n(cy)}" r="{n(r)}" '
+            f'fill="none" stroke="{c.key}" stroke-width="1.2" stroke-dasharray="5 9" opacity="{op}"/>')
+
+
+def wordmark(c, x, y, w_target, fill=None):
+    """ARISTON letterforms from the brand file, `w_target` px wide, (x, y) top-left."""
+    k = w_target / 810.0
+    d = ''.join(f'<path d="{p}" fill="{fill or c.text}"/>' for p in WORD_D)
+    return f'<g transform="translate({n(x)} {n(y)}) scale({k:.5f}) translate(-222 -797)">{d}</g>'
+
+
+def keymotif(c, cx, cy, s=1.0, col=None, anim=True):
+    """Greek-key divider from the brand file, centered on (cx, cy)."""
+    col = col or c.key
+    g = f'<g transform="translate({n(cx)} {n(cy)}) scale({s:.4f}) translate(-624.5 -940.5)"'
+    g += ' class="k"' if anim else ''
+    g += '>'
+    g += f'<path d="M397 940L567 936L567 944Z" fill="{col}"/>'
+    g += f'<path d="M857 940L687 936L687 944Z" fill="{col}"/>'
+    g += (f'<path d="M590 916H659V965H590V940H636V951H612V929H647V941H624" '
+          f'fill="none" stroke="{col}" stroke-width="6" stroke-linecap="square"/>')
+    return g + '</g>'
+
+
+def chip(c, x, y, w, h, label, value, col, delay=0.0):
+    """Small stat chip: EN label on top, outlined value below (staggered fade)."""
+    b = f'<g class="d" style="animation-delay:{delay:.2f}s">'
+    b += rect(w, h, c.surf, c.line, 12, x, y)
+    b += f'<rect x="{x}" y="{y}" width="{w}" height="3" rx="1.5" fill="{col}" opacity=".8"/>'
+    b += t(label, INT, 9.5, x + w / 2, y + 20, c.mute, "middle", track=2)
+    vp, _ = T(value, CIN, 21, x + w / 2, y + 44, col, "middle")
+    b += vp + '</g>'
+    return b
 
 
 # ---------------------------------------------------------------- assets
-def banner(c):
-    w, h = 1280, 340
-    pts = [(930, 70), (1020, 130), (1100, 62), (1170, 122), (1235, 78), (1050, 205), (1130, 190), (1215, 180), (940, 190)]
+def banner(c, s=None):
+    """D12.1 hero — the real emblem + brand wordmark + greek key + live chips."""
+    s = s or {}
+    g_ = lambda k: str(s.get(k, "—"))
+    w, h = 1280, 380
+    pts = [(948, 78), (1030, 132), (1104, 66), (1172, 126), (1236, 82), (1064, 206), (1140, 192), (1218, 182), (956, 196)]
     edges = [(0, 1), (1, 2), (2, 3), (3, 4), (1, 5), (5, 6), (6, 7), (3, 7), (1, 8), (5, 8)]
     cols = [c.gold, c.silver, c.bronze]
     b = rect(w, h, c.bg, c.line, 16)
-    b += meander(40, 22, w - 80, c) + meander(40, h - 36, w - 80, c)
+    b += meander(40, 20, w - 80, c) + meander(40, h - 36, w - 80, c)
     for a, z in edges:
-        b += f'<line class="f" x1="{pts[a][0]}" y1="{pts[a][1]}" x2="{pts[z][0]}" y2="{pts[z][1]}" stroke="{c.key}" stroke-width="1.5" opacity=".45"/>'
+        b += f'<line class="f" x1="{pts[a][0]}" y1="{pts[a][1]}" x2="{pts[z][0]}" y2="{pts[z][1]}" stroke="{c.key}" stroke-width="1.5" opacity=".35"/>'
     for i, (px, py) in enumerate(pts):
         b += node(px, py, 6 if i % 3 == 0 else 4.5, cols[i % 3], round(i * .45, 2))
-    b += mark(c, 64, 92, 150, True)
-    b += sheen(c, 230, 60, 80, 220, 1000)
-    b += t("ARISTON", CIN, 84, 250, 176, c.gold, track=14)
-    b += t("ἄριστον  ·  THE BEST", INT, 20, 254, 220, c.mute, track=5)
-    b += t("TWICE-HOURLY VALIDATED NODE POOL", INT, 15, 254, 252, c.text, track=4, op=.8)
-    b += t("گره‌های سالم، هر ۳۰ دقیقه پالایش می‌شود", VAZ, 24, 1216, 276, c.text, "end", rtl=True)
-    return svg(w, h, b, c, "Ariston — hourly validated nodes")
+    # left: the real emblem inside a slow rotating halo
+    b += halo(c, 211, 184, 136, "20s")
+    b += f'<circle cx="211" cy="184" r="120" fill="{c.surf}" opacity=".55"/>'
+    b += emblem(c, 64, 66, 236, True)
+    # center: brand wordmark + greek key + taglines
+    b += sheen(c, 390, 56, 90, 270, 880)
+    b += wordmark(c, 396, 96, 450)
+    b += keymotif(c, 621, 208, .85)
+    b += t("ἄριστον · THE BEST — TWICE-HOURLY VALIDATED NODE POOL", INT, 14.5, 396, 254, c.mute, track=3)
+    b += t("گره‌های سالم، هر ۳۰ دقیقه پالایش می‌شود", VAZ, 19, 396, 301, c.text, rtl=True)
+    # right-bottom: live stat chips
+    b += chip(c, 758, 272, 150, 58, "GOLD", g_("gold"), c.gold, 0)
+    b += chip(c, 924, 272, 150, 58, "ALIVE", g_("validated"), c.olive, .15)
+    b += chip(c, 1090, 272, 150, 58, "LAST RUN", g_("updated"), c.silver, .3)
+    return svg(w, h, b, c, "Ariston — the best, twice-hourly validated")
 
 
 def run_card(c, s=None):
+    """D12.1 telemetry style — LIVE header, HUD-bracketed tiles, tier accents."""
     s = s or {}
     g = lambda k: str(s.get(k, "—"))
     tiles = [("total", "همه گره‌ها", "ALL UNIQUE", "text"), ("validated", "تأییدشده", "VALIDATED", "olive"),
              ("silver", "رده نقره", "SILVER", "silver"), ("gold", "رده طلا", "GOLD", "gold"),
-             ("updated", "آخرین اجرا", "LAST RUN", "text")]
-    w, h = 1280, 230
+             ("updated", "آخرین اجرا", "LAST RUN", "key")]
+    w, h = 1280, 250
     b = rect(w, h, c.bg, c.line, 16) + meander(40, 18, w - 80, c)
-    b += f'<circle class="b" cx="56" cy="62" r="5" fill="{c.olive}"/>'
-    b += t("LATEST RUN · TWICE-HOURLY", INT, 14, 72, 67, c.mute, track=3)
-    b += t("آمار زنده — از آخرین اجرای واقعی", VAZ, 20, 1240, 67, c.mute, "end", rtl=True)
+    b += f'<circle class="b" cx="56" cy="63" r="5" fill="{c.olive}"/>'
+    b += t("LIVE TELEMETRY — EVERY 30 MIN", INT, 14, 72, 68, c.mute, track=3)
+    b += t("آمار زنده — از آخرین اجرای واقعی", VAZ, 19, 1240, 68, c.mute, "end", rtl=True)
     tw, gap = 227, 16
     for i, (k, fa, en, col) in enumerate(tiles):
         x = 40 + i * (tw + gap)
-        b += rect(tw, 112, c.surf, c.line, 12, x, 88)
+        cc = tier_color(c, col)
+        b += f'<g class="r" style="animation-delay:{i * .14:.2f}s">'
+        b += rect(tw, 130, c.surf, c.line, 12, x, 86)
+        b += f'<rect x="{x + 14}" y="{86}" width="{tw - 28}" height="3" rx="1.5" fill="{cc}" opacity=".85"/>'
+        # HUD corner brackets
+        for dx, dy, ddx, ddy in ((6, 6, 16, 0), (6, 6, 0, 16), (tw - 6, 6, -16, 0), (tw - 6, 6, 0, 16),
+                                 (6, 124, 16, 0), (6, 124, 0, -16), (tw - 6, 124, -16, 0), (tw - 6, 124, 0, -16)):
+            b += (f'<path d="M{x + dx + ddx} {86 + dy + ddy}L{x + dx} {86 + dy}" fill="none" '
+                  f'stroke="{cc}" stroke-width="1.5" opacity=".45"/>' if (ddx and ddy == 0) or (ddy and ddx == 0) else '')
         val = g(k)
-        size = 50 if k != "updated" else 30
-        vp, _ = T(val, CIN, size, x + tw / 2, 144, tier_color(c, col), "middle")
-        b += f'<g class="r" style="animation-delay:{i * .14:.2f}s">{vp}</g>'
-        b += t(fa, VAZM, 20, x + tw / 2, 174, c.text, "middle", rtl=True)
-        b += t(en, INT, 11, x + tw / 2, 192, c.mute, "middle", track=2.5)
+        size = 44 if k != "updated" else 26
+        vp, _ = T(val, CIN, size, x + tw / 2, 152, cc, "middle")
+        b += vp
+        b += t(fa, VAZM, 19, x + tw / 2, 182, c.text, "middle", rtl=True)
+        b += t(en, INT, 10.5, x + tw / 2, 202, c.mute, "middle", track=2.5)
+        b += '</g>'
     return svg(w, h, b, c, "Latest pipeline run statistics")
 
 
 def bank_card(c, s=None):
-    """D7 — Config Bank status card: size · hit-rate · streaks · pass-2 · sources."""
+    """D12.1 vault style — rotating dial + the real emblem, ledger tiles right."""
     s = s or {}
     g = lambda k: str(s.get(k, "—"))
-    b = rect(1280, 230, c.bg, c.line, 16) + meander(40, 18, 1200, c)
-    b += f'<circle class="b" cx="56" cy="62" r="5" fill="{c.gold}"/>'
-    b += t("CONFIG BANK · TTL 28H", INT, 14, 72, 67, c.mute, track=3)
-    b += t("بانک کانفیگ — حافظه‌ی خط تولید بین اجراها", VAZ, 20, 1240, 67, c.mute, "end", rtl=True)
+    b = rect(1280, 250, c.bg, c.line, 16) + meander(40, 18, 1200, c)
+    b += f'<circle class="b" cx="286" cy="63" r="5" fill="{c.gold}"/>'
+    b += t("CONFIG BANK · VAULT LEDGER", INT, 14, 302, 68, c.mute, track=3)
+    b += t("بانک کانفیگ — حافظه‌ی خط تولید بین اجراها", VAZ, 19, 1240, 68, c.mute, "end", rtl=True)
+    # vault dial (left)
+    b += f'<circle cx="150" cy="152" r="74" fill="{c.surf}" opacity=".5"/>'
+    b += f'<circle cx="150" cy="152" r="74" fill="none" stroke="{c.line}" stroke-width="1.5"/>'
+    b += halo(c, 150, 152, 62, "16s", .6)
+    b += f'<circle cx="150" cy="152" r="50" fill="none" stroke="{c.key}" stroke-width="1" opacity=".6"/>'
+    b += emblem(c, 96, 110, 84, True)
     tiles = [("size", "خوش‌سابقه", "KNOWN-GOOD", "gold"),
              ("hit", "نرخ بازگشت", "HIT RATE", "olive"),
              ("streak", "میانگین سابقه", "AVG STREAK", "silver"),
              ("pass2", "نجات دور دوم", "PASS-2 RESCUED", "bronze"),
              ("src", "منابع سالم / مشکوک", "HEALTHY / SUSPECT", "text")]
-    tw, gap = 227, 16
+    tw, gap = 182, 12
     for i, (k, fa, en, col) in enumerate(tiles):
-        x = 40 + i * (tw + gap)
-        b += rect(tw, 112, c.surf, c.line, 12, x, 88)
+        x = 292 + i * (tw + gap)
+        cc = tier_color(c, col)
+        b += f'<g class="r" style="animation-delay:{i * .14:.2f}s">'
+        b += rect(tw, 130, c.surf, c.line, 12, x, 86)
+        b += f'<rect x="{x}" y="{86}" width="4" height="130" fill="{cc}" opacity=".8"/>'
         val = g(k)
-        size = 44 if k == "src" else 50
-        vp, _ = T(val, CIN, size, x + tw / 2, 144, tier_color(c, col), "middle")
-        b += f'<g class="r" style="animation-delay:{i * .14:.2f}s">{vp}</g>'
-        b += t(fa, VAZM, 20, x + tw / 2, 174, c.text, "middle", rtl=True)
-        b += t(en, INT, 11, x + tw / 2, 192, c.mute, "middle", track=2.5)
-    return svg(1280, 230, b, c, "Config bank status")
+        size = 34 if k == "src" else 40
+        vp, _ = T(val, CIN, size, x + tw / 2 + 2, 150, cc, "middle")
+        b += vp
+        b += t(fa, VAZM, 17, x + tw / 2 + 2, 180, c.text, "middle", rtl=True)
+        b += t(en, INT, 9.5, x + tw / 2 + 2, 200, c.mute, "middle", track=1.8)
+        b += '</g>'
+    return svg(1280, 250, b, c, "Config bank status")
 
 
 def quickstart(c):
-    w, h = 1280, 270
+    """D12.1 journey style — three stops on a marching dashed road."""
+    w, h = 1280, 290
     steps = [("لینک را کپی کنید", "gold.txt · validated.txt · nodes.txt", "gold"),
              ("در اپ اضافه کنید", "v2rayNG · Hiddify · NekoBox · Streisand", "silver"),
              ("وصل شوید", "UPDATED EVERY 30 MIN", "bronze")]
     b = rect(w, h, c.bg, c.line, 16) + meander(40, 18, w - 80, c)
-    cw, gap = 380, 30
+    cw, gap = 360, 40
     for i, (fa, sub, col) in enumerate(steps):
-        x = 40 + i * (cw + gap)
-        b += rect(cw, 170, c.surf, c.line, 12, x, 58)
-        if i:
-            b += f'<line class="f" x1="{x - gap + 4}" y1="143" x2="{x - 4}" y2="143" stroke="{c.key}" stroke-width="2"/>'
-        cx = x + cw / 2
+        x = 60 + i * (cw + gap)
         cc = tier_color(c, col)
+        if i:
+            b += (f'<line class="f2" x1="{x - gap + 6}" y1="116" x2="{x - 6}" y2="116" '
+                  f'stroke="{c.key}" stroke-width="2" opacity=".8"/>')
+        cx = x + cw / 2
         b += f'<g class="q" style="animation-delay:{i * 1.4:.2f}s">'
-        b += f'<circle cx="{cx}" cy="98" r="22" fill="none" stroke="{cc}" stroke-width="2"/>'
-        b += t(str(i + 1), CIN, 26, cx, 107, cc, "middle")
+        b += rect(cw, 148, c.surf, c.line, 12, x, 60)
+        b += halo(c, cx, 106, 34, f"{14 + i * 4}s", .55)
+        b += f'<circle cx="{cx}" cy="106" r="24" fill="none" stroke="{cc}" stroke-width="2"/>'
+        b += t(str(i + 1), CIN, 27, cx, 116, cc, "middle")
         b += '</g>'
-        b += t(fa, VAZM, 28, cx, 168, c.text, "middle", rtl=True)
-        b += t(sub, INT, 13, cx, 200, c.mute, "middle", track=1.2)
+        b += t(fa, VAZM, 27, cx, 172, c.text, "middle", rtl=True)
+        b += t(sub, INT, 12.5, cx, 198, c.mute, "middle", track=1.2)
+    b += keymotif(c, w / 2, 252, .6, anim=False)
+    b += t("SCAN A QR · IMPORT · CONNECT", INT, 11, w / 2 - 78, 257, c.mute, "end", track=2.5, op=.85)
+    b += t("NOTHING TO TRUST — EVERYTHING TO TEST", INT, 11, w / 2 + 78, 257, c.mute, track=2.5, op=.85)
     return svg(w, h, b, c, "Quick start in three steps")
 
 
@@ -452,7 +562,7 @@ def donut(c, s=None):
 
 
 def all_assets(stats=None):
-    A = {"banner": banner, "run-card": lambda c: run_card(c, stats), "bank-card": lambda c: bank_card(c, stats),
+    A = {"banner": lambda c: banner(c, stats), "run-card": lambda c: run_card(c, stats), "bank-card": lambda c: bank_card(c, stats),
          "quickstart": quickstart, "proof": proof,
          "protocols": protocols, "architecture": architecture, "btn-text": lambda c: btn(c, "text"),
          "btn-b64": lambda c: btn(c, "b64"), "client-mihomo": lambda c: client(c, "mihomo"),

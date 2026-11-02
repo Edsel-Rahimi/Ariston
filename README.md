@@ -53,6 +53,26 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
   <img src="assets/qr-nodes.svg" width="168" alt="QR all">
 </p>
 
+## 🤖 ربات تلگرام و مینی‌اپ — آریستون در جیب شما
+
+[ربات @Ariston_vbot](https://t.me/Ariston_vbot) همیشه هم‌قدمِ خط تولید است — و یک سرویس شخصی کامل می‌دهد:
+
+- **🏆 طلایی‌های من** — یک لینک ساب شخصی با **۱۰ کانفیگ طلایی پایه** که با دعوت دوستان تا **۲۰** رشد می‌کند؛ لینک هرگز عوض نمی‌شود و محتوایش هر دور تست تازه می‌شود
+- **📱 مینی‌اپ داخل تلگرام** — آمار زنده، کپی با یک لمس، QR، تاریخچه، علاقه‌مندی‌ها و تم روشن/تاریک
+- **🔔 جوین اجباری لحظه‌ای** — عضو [کانال رسمی](https://t.me/Ariston_CH) باش؛ اگر لف بدهی سرویس قفل می‌شود و با یک لمسِ «✅ عضو شدم» همان‌جا آزاد می‌شود
+- **📡 اعلان‌های هوشمند** — اعلام دور تازه، خلاصهٔ هفتگی شخصی، سهمیهٔ رفرال پله‌ای و حالت سکوت شبانه
+
+<p align="center">
+  <a href="https://t.me/Ariston_vbot"><img src="https://img.shields.io/badge/%D8%B4%D8%B1%D9%88%D8%B9_%D8%B1%D8%A8%D8%A7%D8%AA-@Ariston_vbot-E8C872?style=for-the-badge&labelColor=14110C" alt="Ariston bot"></a>&nbsp;
+  <a href="https://t.me/Ariston_CH"><img src="https://img.shields.io/badge/%DA%A9%D8%A7%D9%86%D8%A7%D9%84_%D8%B1%D8%B3%D9%85%DB%8C-@Ariston_CH-C9A24A?style=for-the-badge&labelColor=14110C" alt="Ariston channel"></a>
+</p>
+
+<p align="center">
+  <img src="assets/shots/miniapp-hero.png" width="268" alt="مینی‌اپ — آمار زنده">&nbsp;
+  <img src="assets/shots/miniapp-gold.png" width="268" alt="مینی‌اپ — طلایی‌های من + لینک ساب شخصی">&nbsp;
+  <img src="assets/shots/miniapp-qr.png" width="268" alt="مینی‌اپ — QR ساب شخصی">
+</p>
+
 ## رده‌ها — متن و Base64، یک کلیک
 
 این فایل‌ها منابع متفاوتی نیستند؛ **همان استخرِ یکتا** هستند که با «چقدر شواهد سلامت» فیلتر شده‌اند. روی هر کارت یا دکمه بزنید:
@@ -170,6 +190,7 @@ https://raw.githubusercontent.com/Edsel-Rahimi/Ariston/data/nodes.txt
 - [x] **فاز ۳ — اپراتورها و اعلان:** تفکیک ASN ایران، اعلان تلگرام، آینه‌سازی
 - [x] **فاز ۴ — وب‌داشبورد:** صفحه‌ی زنده روی GitHub Pages («اتاق فرمان» — `docs/index.html`)
 - [x] **فاز ۵ — بات تلگرام:** دریافت فایل‌ها داخل تلگرام — زنده روی Cloudflare Worker (D1–D5: ساب شخصی · مینی‌اپ · اینلاین · API عمومی · رفرال)
+- [x] **فاز ۶ — تجربهٔ یکپارچه (D12):** «طلایی‌های من» — ساب شخصی هم‌اندازهٔ سهمیه (۱۰ → ۲۰ با رفرال) · جوین اجباری لحظه‌ای · پنل ادمین همیشه کامل · هویت بصری تازه با نشان جدید
 
 ## پرسش‌های پرتکرار
 

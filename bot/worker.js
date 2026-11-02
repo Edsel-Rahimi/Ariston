@@ -3927,7 +3927,7 @@ body.light .fsearch{background:rgba(255,253,246,.8)}
     </svg>
     <div class="brandbox">
       <div class="brand">ARISTON</div>
-      <div class="brandsub">TELEGRAM PROTOCOL · v4.2</div>
+      <div class="brandsub">TELEGRAM PROTOCOL · v5.0</div>
     </div>
     <div class="hlive">
       <button class="admchip" id="admChip" style="display:none" aria-label="admin">🛠 پنل</button>
