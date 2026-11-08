@@ -4119,7 +4119,14 @@ var MEDALS = ['🥇', '🥈', '🥉'];
 var ISPN = {irancell:'Irancell', mci:'MCI', rightel:'Rightel', shatel:'Shatel', asiatech:'Asiatech', tci:'TCI'};
 var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 var initData = tg ? (tg.initData || '') : '';
+/* D12.3 — initData must never be lost to timing: every Telegram client signs
+   the launch into the URL fragment (#tgWebAppData=…) as well. Read it straight
+   from the hash so identity resolves even if telegram-web-app.js never loads
+   (telegram.org is slow or blocked on some Iranian ISPs — sub card then froze
+   on «open inside Telegram» forever). Same signed string the server validates. */
+if (!initData){ try { var _h = (location.hash || '').match(/tgWebAppData=([^&]+)/); if (_h) initData = decodeURIComponent(_h[1]); } catch (e){} }
 var tgu = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+if (!tgu && initData){ try { var _u = new URLSearchParams(initData).get('user'); if (_u) tgu = JSON.parse(_u); } catch (e){} }
 var lang = 'fa';
 var lcx = ((tgu && tgu.language_code) || 'fa').toLowerCase();
 if (lcx.indexOf('en') === 0) lang = 'en'; else if (lcx.indexOf('ru') === 0) lang = 'ru';
@@ -4801,18 +4808,28 @@ function showJoinWall(){
   };
 })();
 /* D5.2 hotfix — the Telegram script is async now: first paint never waits for
-   telegram.org. Attach TG features whenever it arrives (poll ≤ 4s), then refresh personal parts. */
+   telegram.org. Attach TG features whenever it arrives, then refresh personal parts.
+   D12.3 — two timing holes closed (sub card froze on «open inside Telegram»):
+   (a) a WebApp object whose initData is not populated yet no longer stops the
+       poll (bridge-populate race on mobile clients) — keep polling until
+       initData actually appears (≤ 15 s), only then load personal parts;
+   (b) identity already came from the URL fragment at boot (above), so the
+       personal sections render even if the SDK never arrives. */
+var personalLoaded = false;
+function loadPersonal(){ if (personalLoaded || !initData) return; personalLoaded = true;
+  loadSub(); loadHist(); loadMe(); loadFavs(); }
 function tgAttach(){
   tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-  if (!tg) return false;
-  initData = tg.initData || '';
-  try { tg.ready(); tg.expand(); tg.setHeaderColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); tg.setBackgroundColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); } catch (e){}
-  if (initData){ loadSub(); loadHist(); loadMe(); loadFavs(); }
-  return true;
+  initData = (tg && tg.initData) || initData || '';
+  if (tg){
+    try { tg.ready(); tg.expand(); tg.setHeaderColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); tg.setBackgroundColor(document.body.classList.contains('light') ? '#F4EEDF' : '#0C0A07'); } catch (e){}
+  }
+  if (initData){ loadPersonal(); return true; }
+  return false;
 }
 if (!tgAttach()){
   var tgN = 0;
-  var tgIv = setInterval(function(){ if (tgAttach() || ++tgN > 40) clearInterval(tgIv); }, 100);
+  var tgIv = setInterval(function(){ if (tgAttach() || ++tgN > 150) clearInterval(tgIv); }, 100);
 }
 <\/script>
 </body>
@@ -5825,18 +5842,25 @@ function bootPanel(){
   }).catch(function(){ $('lock').hidden = false; });
   return true;
 }
+/* D12.3 — same timing armor as the mini app: URL-fragment fallback + keep
+   polling until initData really appears (a WebApp object without initData no
+   longer stops the poll — bridge-populate race). bootPanel fires exactly once,
+   the moment identity exists; the lock only stays if Telegram truly never
+   provides identity. */
+var panelBooted = false;
 function tgAttach(){
   tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-  if (!tg) return false;
-  initData = tg.initData || '';
-  try { tg.ready(); tg.expand(); tg.setHeaderColor('#0C0A07'); tg.setBackgroundColor('#0C0A07'); } catch (e){}
+  initData = (tg && tg.initData) || initData || '';
+  if (!initData){ try { var _h = (location.hash || '').match(/tgWebAppData=([^&]+)/); if (_h) initData = decodeURIComponent(_h[1]); } catch (e){} }
+  if (!initData) return false;
+  if (tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor('#0C0A07'); tg.setBackgroundColor('#0C0A07'); } catch (e){} }
   $('lock').hidden = true;
-  bootPanel();
+  if (!panelBooted){ panelBooted = true; bootPanel(); }
   return true;
 }
 if (!tgAttach()){
   var tgN = 0;
-  var tgIv = setInterval(function(){ if (tgAttach() || ++tgN > 40) clearInterval(tgIv); }, 100);
+  var tgIv = setInterval(function(){ if (tgAttach() || ++tgN > 150) clearInterval(tgIv); }, 100);
 }
 <\/script>
 </div></body>
