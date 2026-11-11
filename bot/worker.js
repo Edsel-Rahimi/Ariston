@@ -2518,11 +2518,17 @@ async function appMe(env, request) {
 
 /* runs fn(env, body, tgUser) only when the initData belongs to a registered admin */
 async function guardAdmin(env, request, fn) {
+  const path = (() => { try { return new URL(request.url).pathname; } catch (_) { return '?'; } })();
   const body = await request.json().catch(() => ({}));
   const tgUser = await verifyInitData(env, body.initData);
-  if (!tgUser) return Response.json({ error: 'unauthorized' }, { status: 401 });
-  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) return Response.json({ error: 'join_required' }, { status: 403 }); // D10.1/B3 — the mini app is members-only too
-  if (!(await isAdmin(env, tgUser.id))) return Response.json({ error: 'forbidden' }, { status: 403 });
+  /* D12.4 — every rejection is now visible in the error ring. The panel was
+     reporting «saved» vs «error» with zero server-side evidence; the audit log
+     only records successes, so a rejected save was invisible. With this line,
+     err:log shows exactly which guard rejected which call — or nothing at all,
+     which proves the request never left the client. */
+  if (!tgUser) { await logErr(env, 'admin:unauthorized', path); return Response.json({ error: 'unauthorized' }, { status: 401 }); }
+  if (!(await gateUser(env, tgUser.id, await getCfg(env)))) { await logErr(env, 'admin:join_required', tgUser.id + ' ' + path); return Response.json({ error: 'join_required' }, { status: 403 }); } // D10.1/B3 — the mini app is members-only too
+  if (!(await isAdmin(env, tgUser.id))) { await logErr(env, 'admin:forbidden', tgUser.id + ' ' + path); return Response.json({ error: 'forbidden' }, { status: 403 }); }
   return fn(env, body, tgUser);
 }
 
@@ -3113,9 +3119,15 @@ async function adminHealth(env) {
     return { signal: c.signal, done: () => clearTimeout(t) };
   };
   await run('kv', async () => {
-    await kvPut(env, 'health:probe', String(Date.now()), 120);
-    const v = await kvGet(env, 'health:probe');
-    await kvDel(env, 'health:probe');
+    /* D12.4 — unique key per run: a fresh key can never be answered from the
+       edge's get-cache, so the write→read-back can no longer race. The old
+       fixed 'health:probe' could return a cached null after the previous
+       run's delete — an intermittent FALSE-red KV row that looked like data
+       loss (verified: real writes like cron:last_tick kept landing). */
+    const pk = 'health:probe:' + Date.now().toString(36);
+    await kvPut(env, pk, String(Date.now()), 120);
+    const v = await kvGet(env, pk);
+    await kvDel(env, pk);
     if (!v) throw new Error('read-back failed');
     return 'write/read/delete ok';
   });
