@@ -2614,30 +2614,48 @@ const PCFG_SET_KEYS = {
   proto_allow: 'csv', deny_kw: 'csv', allow_kw: 'csv', geo_allow: 'csv', geo_deny: 'csv',
 };
 
+/* D12.5 — one sanitizer shared by the single-key and the batch setter: same
+   specs, same clamps, same rejection rules (behavior identical to the old
+   inline chain). Throws instead of returning early so the batch setter can
+   reject a whole multi-field save when one field is junk — all-or-nothing
+   beats a half-saved phase card. */
+function applySetSpec(spec, v) {
+  if (spec === 'bool') return Boolean(v);
+  if (spec === 'handle') {
+    v = String(v || '').replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '');
+    if (v.length < 4) throw new Error('bad_value');
+    return v;
+  }
+  if (spec === 'tpl') { // D9/G2-1 — remark template: no '#', 3..48 chars, must contain a letter
+    v = sanitizeTpl(v);
+    if (v.length < 3 || !/[A-Za-z\u0600-\u06FF]/.test(v)) throw new Error('bad_value');
+    return v;
+  }
+  if (spec === 'csv') return sanitizeCsv(v); // D10/G5 — csv knob: '' is valid (= feature off)
+  if (spec === 'url') { // D11/U4-2 — webhook URL: '' = off; else http(s), ≤300 chars
+    v = String(v || '').trim();
+    if (v && (!/^https?:\/\/.+/i.test(v) || v.length > 300)) throw new Error('bad_value');
+    return v;
+  }
+  /* D12.5 — an EMPTY numeric field must not become the range minimum:
+     Number('') is 0, isFinite passes, and the clamp silently saved 50 when
+     the user cleared the box. Empty/null → explicit rejection instead. */
+  if (v === '' || v == null) throw new Error('bad_value');
+  const m = spec.match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+  v = Number(v);
+  if (!m || !isFinite(v)) throw new Error('bad_value');
+  v = Math.min(parseFloat(m[2]), Math.max(parseFloat(m[1]), v));
+  if (spec.startsWith('int:')) v = Math.round(v);
+  return v;
+}
+
 async function adminSet(env, body, tgUser) {
   const key = String(body.key || '');
   const spec = ADMIN_SET_KEYS[key] || PCFG_SET_KEYS[key];
   if (!spec) return Response.json({ error: 'bad_key' }, { status: 400 });
-  let v = body.value;
-  if (spec === 'bool') v = Boolean(v);
-  else if (spec === 'handle') {
-    v = String(v || '').replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '');
-    if (v.length < 4) return Response.json({ error: 'bad_value' }, { status: 400 });
-  } else if (spec === 'tpl') { // D9/G2-1 — remark template: no '#', 3..48 chars, must contain a letter
-    v = sanitizeTpl(v);
-    if (v.length < 3 || !/[A-Za-z\u0600-\u06FF]/.test(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
-  } else if (spec === 'csv') { // D10/G5 — csv knob: '' is valid (= feature off)
-    v = sanitizeCsv(v);
-  } else if (spec === 'url') { // D11/U4-2 — webhook URL: '' = off; else http(s), ≤300 chars
-    v = String(v || '').trim();
-    if (v && (!/^https?:\/\/.+/i.test(v) || v.length > 300)) return Response.json({ error: 'bad_value' }, { status: 400 });
-  } else {
-    const m = spec.match(/^(?:int|num):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
-    v = Number(v);
-    if (!m || !isFinite(v)) return Response.json({ error: 'bad_value' }, { status: 400 });
-    v = Math.min(parseFloat(m[2]), Math.max(parseFloat(m[1]), v));
-    if (spec.startsWith('int:')) v = Math.round(v);
-  }
+  let v;
+  try { v = applySetSpec(spec, body.value); }
+  catch (_) { return Response.json({ error: 'bad_value' }, { status: 400 }); }
   if (key === 'every_hours') { // lives outside cfg — /freq reads the same knob
     await kvPut(env, 'ch:every_hours', String(v));
     await kvDel(env, 'ch:last_post'); // new interval takes effect on the next tick
@@ -2656,6 +2674,58 @@ async function adminSet(env, body, tgUser) {
   if (key === 'channel_user') await kvDel(env, 'meta:channel'); // force re-resolve
   await audit(env, tgUser, 'set:' + key, v); // D9/G4-5
   return Response.json({ ok: true, key, value: v });
+}
+
+/* ───────── D12.5 — batch save: ONE read-modify-write per click ─────────
+   The phase buttons used to fire 7 staggered /set calls 350 ms apart. Every
+   call re-read and re-wrote the WHOLE cfg:pipeline blob, so the calls raced
+   each other: a stale read shipped an older blob over a newer write —
+   gold_min=80 was audited 2026-11-11T07:47:42Z and still ended back at 50 —
+   and the same burst tripped KV's ~1 write/sec-per-key limit, killing mid-
+   burst requests with silent 500s (their keys never appeared in audit:log
+   and no toast survived to explain). Saving a phase's fields in ONE atomic
+   write fixes both failure modes. /set stays untouched for toggles/chips.
+   Unknown keys and junk values reject the whole click before any write. */
+async function adminSetMulti(env, body, tgUser) {
+  const keys = body && body.keys && typeof body.keys === 'object' && !Array.isArray(body.keys) ? body.keys : null;
+  if (!keys) return Response.json({ error: 'bad_keys' }, { status: 400 });
+  const names = Object.keys(keys).slice(0, 16);
+  if (!names.length) return Response.json({ error: 'bad_keys' }, { status: 400 });
+  const vals = {};
+  for (const k of names) {
+    const spec = ADMIN_SET_KEYS[k] || PCFG_SET_KEYS[k];
+    if (!spec) return Response.json({ error: 'bad_key', key: k }, { status: 400 });
+    try { vals[k] = applySetSpec(spec, keys[k]); }
+    catch (_) { return Response.json({ error: 'bad_value', key: k }, { status: 400 }); }
+  }
+  const out = {};
+  try {
+    /* every_hours lives outside both stores (ch:every_hours) — same as /set */
+    if ('every_hours' in vals) {
+      await kvPut(env, 'ch:every_hours', String(vals.every_hours));
+      await kvDel(env, 'ch:last_post'); // new interval takes effect on the next tick
+    }
+    const pcKeys = names.filter(k => k in PCFG_SET_KEYS);
+    if (pcKeys.length) {
+      const pc = await getPipelineCfg(env);
+      for (const k of pcKeys) pc[k] = vals[k];
+      await putPipelineCfg(env, pc);
+      out.pcfg = pc; // client draws the server truth (clamps included)
+    }
+    const cfgKeys = names.filter(k => k in ADMIN_SET_KEYS && k !== 'every_hours');
+    if (cfgKeys.length) {
+      const cfg = await getCfg(env);
+      for (const k of cfgKeys) cfg[k] = vals[k];
+      if (cfgKeys.includes('channel_user')) await kvDel(env, 'meta:channel'); // force re-resolve
+      await putCfg(env, cfg);
+      out.cfg = cfg;
+    }
+  } catch (_) {
+    await logErr(env, 'set_multi:kv', names.join(','));
+    return Response.json({ error: 'kv_write_failed' }, { status: 500 });
+  }
+  await audit(env, tgUser, 'set_multi', names.join(','));
+  return Response.json({ ok: true, keys: names, ...out });
 }
 
 async function adminPostNow(env, body, tgUser) {
@@ -5412,6 +5482,23 @@ function set(key, value){
       draw(); } else toast('خطا — دوباره بزن');
   }).catch(function(){ toast('خطا'); });
 }
+/* D12.5 — batch save: every field of a phase goes in ONE request → ONE atomic
+   KV write. The old staggered per-key calls raced each other on the same blob
+   (a stale read-modify-write shipped an older blob back over a newer one →
+   saved values silently reverted on reload) and tripped the KV ~1 write/sec
+   per-key limit mid-burst (silent failures, keys missing from the audit log).
+   The server returns the resulting cfg/pcfg — the panel then shows the exact
+   stored truth (clamps included), not what the browser hoped it was. */
+function setMulti(keys){
+  post('set_multi', { keys: keys }).then(function(r){
+    if (r && r.ok){
+      if (r.pcfg) S.pcfg = r.pcfg;
+      if (r.cfg) S.cfg = r.cfg;
+      toast('ذخیره شد ✓'); draw();
+    } else if (r && r.error === 'bad_value') toast('مقدار نامعتبر (' + (r.key || '?') + ') — چک کن و دوباره بزن');
+    else toast('خطا — دوباره بزن');
+  }).catch(function(){ toast('خطا'); });
+}
 /* D8/P7 — two-step confirm: first tap arms the button for 3s, second tap fires */
 function confirm2(btn, fn){
   if (btn._armed){ btn._armed = false; clearTimeout(btn._t); btn.textContent = btn._label; fn(); return; }
@@ -5667,49 +5754,43 @@ $('testHook').onclick = function(){ post('test_webhook', {}).then(function(r){
   else if (r && r.error === 'no_webhook') toast('اول URL وب‌هوک را ذخیره کن');
   else toast('وب‌هوک جواب نداد — URL را چک کن'); }).catch(function(){ toast('وب‌هوک جواب نداد'); }); };
 $('saveRef').onclick = function(){ if (!S) return;
-  set('ref_base', parseInt($('refBase').value, 10));
-  setTimeout(function(){ set('ref_cap', parseInt($('refCap').value, 10)); }, 350); };
+  setMulti({ ref_base: parseInt($('refBase').value, 10), ref_cap: parseInt($('refCap').value, 10) }); };
 $('saveCh').onclick = function(){ if (S) set('channel_user', $('chUserIn').value); };
 $('postCard').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'card' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
 $('postDigest').onclick = function(){ toast('دارم می‌فرستم…');
   post('post_now', { kind: 'digest' }).then(function(r){ toast(r && r.ok ? 'فرستاده شد ✓' : 'خطا'); }).catch(function(){ toast('خطا'); }); };
 /* ─── D8/P — phase 1 bindings: pipeline · notifications · test-send · confirm2 ─── */
+/* D12.5 — all fields in one atomic save (was 7 staggered /set calls that
+   raced each other and tripped the KV write-rate limit mid-burst) */
 $('savePipe').onclick = function(){ if (!S) return;
-  var keys = [['bank_ttl_hours','pTtl'], ['suspect_after','pSuspect'], ['quarantine_after','pQuar'],
-              ['quarantine_days','pQdays'], ['min_streak_priority','pMinStreak'],
-              ['rescue_min_streak','pRmin'], ['rescue_max','pRmax']];
   toast('دارم ذخیره می‌کنم…');
-  keys.forEach(function(k, idx){
-    setTimeout(function(){ set(k[0], parseFloat($(k[1]).value)); }, idx * 350);
-  });
+  setMulti({ bank_ttl_hours: parseFloat($('pTtl').value), suspect_after: parseFloat($('pSuspect').value),
+             quarantine_after: parseFloat($('pQuar').value), quarantine_days: parseFloat($('pQdays').value),
+             min_streak_priority: parseFloat($('pMinStreak').value), rescue_min_streak: parseFloat($('pRmin').value),
+             rescue_max: parseFloat($('pRmax').value) });
 };
-/* ─── D9/G2 — phase 2 bindings ─── */
+/* ─── D9/G2 — phase 2 bindings (D12.5: one atomic save) ─── */
 $('savePipe2').onclick = function(){ if (!S) return;
   var tpl = ($('pRemark').value || '').trim();
   if (tpl && tpl.length < 3){ toast('قالب ریمارک خیلی کوتاهه'); return; }
   toast('دارم ذخیره می‌کنم…');
-  var keys = [['sub_max_lines','pSubMax'], ['sub_min_op_lines','pSubMin']];
-  keys.forEach(function(k, idx){
-    setTimeout(function(){ set(k[0], parseFloat($(k[1]).value)); }, idx * 350);
-  });
-  setTimeout(function(){ set('remark_tpl', tpl || 'Ariston{-GOLD}-{ping}ms'); }, 700);
+  setMulti({ sub_max_lines: parseFloat($('pSubMax').value), sub_min_op_lines: parseFloat($('pSubMin').value),
+             remark_tpl: tpl || 'Ariston{-GOLD}-{ping}ms' });
 };
 $('tglExpMih').onclick = function(){ if (S) set('exports_mihomo', S.pcfg.exports_mihomo === false); };
 $('tglExpSb').onclick = function(){ if (S) set('exports_singbox', S.pcfg.exports_singbox === false); };
 /* ─── D10 — phase 3 bindings: filters · health · backup · KV browser · cleanup ─── */
+/* D12.5 — all 7 filter fields in one atomic save (was 7 staggered /set calls:
+   gold_min=80 was provably written and then clobbered back to 50 by a stale
+   read-modify-write from the same burst) */
 $('savePipe3').onclick = function(){ if (!S) return;
   var g = parseInt($('pGold').value, 10), sv = parseInt($('pSilver').value, 10);
   if (isFinite(g) && isFinite(sv) && sv >= g){ toast('آستانهٔ نقره‌ای باید کمتر از طلایی باشد'); return; }
   toast('دارم ذخیره می‌کنم…');
-  [['gold_min','pGold'], ['silver_min','pSilver']].forEach(function(k, idx){
-    setTimeout(function(){ set(k[0], parseInt($(k[1]).value, 10)); }, idx * 350);
-  });
-  setTimeout(function(){ set('proto_allow', $('pProto').value); }, 700);
-  setTimeout(function(){ set('deny_kw', $('pDeny').value); }, 1050);
-  setTimeout(function(){ set('allow_kw', $('pAllow').value); }, 1400);
-  setTimeout(function(){ set('geo_allow', $('pGeoA').value); }, 1750);
-  setTimeout(function(){ set('geo_deny', $('pGeoD').value); }, 2100);
+  setMulti({ gold_min: parseInt($('pGold').value, 10), silver_min: parseInt($('pSilver').value, 10),
+             proto_allow: $('pProto').value, deny_kw: $('pDeny').value, allow_kw: $('pAllow').value,
+             geo_allow: $('pGeoA').value, geo_deny: $('pGeoD').value });
 };
 $('tglWeekly').onclick = function(){ if (S) set('weekly_enabled', S.cfg.weekly_enabled === false); };
 /* G7 — one-click health test */
@@ -5833,9 +5914,8 @@ $('fullScanBtn').onclick = function(){
 };
 $('saveNotify').onclick = function(){ if (!S) return;
   toast('دارم ذخیره می‌کنم…');
-  [['watchtower_cap','wtCap'], ['quiet_start','qStart'], ['quiet_end','qEnd']].forEach(function(k, idx){
-    setTimeout(function(){ set(k[0], parseInt($(k[1]).value, 10)); }, idx * 350);
-  });
+  setMulti({ watchtower_cap: parseInt($('wtCap').value, 10), quiet_start: parseInt($('qStart').value, 10),
+             quiet_end: parseInt($('qEnd').value, 10) });
 };
 $('tglQuiet').onclick = function(){ if (S) set('quiet_enabled', S.cfg.quiet_enabled !== true); };
 $('testWatch').onclick = function(){ toast('نمونه می‌آورم…');
@@ -6014,6 +6094,7 @@ const ROUTES = {
     }
     if (url.pathname === '/app/api/admin/state' && request.method === 'POST') return guardAdmin(env, request, adminState);
     if (url.pathname === '/app/api/admin/set' && request.method === 'POST') return guardAdmin(env, request, adminSet);
+    if (url.pathname === '/app/api/admin/set_multi' && request.method === 'POST') return guardAdmin(env, request, adminSetMulti); // D12.5 — atomic batch save
     if (url.pathname === '/app/api/admin/post_now' && request.method === 'POST') return guardAdmin(env, request, adminPostNow);
     if (url.pathname === '/app/api/admin/gen_api' && request.method === 'POST') return guardAdmin(env, request, adminGenApi); // D11/U4-2
     if (url.pathname === '/app/api/admin/test_webhook' && request.method === 'POST') return guardAdmin(env, request, adminTestWebhook); // D11/U4-2
